@@ -14,8 +14,16 @@ export default function Page() {
     }
 
     if (screen === "assignments") {
-        return <YouthAssignments onEdit={() => setScreen("home")} />;
+        return (
+            <div className="flex min-h-screen items-center justify-center px-4">
+                <YouthAssignments onEdit={() => setScreen("home")} />
+            </div>
+        );
     }
 
-    return <YouthHome onSave={() => setScreen("assignments")} />;
+    return (
+        <div className="flex min-h-screen items-center justify-center px-4">
+            <YouthHome onSave={() => setScreen("assignments")} />
+        </div>
+    );
 }

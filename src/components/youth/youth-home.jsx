@@ -4,7 +4,8 @@ import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import DateOption from "./date-option";
-import { sundays } from "@/data/mock-data";
+import { ShieldCheck } from "lucide-react";
+import { sundays, currentYouth } from "@/data/mock-data";
 
 export default function YouthHome({ onSave }) {
     const [selected, setSelected] = useState([]);
@@ -37,9 +38,20 @@ export default function YouthHome({ onSave }) {
                 Disponibilidad · Septiembre
             </p>
 
-            <h1 className="mt-3 text-3xl font-semibold tracking-tight">
-                Hola, Mateo
-            </h1>
+            <div className="mt-3">
+                <h1 className="text-3xl font-semibold tracking-tight">
+                    Hola, {currentYouth.name}
+                </h1>
+
+                <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
+
+                    <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1.5 text-xs font-medium text-green-700">
+                        {currentYouth.office === "priest"
+                            ? "Presbítero"
+                            : "Maestro"}
+                    </span>
+                </div>
+            </div>
 
             <p className="mt-2 text-muted-foreground">
                 ¿En qué domingos podés servir?

@@ -45,6 +45,12 @@ export const youth = [
     },
 ];
 
+export const currentYouth = {
+    id: 3,
+    name: "Mateo",
+    office: "priest",
+};
+
 export const assignments = [
     {
         sundayId: 3,
