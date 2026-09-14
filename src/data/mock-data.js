@@ -1,27 +1,19 @@
 export const sundays = [
     {
         id: 1,
-        day: "6",
-        month: "SEP",
-        label: "Domingo 6 de septiembre",
+        date: "2026-09-06",
     },
     {
         id: 2,
-        day: "13",
-        month: "SEP",
-        label: "Domingo 13 de septiembre",
+        date: "2026-09-13",
     },
     {
         id: 3,
-        day: "20",
-        month: "SEP",
-        label: "Domingo 20 de septiembre",
+        date: "2026-09-20",
     },
     {
         id: 4,
-        day: "27",
-        month: "SEP",
-        label: "Domingo 27 de septiembre",
+        date: "2026-09-27",
     },
 ];
 

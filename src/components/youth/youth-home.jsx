@@ -7,19 +7,29 @@ import DateOption from "./date-option";
 import { sundays } from "@/data/mock-data";
 
 export default function YouthHome({ onSave }) {
-    const [selected, setSelected] = useState(["20"]);
+    const [selected, setSelected] = useState([]);
 
-    const toggleSunday = (day) => {
+    const toggleSunday = (id) => {
         setSelected((current) => {
-            if (current.includes(day)) {
+            if (current.includes(id)) {
                 return current.filter(
-                    (item) => item !== day
+                    (item) => item !== id
                 );
             }
 
-            return [...current, day];
+            return [...current, id];
         });
     };
+
+    const today = new Date();
+
+    today.setHours(0, 0, 0, 0);
+
+    const upcomingSundays = sundays.filter((sunday) => {
+        const sundayDate = new Date(`${sunday.date}T00:00:00`);
+
+        return sundayDate >= today;
+    });
 
     return (
         <section className="mx-auto w-full max-w-xl">
@@ -36,16 +46,12 @@ export default function YouthHome({ onSave }) {
             </p>
 
             <div className="mt-8 flex flex-col gap-3">
-                {sundays.map((sunday) => (
+                {upcomingSundays.map((sunday) => (
                     <DateOption
                         key={sunday.id}
                         {...sunday}
-                        selected={selected.includes(
-                            sunday.day
-                        )}
-                        onSelect={() =>
-                            toggleSunday(sunday.day)
-                        }
+                        selected={selected.includes(sunday.id)}
+                        onSelect={() => toggleSunday(sunday.id)}
                     />
                 ))}
             </div>

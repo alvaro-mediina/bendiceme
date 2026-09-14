@@ -3,10 +3,28 @@ import { Check } from "lucide-react";
 export default function DateOption({
     selected,
     onSelect,
-    day,
-    month,
-    label,
+    date,
 }) {
+    const sundayDate = new Date(`${date}T00:00:00`);
+
+    const day = sundayDate.getDate();
+
+    const month = sundayDate
+        .toLocaleDateString("es-AR", {
+            month: "short",
+        })
+        .toUpperCase()
+        .replace(".", "");
+
+    const label = sundayDate.toLocaleDateString(
+        "es-AR",
+        {
+            weekday: "long",
+            day: "numeric",
+            month: "long",
+        }
+    );
+
     return (
         <button
             type="button"
@@ -41,7 +59,7 @@ export default function DateOption({
                 </span>
             </div>
 
-            <span className="flex-1 text-sm font-medium sm:text-[15px]">
+            <span className="flex-1 text-sm font-medium capitalize sm:text-[15px]">
                 {label}
             </span>
 
