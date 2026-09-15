@@ -4,6 +4,12 @@ import { useEffect, useState } from "react";
 import { ChevronRight } from "lucide-react";
 import BrandLogo from "../brand-logo";
 import { supabase } from "@/lib/supabase";
+import { motion } from "motion/react";
+import {
+    fadeUp,
+    staggerContainer,
+} from "@/lib/animations";
+import YouthSelectorSkeleton from "./youth-selector-skeleton";
 
 export default function YouthSelector({ onSelect }) {
     const [youth, setYouth] = useState([]);
@@ -39,14 +45,6 @@ export default function YouthSelector({ onSelect }) {
         onSelect(person);
     };
 
-    if (loading) {
-        return (
-            <p className="text-sm text-muted-foreground">
-                Cargando jóvenes...
-            </p>
-        );
-    }
-
     if (errorMessage) {
         return (
             <p className="text-sm text-red-600">
@@ -56,56 +54,84 @@ export default function YouthSelector({ onSelect }) {
     }
 
     return (
-        <section className="mx-auto w-full max-w-xl">
-            <BrandLogo/>
+        <motion.section 
+            initial="hidden"
+            animate="visible"
+            variants={staggerContainer}
+            className="mx-auto w-full max-w-xl"
+        >
+            
+            <motion.div variants={fadeUp}>
+                <BrandLogo/>
+            </motion.div>            
 
 
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-green-600">
+            <motion.p 
+                variants={fadeUp}
+                className="text-xs font-semibold uppercase tracking-[0.18em] text-green-600">
                 Acceso de jóvenes
-            </p>
+            </motion.p>
 
 
-            <h1 className="mt-3 text-3xl font-semibold tracking-tight">
+            <motion.h1 
+                variants={fadeUp}
+                className="mt-3 text-3xl font-semibold tracking-tight">
                 ¿Quién sos?
-            </h1>
+            </motion.h1>
 
-            <p className="mt-2 text-muted-foreground">
+            <motion.p 
+                variants={fadeUp}
+                className="mt-2 text-muted-foreground">
                 Elegí tu nombre para administrar tu disponibilidad
                 y revisar tus turnos.
-            </p>
+            </motion.p>
+            
+            <motion.div
+                variants={staggerContainer}
+                className="mt-8"
+            >
+                {loading ? (
+                    <YouthSelectorSkeleton />
+                ) : (
+                    <div className="flex flex-col gap-3">
+                        {youth.map((person) => (
+                            <motion.button
+                                key={person.id}
+                                variants={fadeUp}
+                                whileTap={{
+                                    scale: 0.98,
+                                }}
+                                type="button"
+                                onClick={() =>
+                                    handleSelect(person)
+                                }
+                                className="
+                                    flex min-h-[82px] w-full
+                                    items-center gap-4
+                                    rounded-2xl border bg-white p-4
+                                    text-left transition-colors
+                                    hover:border-green-300
+                                    hover:bg-green-50
+                                "
+                            >
+                                <div className="flex-1">
+                                    <p className="font-medium">
+                                        {person.name}
+                                    </p>
 
-            <div className="mt-8 flex flex-col gap-3">
-                {youth.map((person) => (
-                    <button
-                        key={person.id}
-                        type="button"
-                        onClick={() =>
-                            handleSelect(person)
-                        }
-                        className="
-                            flex w-full items-center gap-4
-                            rounded-2xl border bg-white p-4
-                            text-left transition-colors
-                            hover:border-green-300 hover:bg-green-50
-                        "
-                    >
-                        <div className="flex-1">
-                            <p className="font-medium">
-                                {person.name}
-                            </p>
+                                    <span className="mt-1 inline-flex rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700 ring-1 ring-green-200">
+                                        {person.office === "priest"
+                                            ? "Presbítero"
+                                            : "Maestro"}
+                                    </span>
+                                </div>
 
-                            <span className="mt-1 inline-flex rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700 ring-1 ring-green-200">
-                                {person.office ===
-                                "priest"
-                                    ? "Presbítero"
-                                    : "Maestro"}
-                            </span>
-                        </div>
-
-                        <ChevronRight className="size-5 text-muted-foreground" />
-                    </button>
-                ))}
-            </div>
-        </section>
+                                <ChevronRight className="size-5 text-muted-foreground" />
+                            </motion.button>
+                        ))}
+                    </div>
+                )}
+            </motion.div>
+        </motion.section>
     );
 }
