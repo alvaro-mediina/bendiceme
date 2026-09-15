@@ -9,8 +9,15 @@ import {
 } from "lucide-react";
 import BrandLogo from "../brand-logo";
 import { Button } from "@/components/ui/button";
-
 import { supabase } from "@/lib/supabase";
+import { motion, AnimatePresence } from "motion/react";
+import {
+    fadeUp,
+    scaleIn,
+    staggerContainer,
+} from "@/lib/animations";
+import YouthAssignmentSkeleton from "./youth-assignment-skeleton";
+
 
 export default function YouthAssignments({
     currentYouth,
@@ -164,72 +171,111 @@ export default function YouthAssignments({
     };
 
     if (loading) {
-        return (
-            <p className="text-sm text-muted-foreground">
-                Cargando turnos...
-            </p>
-        );
+       return <YouthAssignmentSkeleton/>;
     }
 
     if (errorMessage && !assignment) {
         return (
-            <section className="mx-auto w-full max-w-xl">
-                <BrandLogo/>
+            <motion.section
+                initial="hidden"
+                animate="visible"
+                variants={staggerContainer}
+                className="mx-auto w-full max-w-xl"
+            >
+                <motion.div variants={fadeUp}>
+                    <BrandLogo />
+                </motion.div>
 
-                <p className="text-sm text-red-600">
-                    {errorMessage}
-                </p>
-
-                <Button
-                    variant="outline"
-                    className="mt-4 rounded-xl"
-                    onClick={onBack}
+                <motion.p
+                    variants={fadeUp}
+                    className="mt-8 text-sm text-red-600"
                 >
-                    Volver
-                </Button>
-            </section>
+                    {errorMessage}
+                </motion.p>
+
+                <motion.div
+                    variants={fadeUp}
+                    whileTap={{ scale: 0.98 }}
+                >
+                    <Button
+                        variant="outline"
+                        className="mt-4 rounded-xl"
+                        onClick={onBack}
+                    >
+                        Volver
+                    </Button>
+                </motion.div>
+            </motion.section>
         );
     }
 
     if (!assignment) {
         return (
-            <section className="mx-auto w-full max-w-xl">
-                <BrandLogo/>
+            <motion.section
+                initial="hidden"
+                animate="visible"
+                variants={staggerContainer}
+                className="mx-auto w-full max-w-xl"
+            >
+                <motion.div variants={fadeUp}>
+                    <BrandLogo />
+                </motion.div>
 
-                <button
+                <motion.button
+                    variants={fadeUp}
+                    whileTap={{ scale: 0.98 }}
                     type="button"
                     onClick={onBack}
-                    className="mb-8 flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+                    className="mb-8 mt-8 flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
                     <ChevronLeft className="size-4" />
                     Volver
-                </button>
+                </motion.button>
 
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-green-600">
+                <motion.p
+                    variants={fadeUp}
+                    className="text-xs font-semibold uppercase tracking-[0.18em] text-green-600"
+                >
                     Mis turnos
-                </p>
+                </motion.p>
 
-                <h1 className="mt-3 text-3xl font-semibold tracking-tight">
+                <motion.h1
+                    variants={fadeUp}
+                    className="mt-3 text-2xl font-semibold tracking-tight sm:text-3xl"
+                >
                     Todavía no tenés turnos asignados
-                </h1>
+                </motion.h1>
 
-                <p className="mt-2 text-muted-foreground">
+                <motion.p
+                    variants={fadeUp}
+                    className="mt-2 text-muted-foreground"
+                >
                     Cuando el asesor te asigne un domingo,
                     aparecerá acá.
-                </p>
-            </section>
+                </motion.p>
+            </motion.section>
         );
     }
 
     if (!assignment.sunday) {
         return (
-            <section className="mx-auto w-full max-w-xl">
-                <BrandLogo/>
+            <motion.section 
+                initial="hidden"
+                animate="visible"
+                variants={staggerContainer}
+                className="mx-auto w-full max-w-xl"
+            >   
+                <motion.div variants={fadeUp}>
+                    <BrandLogo />
+                </motion.div>
 
-                <p className="text-sm text-red-600">
+                <motion.p 
+                    variants={fadeUp}
+                    className="text-sm text-red-600"
+                >
                     No se encontró la fecha de este turno.
-                </p>
-            </section>
+                </motion.p>
+            </motion.section>
         );
     }
 
@@ -263,26 +309,43 @@ export default function YouthAssignments({
 
     if (isDeclined) {
         return (
-            <section className="mx-auto w-full max-w-xl">
-                <button
+            <motion.section
+                initial="hidden"
+                animate="visible"
+                variants={staggerContainer}
+                className="mx-auto w-full max-w-xl"
+            >
+                <motion.div variants={fadeUp}>
+                    <BrandLogo />
+                </motion.div>
+
+                <motion.button
+                    variants={fadeUp}
+                    whileTap={{ scale: 0.98 }}
                     type="button"
                     onClick={onBack}
-                    className="mb-8 flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+                    className="mb-8 mt-8 flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
                     <ChevronLeft className="size-4" />
                     Volver
-                </button>
+                </motion.button>
 
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-green-600">
+                <motion.p
+                    variants={fadeUp}
+                    className="text-xs font-semibold uppercase tracking-[0.18em] text-green-600"
+                >
                     Mis turnos
-                </p>
+                </motion.p>
 
-                <div className="mt-8">
+                <motion.div
+                    variants={scaleIn}
+                    className="mt-8"
+                >
                     <div className="grid size-12 place-items-center rounded-full bg-red-100 text-red-700">
                         <CircleAlert className="size-6" />
                     </div>
 
-                    <h1 className="mt-6 text-3xl font-semibold tracking-tight">
+                    <h1 className="mt-6 text-2xl font-semibold tracking-tight sm:text-3xl">
                         Entonces NO ESTÁS DISPONIBLE.
                     </h1>
 
@@ -297,31 +360,51 @@ export default function YouthAssignments({
                         El asesor verá que ya no estás disponible
                         para ese domingo.
                     </p>
-                </div>
-            </section>
+                </motion.div>
+            </motion.section>
         );
     }
 
     return (
-        <section className="mx-auto w-full max-w-xl">
-            <button
-                type="button"
-                onClick={onBack}
-                className="mb-8 flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+        <motion.section 
+            initial="hidden"
+            animate="visible"
+            variants={staggerContainer}
+            className="mx-auto w-full max-w-xl"
+        >
+            <motion.div variants={fadeUp}>
+                <BrandLogo />
+            </motion.div>
+
+        <motion.button
+            variants={fadeUp}
+            whileTap={{ scale: 0.98 }}
+            type="button"
+            onClick={onBack}
+            className="mb-8 flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+        >
+            <ChevronLeft className="size-4" />
+            Volver
+        </motion.button>
+
+            <motion.p 
+                variants={fadeUp}
+                className="text-xs font-semibold uppercase tracking-[0.18em] text-green-600"
             >
-                <ChevronLeft className="size-4" />
-                Volver
-            </button>
-
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-green-600">
                 Mis turnos
-            </p>
+            </motion.p>
 
-            <h1 className="mt-3 text-3xl font-semibold tracking-tight">
+            <motion.h1 
+                variants={fadeUp}
+                className="mt-3 text-3xl font-semibold tracking-tight"
+            >
                 Hola, {youthName}
-            </h1>
+            </motion.h1>
 
-            <article className="mt-8 rounded-2xl border bg-white p-5 shadow-sm">
+           <motion.article
+                variants={fadeUp}
+                className="mt-6 rounded-2xl border bg-white p-4 shadow-sm sm:mt-8 sm:p-5"
+            >
                 <div className="flex items-start justify-between gap-4">
                     <div>
                         <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -340,17 +423,13 @@ export default function YouthAssignments({
                             ${
                                 isConfirmed
                                     ? "bg-green-100 text-green-700"
-                                    : isDeclined
-                                      ? "bg-red-100 text-red-700"
-                                      : "bg-amber-100 text-amber-700"
+                                    : "bg-amber-100 text-amber-700"
                             }
                         `}
                     >
                         {isConfirmed
                             ? "Confirmado"
-                            : isDeclined
-                              ? "No puedo"
-                              : "Pendiente"}
+                            : "Pendiente"}
                     </span>
                 </div>
 
@@ -367,7 +446,20 @@ export default function YouthAssignments({
                 </div>
 
                 {assignment.prepares && (
-                    <div className="mt-4 rounded-xl bg-green-50 p-4">
+                    <motion.div
+                        initial={{
+                            opacity: 0,
+                            y: 6,
+                        }}
+                        animate={{
+                            opacity: 1,
+                            y: 0,
+                        }}
+                        transition={{
+                            duration: 0.2,
+                        }}
+                        className="mt-4 rounded-xl bg-green-50 p-4"
+                    >
                         <p className="text-sm font-medium text-green-800">
                             También preparás la Santa Cena
                         </p>
@@ -376,74 +468,128 @@ export default function YouthAssignments({
                             Formás parte del equipo que prepara
                             antes de la reunión.
                         </p>
-                    </div>
+                    </motion.div>
                 )}
 
                 {errorMessage && (
-                    <p className="mt-4 text-sm text-red-600">
+                    <motion.p
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="mt-4 text-sm text-red-600"
+                    >
                         {errorMessage}
-                    </p>
+                    </motion.p>
                 )}
 
-                {isPending && (
-                    <div className="mt-6 flex gap-3">
-                        <Button
-                            variant="outline"
-                            className="h-11 flex-1 rounded-xl"
-                            disabled={updating}
-                            onClick={() =>
-                                updateStatus("declined")
-                            }
+                <AnimatePresence mode="wait">
+                    {isPending && (
+                        <motion.div
+                            key="pending"
+                            initial={{
+                                opacity: 0,
+                                y: 8,
+                            }}
+                            animate={{
+                                opacity: 1,
+                                y: 0,
+                            }}
+                            exit={{
+                                opacity: 0,
+                                y: -8,
+                            }}
+                            transition={{
+                                duration: 0.2,
+                            }}
+                            className="mt-6 flex gap-3"
                         >
-                            No puedo
-                        </Button>
+                            <motion.div
+                                className="flex-1"
+                                whileTap={{
+                                    scale: 0.98,
+                                }}
+                            >
+                                <Button
+                                    variant="outline"
+                                    className="h-11 w-full rounded-xl"
+                                    disabled={updating}
+                                    onClick={() =>
+                                        updateStatus("declined")
+                                    }
+                                >
+                                    No puedo
+                                </Button>
+                            </motion.div>
 
-                        <Button
-                            className="h-11 flex-1 rounded-xl bg-green-600 text-white hover:bg-green-700"
-                            disabled={updating}
-                            onClick={() =>
-                                updateStatus("confirmed")
-                            }
+                            <motion.div
+                                className="flex-1"
+                                whileTap={{
+                                    scale: 0.98,
+                                }}
+                            >
+                                <Button
+                                    className="h-11 w-full rounded-xl bg-green-600 text-white hover:bg-green-700"
+                                    disabled={updating}
+                                    onClick={() =>
+                                        updateStatus("confirmed")
+                                    }
+                                >
+                                    {updating
+                                        ? "Guardando..."
+                                        : "Confirmar"}
+                                </Button>
+                            </motion.div>
+                        </motion.div>
+                    )}
+
+                    {isConfirmed && (
+                        <motion.div
+                            key="confirmed"
+                            initial={{
+                                opacity: 0,
+                                scale: 0.97,
+                            }}
+                            animate={{
+                                opacity: 1,
+                                scale: 1,
+                            }}
+                            exit={{
+                                opacity: 0,
+                            }}
+                            transition={{
+                                duration: 0.25,
+                            }}
+                            className="mt-6 rounded-xl bg-green-50 p-4"
                         >
-                            {updating
-                                ? "Guardando..."
-                                : "Confirmar"}
-                        </Button>
-                    </div>
-                )}
+                            <div className="flex items-center gap-2 text-green-700">
+                                <div className="grid size-8 place-items-center rounded-full bg-green-100">
+                                    <Check className="size-4" />
+                                </div>
 
-                {isConfirmed && (
-                    <div className="mt-6 rounded-xl bg-green-50 p-4">
-                        <div className="flex items-center gap-2 text-green-700">
-                            <div className="grid size-8 place-items-center rounded-full bg-green-100">
-                                <Check className="size-4" />
+                                <p className="font-semibold">
+                                    Turno confirmado
+                                </p>
                             </div>
 
-                            <p className="font-semibold">
-                                Turno confirmado
+                            <p className="mt-3 text-sm text-green-800">
+                                Confirmaste que vas a servir el{" "}
+                                <span className="font-semibold">
+                                    {formattedDate}
+                                </span>.
                             </p>
-                        </div>
 
-                        <p className="mt-3 text-sm text-green-800">
-                            Confirmaste que vas a servir el{" "}
-                            <span className="font-semibold">
-                                {formattedDate}
-                            </span>.
-                        </p>
-
-                        <p className="mt-1 text-sm text-green-700">
-                            Tu asignación es{" "}
-                            <span className="font-semibold">
-                                {roleLabel.toLowerCase()}
-                            </span>
-                            {assignment.prepares
-                                ? " y también vas a preparar la Santa Cena."
-                                : "."}
-                        </p>
-                    </div>
-                )}
-
-            </article>
-        </section>
+                            <p className="mt-1 text-sm text-green-700">
+                                Tu asignación es{" "}
+                                <span className="font-semibold">
+                                    {roleLabel.toLowerCase()}
+                                </span>
+                                {assignment.prepares
+                                    ? " y también vas a preparar la Santa Cena."
+                                    : "."}
+                            </p>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </motion.article>
+        </motion.section>
     );
 }
