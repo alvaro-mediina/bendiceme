@@ -82,3 +82,38 @@ export async function ensureAvailableSundays() {
         activeMonthDate,
     };
 }
+
+export function getVisibleSundays() {
+    const now = new Date();
+
+    const currentMonthSundays = getSundaysOfMonth(now);
+
+    const lastSundayString =
+        currentMonthSundays[currentMonthSundays.length - 1];
+
+    const lastSundayAt13 = new Date(`${lastSundayString}T13:00:00`);
+
+    const activeMonthDate =
+        now >= lastSundayAt13
+            ? new Date(now.getFullYear(), now.getMonth() + 1, 1)
+            : new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const today = formatLocalDate(now);
+
+    const dates = getSundaysOfMonth(activeMonthDate).filter((date) => {
+        /*
+         * Si pasamos al mes siguiente,
+         * mostramos todos.
+         */
+        if (activeMonthDate.getMonth() !== now.getMonth()) {
+            return true;
+        }
+
+        return date >= today;
+    });
+
+    return {
+        dates,
+        activeMonthDate,
+    };
+}

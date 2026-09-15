@@ -1,15 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 
 import { Button } from "@/components/ui/button";
 import DateOption from "./date-option";
 import BrandLogo from "../brand-logo";
-import { ensureAvailableSundays } from "@/lib/sundays";
+import { ensureAvailableSundays, getVisibleSundays } from "@/lib/sundays";
 import { supabase } from "@/lib/supabase";
 import { motion } from "motion/react";
 import { fadeUp, staggerContainer } from "@/lib/animations";
-import DateOptionSkeleton from "@/components/youth/date-option-skeleton"
 
 export default function YouthHome({
     currentYouth,
@@ -22,10 +21,25 @@ export default function YouthHome({
     const [errorMessage, setErrorMessage] = useState(null);
     const [hadAvailability, setHadAvailability] = useState(false);
     const youthName = currentYouth.name.split(" ")[0];
-    const [sundays, setSundays] = useState([]);
-    const [activeMonth, setActiveMonth] = useState(null);
     const [initialSelected, setInitialSelected] = useState([]);
+    const {
+        dates: visibleSundayDates,
+        activeMonthDate,
+    } = useMemo(
+        () => getVisibleSundays(),
+        []
+    );
+    const [sundays, setSundays] = useState(
+        () =>
+            visibleSundayDates.map(
+                (date) => ({
+                    date,
+                    id: null,
+                })
+            )
+    );
 
+    const [activeMonth, setActiveMonth] = useState(activeMonthDate);
     
     const monthName = activeMonth
     ? activeMonth.toLocaleDateString(
@@ -83,8 +97,7 @@ export default function YouthHome({
         );
     
 
-
-    useEffect(() => {
+   useEffect(() => {
         const loadData = async () => {
             setLoaded(false);
             setErrorMessage(null);
@@ -92,10 +105,25 @@ export default function YouthHome({
             try {
                 const {
                     sundays: sundayData,
-                    activeMonthDate,
                 } = await ensureAvailableSundays();
 
-                setSundays(sundayData ?? []);
+                const sundaysWithIds =
+                    visibleSundayDates.map((date) => {
+                        const databaseSunday =
+                            sundayData.find(
+                                (sunday) =>
+                                    sunday.date === date
+                            );
+
+                        return {
+                            date,
+                            id:
+                                databaseSunday?.id ??
+                                null,
+                        };
+                    });
+
+                setSundays(sundaysWithIds);
                 setActiveMonth(activeMonthDate);
 
                 const {
@@ -113,34 +141,25 @@ export default function YouthHome({
                 if (availabilityError) {
                     throw availabilityError;
                 }
+
                 const sundayIds =
                     availabilityData.map(
-                        (item) => item.sunday_id
+                        (item) =>
+                            item.sunday_id
                     );
 
                 setSelected(sundayIds);
                 setInitialSelected(sundayIds);
 
-                const now = new Date();
-
-                const currentDate = [
-                    now.getFullYear(),
-                    String(
-                        now.getMonth() + 1
-                    ).padStart(2, "0"),
-                    String(
-                        now.getDate()
-                    ).padStart(2, "0"),
-                ].join("-");
-
                 const visibleSundayIds =
-                    (sundayData ?? [])
+                    sundaysWithIds
                         .filter(
                             (sunday) =>
-                                sunday.date >= currentDate
+                                sunday.id !== null
                         )
                         .map(
-                            (sunday) => sunday.id
+                            (sunday) =>
+                                sunday.id
                         );
 
                 const hasCurrentAvailability =
@@ -151,7 +170,6 @@ export default function YouthHome({
                 setHadAvailability(
                     hasCurrentAvailability
                 );
-
             } catch (error) {
                 console.error(error);
 
@@ -164,7 +182,7 @@ export default function YouthHome({
         };
 
         loadData();
-    }, [currentYouth.id]);
+    }, [ currentYouth.id ]);
 
     const toggleSunday = (id) => {
         setSelected((current) => {
@@ -310,7 +328,7 @@ export default function YouthHome({
 
             <motion.p
                 variants={fadeUp}
-                className="mt-6 text-xs font-semibold uppercase tracking-[0.18em] text-green-600 sm:mt-8"
+                className="mt-4 text-xs font-semibold uppercase tracking-[0.18em] text-green-600 sm:mt-3"
             >
                 Disponibilidad · {formattedMonth}
             </motion.p>
@@ -330,40 +348,39 @@ export default function YouthHome({
                 </div>
             </motion.div>
 
-            <motion.p variants={fadeUp} className="mt-2 text-muted-foreground">
+            <motion.p variants={fadeUp} className="mt-5 text-muted-foreground">
                 ¿En qué domingos podés servir?
             </motion.p>
 
                 
-            <div className="mt-8 flex flex-col gap-3">
-                {!loaded ? (
-                    <>
-                        <DateOptionSkeleton />
-                        <DateOptionSkeleton />
-                        <DateOptionSkeleton />
-                    </>
-                ) : (
-                    visibleSundays.map((sunday) => (
-                        <motion.div
-                            key={sunday.id}
-                            variants={fadeUp}
-                            whileTap={{
-                                scale: 0.98,
+            <motion.div
+                variants={staggerContainer}
+                className="mt-5 flex flex-col gap-3"
+            >
+                {sundays.map((sunday) => (
+                    <motion.div
+                        key={sunday.date}
+                        variants={fadeUp}
+                        whileTap={{
+                            scale: 0.98,
+                        }}
+                    >
+                        <DateOption
+                            {...sunday}
+                            selected={
+                                sunday.id
+                                    ? selected.includes(sunday.id)
+                                    : false
+                            }
+                            onSelect={() => {
+                                if (!sunday.id) return;
+
+                                toggleSunday(sunday.id);
                             }}
-                        >
-                            <DateOption
-                                {...sunday}
-                                selected={selected.includes(
-                                    sunday.id
-                                )}
-                                onSelect={() =>
-                                    toggleSunday(sunday.id)
-                                }
-                            />
-                        </motion.div>
-                    ))
-                )}
-            </div>
+                        />
+                    </motion.div>
+                ))}
+            </motion.div>
 
             {errorMessage && (
                 <p className="mt-4 text-sm text-red-600">
@@ -374,12 +391,11 @@ export default function YouthHome({
             <motion.div 
                 variants={fadeUp}
                 whileTap={{scale: .98,}}
-                disabled={!loaded || saving || !hasChanges}
             >
                 <Button
                         className="mt-8 h-12 w-full rounded-xl bg-green-600 text-white hover:bg-green-700"
                         onClick={handleSave}
-                        disabled={saving || !hasChanges}
+                        disabled={!loaded || saving || !hasChanges}
                     >
                         {saving
                             ? "Guardando..."
@@ -389,7 +405,8 @@ export default function YouthHome({
                 </Button>
             </motion.div>
             <motion.div 
-
+                variants={fadeUp}
+                whileTap={{scale:.98,}}
             >            
                 <Button
                     variant="outline"
