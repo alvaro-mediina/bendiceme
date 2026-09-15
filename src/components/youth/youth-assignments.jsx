@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
 import {
     Check,
     ChevronLeft,
@@ -9,23 +10,186 @@ import {
 
 import { Button } from "@/components/ui/button";
 
-import {
-    sundays,
+import { supabase } from "@/lib/supabase";
+
+export default function YouthAssignments({
     currentYouth,
-    currentYouthAssignment,
-} from "@/data/mock-data";
+    onBack,
+}) {
+    const [assignment, setAssignment] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [updating, setUpdating] = useState(false);
+    const [errorMessage, setErrorMessage] = useState(null);
+    const youthName = currentYouth.name.split(" ")[0]
 
-export default function YouthAssignments({ onBack }) {
-    const [status, setStatus] = useState(
-        currentYouthAssignment?.status || "pending"
-    );
+    useEffect(() => {
+        const loadAssignment = async () => {
+            const { data, error } = await supabase
+                .from("assignments")
+                .select(`
+                    *,
+                    sunday:sundays (
+                        id,
+                        date
+                    )
+                `)
+                .eq("youth_id", currentYouth.id)
+                .in("status", [
+                    "pending",
+                    "confirmed",
+                ])
+                .order("sunday_id", {
+                    ascending: true,
+                })
+                .limit(1)
+                .maybeSingle();
 
-    const assignmentSunday = sundays.find(
-        (sunday) =>
-            sunday.id === currentYouthAssignment?.sundayId
-    );
+            if (error) {
+                console.error(error);
 
-    if (!currentYouthAssignment || !assignmentSunday) {
+                setErrorMessage(
+                    "No se pudieron cargar tus turnos."
+                );
+            } else {
+                setAssignment(data);
+            }
+
+            setLoading(false);
+        };
+
+        loadAssignment();
+    }, [currentYouth.id]);
+
+   const updateStatus = async (newStatus) => {
+        if (!assignment) {
+            return;
+        }
+
+        setUpdating(true);
+        setErrorMessage(null);
+
+        const {
+            data,
+            error: assignmentError,
+        } = await supabase
+            .from("assignments")
+            .update({
+                status: newStatus,
+            })
+            .eq("id", assignment.id)
+            .select(`
+                *,
+                sunday:sundays (
+                    id,
+                    date
+                )
+            `)
+            .single();
+
+        if (assignmentError) {
+            console.error(assignmentError);
+
+            setErrorMessage(
+                "No se pudo actualizar el turno."
+            );
+
+            setUpdating(false);
+            return;
+        }
+
+        if (newStatus === "declined") {
+            const { error: availabilityError } =
+                await supabase
+                    .from("availability")
+                    .update({
+                        available: false,
+                    })
+                    .eq(
+                        "youth_id",
+                        currentYouth.id
+                    )
+                    .eq(
+                        "sunday_id",
+                        assignment.sunday_id
+                    );
+
+            if (availabilityError) {
+                console.error(
+                    availabilityError
+                );
+
+                setErrorMessage(
+                    "El turno fue rechazado, pero no se pudo actualizar tu disponibilidad."
+                );
+
+                setUpdating(false);
+                return;
+            }
+        }
+
+        if (newStatus === "confirmed") {
+            const { error: availabilityError } =
+                await supabase
+                    .from("availability")
+                    .upsert(
+                        {
+                            youth_id:
+                                currentYouth.id,
+                            sunday_id:
+                                assignment.sunday_id,
+                            available: true,
+                        },
+                        {
+                            onConflict:
+                                "youth_id,sunday_id",
+                        }
+                    );
+
+            if (availabilityError) {
+                console.error(
+                    availabilityError
+                );
+
+                setErrorMessage(
+                    "No se pudo actualizar tu disponibilidad."
+                );
+
+                setUpdating(false);
+                return;
+            }
+        }
+
+        setAssignment(data);
+        setUpdating(false);
+    };
+
+    if (loading) {
+        return (
+            <p className="text-sm text-muted-foreground">
+                Cargando turnos...
+            </p>
+        );
+    }
+
+    if (errorMessage && !assignment) {
+        return (
+            <section className="mx-auto w-full max-w-xl">
+                <p className="text-sm text-red-600">
+                    {errorMessage}
+                </p>
+
+                <Button
+                    variant="outline"
+                    className="mt-4 rounded-xl"
+                    onClick={onBack}
+                >
+                    Volver
+                </Button>
+            </section>
+        );
+    }
+
+    if (!assignment) {
         return (
             <section className="mx-auto w-full max-w-xl">
                 <button
@@ -53,27 +217,84 @@ export default function YouthAssignments({ onBack }) {
         );
     }
 
+    if (!assignment.sunday) {
+        return (
+            <section className="mx-auto w-full max-w-xl">
+                <p className="text-sm text-red-600">
+                    No se encontró la fecha de este turno.
+                </p>
+            </section>
+        );
+    }
+
     const date = new Date(
-        `${assignmentSunday.date}T00:00:00`
+        `${assignment.sunday.date}T00:00:00`
     );
 
-    const formattedDate = date.toLocaleDateString(
-        "es-AR",
-        {
-            weekday: "long",
-            day: "numeric",
-            month: "long",
-        }
-    );
+    const formattedDate =
+        date.toLocaleDateString(
+            "es-AR",
+            {
+                weekday: "long",
+                day: "numeric",
+                month: "long",
+            }
+        );
 
     const roleLabel =
-        currentYouthAssignment.role === "bless"
-            ? "Bendecir la Santa Cena"
-            : "Repartir la Santa Cena";
+        assignment.role === "bless"
+            ? "Bendecir"
+            : "Repartir";
 
-    const isPending = status === "pending";
-    const isConfirmed = status === "confirmed";
-    const isDeclined = status === "declined";
+    const isPending =
+        assignment.status === "pending";
+
+    const isConfirmed =
+        assignment.status === "confirmed";
+
+    const isDeclined =
+        assignment.status === "declined";
+
+    if (isDeclined) {
+        return (
+            <section className="mx-auto w-full max-w-xl">
+                <button
+                    type="button"
+                    onClick={onBack}
+                    className="mb-8 flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+                >
+                    <ChevronLeft className="size-4" />
+                    Volver
+                </button>
+
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-green-600">
+                    Mis turnos
+                </p>
+
+                <div className="mt-8">
+                    <div className="grid size-12 place-items-center rounded-full bg-red-100 text-red-700">
+                        <CircleAlert className="size-6" />
+                    </div>
+
+                    <h1 className="mt-6 text-3xl font-semibold tracking-tight">
+                        Entonces NO ESTÁS DISPONIBLE.
+                    </h1>
+
+                    <p className="mt-3 text-muted-foreground">
+                        Avisaste que no vas a poder servir el{" "}
+                        <span className="font-medium text-foreground">
+                            {formattedDate}
+                        </span>.
+                    </p>
+
+                    <p className="mt-2 text-sm text-muted-foreground">
+                        El asesor verá que ya no estás disponible
+                        para ese domingo.
+                    </p>
+                </div>
+            </section>
+        );
+    }
 
     return (
         <section className="mx-auto w-full max-w-xl">
@@ -91,7 +312,7 @@ export default function YouthAssignments({ onBack }) {
             </p>
 
             <h1 className="mt-3 text-3xl font-semibold tracking-tight">
-                Hola, {currentYouth.name}
+                Hola, {youthName}
             </h1>
 
             <article className="mt-8 rounded-2xl border bg-white p-5 shadow-sm">
@@ -108,7 +329,8 @@ export default function YouthAssignments({ onBack }) {
 
                     <span
                         className={`
-                            rounded-full px-3 py-1 text-xs font-medium
+                            rounded-full px-3 py-1
+                            text-xs font-medium
                             ${
                                 isConfirmed
                                     ? "bg-green-100 text-green-700"
@@ -138,16 +360,23 @@ export default function YouthAssignments({ onBack }) {
                     </p>
                 </div>
 
-                {currentYouthAssignment.prepares && (
+                {assignment.prepares && (
                     <div className="mt-4 rounded-xl bg-green-50 p-4">
                         <p className="text-sm font-medium text-green-800">
                             También preparás la Santa Cena
                         </p>
 
                         <p className="mt-1 text-xs text-green-700">
-                            Formás parte del equipo que prepara antes de la reunión.
+                            Formás parte del equipo que prepara
+                            antes de la reunión.
                         </p>
                     </div>
+                )}
+
+                {errorMessage && (
+                    <p className="mt-4 text-sm text-red-600">
+                        {errorMessage}
+                    </p>
                 )}
 
                 {isPending && (
@@ -155,8 +384,9 @@ export default function YouthAssignments({ onBack }) {
                         <Button
                             variant="outline"
                             className="h-11 flex-1 rounded-xl"
+                            disabled={updating}
                             onClick={() =>
-                                setStatus("declined")
+                                updateStatus("declined")
                             }
                         >
                             No puedo
@@ -164,11 +394,14 @@ export default function YouthAssignments({ onBack }) {
 
                         <Button
                             className="h-11 flex-1 rounded-xl bg-green-600 text-white hover:bg-green-700"
+                            disabled={updating}
                             onClick={() =>
-                                setStatus("confirmed")
+                                updateStatus("confirmed")
                             }
                         >
-                            Confirmar
+                            {updating
+                                ? "Guardando..."
+                                : "Confirmar"}
                         </Button>
                     </div>
                 )}
@@ -180,12 +413,6 @@ export default function YouthAssignments({ onBack }) {
                     </div>
                 )}
 
-                {isDeclined && (
-                    <div className="mt-6 flex items-center gap-2 text-sm text-red-700">
-                        <CircleAlert className="size-4" />
-                        Avisaste que no podés asistir.
-                    </div>
-                )}
             </article>
         </section>
     );

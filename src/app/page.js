@@ -13,7 +13,6 @@ import { supabase } from "@/lib/supabase";
 export default function Page() {
     const [screen, setScreen] = useState("select");
     const [currentYouth, setCurrentYouth] = useState(null);
-
     const [loadingUser, setLoadingUser] = useState(true);
 
     useEffect(() => {
@@ -27,14 +26,30 @@ export default function Page() {
                 return;
             }
 
-            const { data, error } = await supabase
+            const { data: youthData, error: youthError } = await supabase
                 .from("youth")
                 .select("*")
                 .eq("id", savedYouthId)
                 .single();
 
-            if (!error && data) {
-                setCurrentYouth(data);
+            if (youthError || !youthData) {
+                setLoadingUser(false);
+                return;
+            }
+
+            setCurrentYouth(youthData);
+
+            const { data: availabilityData, error: availabilityError } =
+                await supabase
+                    .from("availability")
+                    .select("id")
+                    .eq("youth_id", youthData.id)
+                    .eq("available", true)
+                    .limit(1);
+
+            if (!availabilityError && availabilityData.length > 0) {
+                setScreen("saved");
+            } else {
                 setScreen("home");
             }
 
@@ -82,7 +97,7 @@ export default function Page() {
             <div className="flex min-h-screen items-center justify-center px-4">
                 <YouthAssignments
                     currentYouth={currentYouth}
-                    onBack={() => setScreen("saved")}
+                    onBack={() => setScreen("home")}
                 />
             </div>
         );
@@ -93,6 +108,7 @@ export default function Page() {
             <YouthHome
                 currentYouth={currentYouth}
                 onSave={() => setScreen("saved")}
+                onViewAssignments={() => setScreen("assignments")}
             />
         </div>
     );
