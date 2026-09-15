@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Check, ChevronLeft } from "lucide-react";
-
+import BrandLogo from "../brand-logo";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase";
 
@@ -101,6 +101,7 @@ export default function AvailabilitySaved({
 
     return (
         <section className="mx-auto w-full max-w-xl">
+            <BrandLogo/>
             <button
                 type="button"
                 onClick={onEdit}

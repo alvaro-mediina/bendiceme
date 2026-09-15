@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { ChevronRight } from "lucide-react";
-
+import BrandLogo from "../brand-logo";
 import { supabase } from "@/lib/supabase";
 
 export default function YouthSelector({ onSelect }) {
@@ -57,16 +57,21 @@ export default function YouthSelector({ onSelect }) {
 
     return (
         <section className="mx-auto w-full max-w-xl">
+            <BrandLogo/>
+
+
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-green-600">
-                BendiceMe
+                Acceso de jóvenes
             </p>
+
 
             <h1 className="mt-3 text-3xl font-semibold tracking-tight">
                 ¿Quién sos?
             </h1>
 
             <p className="mt-2 text-muted-foreground">
-                Seleccioná tu nombre para continuar.
+                Elegí tu nombre para administrar tu disponibilidad
+                y revisar tus turnos.
             </p>
 
             <div className="mt-8 flex flex-col gap-3">

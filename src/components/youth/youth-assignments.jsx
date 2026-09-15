@@ -7,7 +7,7 @@ import {
     ChevronLeft,
     CircleAlert,
 } from "lucide-react";
-
+import BrandLogo from "../brand-logo";
 import { Button } from "@/components/ui/button";
 
 import { supabase } from "@/lib/supabase";
@@ -174,6 +174,8 @@ export default function YouthAssignments({
     if (errorMessage && !assignment) {
         return (
             <section className="mx-auto w-full max-w-xl">
+                <BrandLogo/>
+
                 <p className="text-sm text-red-600">
                     {errorMessage}
                 </p>
@@ -192,6 +194,8 @@ export default function YouthAssignments({
     if (!assignment) {
         return (
             <section className="mx-auto w-full max-w-xl">
+                <BrandLogo/>
+
                 <button
                     type="button"
                     onClick={onBack}
@@ -220,6 +224,8 @@ export default function YouthAssignments({
     if (!assignment.sunday) {
         return (
             <section className="mx-auto w-full max-w-xl">
+                <BrandLogo/>
+
                 <p className="text-sm text-red-600">
                     No se encontró la fecha de este turno.
                 </p>
@@ -407,9 +413,33 @@ export default function YouthAssignments({
                 )}
 
                 {isConfirmed && (
-                    <div className="mt-6 flex items-center gap-2 text-sm text-green-700">
-                        <Check className="size-4" />
-                        Confirmaste este turno.
+                    <div className="mt-6 rounded-xl bg-green-50 p-4">
+                        <div className="flex items-center gap-2 text-green-700">
+                            <div className="grid size-8 place-items-center rounded-full bg-green-100">
+                                <Check className="size-4" />
+                            </div>
+
+                            <p className="font-semibold">
+                                Turno confirmado
+                            </p>
+                        </div>
+
+                        <p className="mt-3 text-sm text-green-800">
+                            Confirmaste que vas a servir el{" "}
+                            <span className="font-semibold">
+                                {formattedDate}
+                            </span>.
+                        </p>
+
+                        <p className="mt-1 text-sm text-green-700">
+                            Tu asignación es{" "}
+                            <span className="font-semibold">
+                                {roleLabel.toLowerCase()}
+                            </span>
+                            {assignment.prepares
+                                ? " y también vas a preparar la Santa Cena."
+                                : "."}
+                        </p>
                     </div>
                 )}
 

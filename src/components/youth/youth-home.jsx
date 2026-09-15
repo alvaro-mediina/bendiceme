@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import DateOption from "./date-option";
+import BrandLogo from "../brand-logo";
 import { ensureAvailableSundays } from "@/lib/sundays";
 import { supabase } from "@/lib/supabase";
 
@@ -70,6 +71,15 @@ export default function YouthHome({
     const hasChanges =
         JSON.stringify(currentVisibleSelected) !==
         JSON.stringify(initialVisibleSelected);
+
+    const removedSundayIds =
+        initialSelected.filter(
+            (id) =>
+                visibleSundayIds.includes(id) &&
+                !selected.includes(id)
+        );
+    
+
 
     useEffect(() => {
         const loadData = async () => {
@@ -173,6 +183,45 @@ export default function YouthHome({
             (sunday) => sunday.id
         );
 
+        // Si quitó disponibilidad de un domingo
+        // donde tenía una asignación activa,
+        // esa asignación pasa a declined.
+        if (removedSundayIds.length > 0) {
+            const { error: assignmentError } =
+                await supabase
+                    .from("assignments")
+                    .update({
+                        status: "declined",
+                    })
+                    .eq(
+                        "youth_id",
+                        currentYouth.id
+                    )
+                    .in(
+                        "sunday_id",
+                        removedSundayIds
+                    )
+                    .in("status", [
+                        "pending",
+                        "confirmed",
+                    ]);
+
+            if (assignmentError) {
+                console.error(
+                    assignmentError
+                );
+
+                setErrorMessage(
+                    "No se pudo actualizar tu asignación."
+                );
+
+                setSaving(false);
+                return;
+            }
+        }
+
+        // Borra la disponibilidad actual
+        // únicamente para los domingos visibles.
         if (visibleSundayIds.length > 0) {
             const { error: deleteError } =
                 await supabase
@@ -201,14 +250,18 @@ export default function YouthHome({
 
         const selectedVisibleSundays =
             selected.filter((sundayId) =>
-                visibleSundayIds.includes(sundayId)
+                visibleSundayIds.includes(
+                    sundayId
+                )
             );
 
         const newAvailability =
             selectedVisibleSundays.map(
                 (sundayId) => ({
-                    youth_id: currentYouth.id,
-                    sunday_id: sundayId,
+                    youth_id:
+                        currentYouth.id,
+                    sunday_id:
+                        sundayId,
                     available: true,
                 })
             );
@@ -217,10 +270,14 @@ export default function YouthHome({
             const { error: insertError } =
                 await supabase
                     .from("availability")
-                    .insert(newAvailability);
+                    .insert(
+                        newAvailability
+                    );
 
             if (insertError) {
-                console.error(insertError);
+                console.error(
+                    insertError
+                );
 
                 setErrorMessage(
                     "No se pudo guardar tu disponibilidad."
@@ -245,6 +302,9 @@ export default function YouthHome({
 
     return (
         <section className="mx-auto w-full max-w-xl">
+            
+            <BrandLogo/>
+
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-green-600">
                 Disponibilidad · {formattedMonth}
             </p>
@@ -312,6 +372,10 @@ export default function YouthHome({
 
             <p className="mt-3 text-center text-xs text-muted-foreground">
                 Podés seleccionar más de un domingo.
+            </p>
+
+            <p className="mt-1 text-center text-xs text-muted-foreground">
+                Tu disponibilidad no garantiza una asignación.
             </p>
         </section>
     );
