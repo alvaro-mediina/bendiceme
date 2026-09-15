@@ -45,12 +45,6 @@ export const youth = [
     },
 ];
 
-export const currentYouth = {
-    id: 3,
-    name: "Mateo",
-    office: "priest",
-};
-
 export const assignments = [
     {
         sundayId: 3,
@@ -81,3 +75,11 @@ export const assignments = [
         status: "pending",
     },
 ];
+
+export const currentYouthAssignment = {
+    sundayId: 3,
+    youthId: 3,
+    role: "pass",
+    prepares: true,
+    status: "pending",
+};

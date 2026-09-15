@@ -4,61 +4,106 @@ import { useState } from "react";
 import {
     Check,
     ChevronLeft,
+    CircleAlert,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
-export default function YouthAssignments({
-    onEdit,
-}) {
-    const [status, setStatus] =
-        useState("pending");
+import {
+    sundays,
+    currentYouth,
+    currentYouthAssignment,
+} from "@/data/mock-data";
 
-    const isConfirmed =
-        status === "confirmed";
+export default function YouthAssignments({ onBack }) {
+    const [status, setStatus] = useState(
+        currentYouthAssignment?.status || "pending"
+    );
 
-    const isDeclined =
-        status === "declined";
+    const assignmentSunday = sundays.find(
+        (sunday) =>
+            sunday.id === currentYouthAssignment?.sundayId
+    );
+
+    if (!currentYouthAssignment || !assignmentSunday) {
+        return (
+            <section className="mx-auto w-full max-w-xl">
+                <button
+                    type="button"
+                    onClick={onBack}
+                    className="mb-8 flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+                >
+                    <ChevronLeft className="size-4" />
+                    Volver
+                </button>
+
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-green-600">
+                    Mis turnos
+                </p>
+
+                <h1 className="mt-3 text-3xl font-semibold tracking-tight">
+                    Todavía no tenés turnos asignados
+                </h1>
+
+                <p className="mt-2 text-muted-foreground">
+                    Cuando el asesor te asigne un domingo,
+                    aparecerá acá.
+                </p>
+            </section>
+        );
+    }
+
+    const date = new Date(
+        `${assignmentSunday.date}T00:00:00`
+    );
+
+    const formattedDate = date.toLocaleDateString(
+        "es-AR",
+        {
+            weekday: "long",
+            day: "numeric",
+            month: "long",
+        }
+    );
+
+    const roleLabel =
+        currentYouthAssignment.role === "bless"
+            ? "Bendecir la Santa Cena"
+            : "Repartir la Santa Cena";
+
+    const isPending = status === "pending";
+    const isConfirmed = status === "confirmed";
+    const isDeclined = status === "declined";
 
     return (
         <section className="mx-auto w-full max-w-xl">
             <button
                 type="button"
-                onClick={onEdit}
+                onClick={onBack}
                 className="mb-8 flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
             >
                 <ChevronLeft className="size-4" />
-                Cambiar disponibilidad
+                Volver
             </button>
 
-            <div className="grid size-12 place-items-center rounded-full bg-green-100 text-green-700">
-                <Check className="size-6" />
-            </div>
-
-            <p className="mt-6 text-xs font-semibold uppercase tracking-[0.18em] text-green-600">
-                Disponibilidad guardada
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-green-600">
+                Mis turnos
             </p>
 
             <h1 className="mt-3 text-3xl font-semibold tracking-tight">
-                Tu disponibilidad fue guardada
+                Hola, {currentYouth.name}
             </h1>
 
             <article className="mt-8 rounded-2xl border bg-white p-5 shadow-sm">
                 <div className="flex items-start justify-between gap-4">
                     <div>
                         <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                            Próximo domingo
+                            Próximo turno
                         </p>
 
-                        <div className="mt-2 flex items-end gap-1">
-                            <strong className="text-4xl leading-none">
-                                20
-                            </strong>
-
-                            <span className="text-sm font-semibold text-muted-foreground">
-                                SEP
-                            </span>
-                        </div>
+                        <p className="mt-2 text-lg font-semibold capitalize">
+                            {formattedDate}
+                        </p>
                     </div>
 
                     <span
@@ -69,7 +114,7 @@ export default function YouthAssignments({
                                     ? "bg-green-100 text-green-700"
                                     : isDeclined
                                       ? "bg-red-100 text-red-700"
-                                      : "bg-orange-100 text-orange-700"
+                                      : "bg-amber-100 text-amber-700"
                             }
                         `}
                     >
@@ -83,15 +128,29 @@ export default function YouthAssignments({
 
                 <div className="my-5 border-t" />
 
-                <p className="font-medium">
-                    Tu asignación: Repartir
-                </p>
+                <div>
+                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                        Tu asignación
+                    </p>
 
-                <p className="mt-1 text-sm text-muted-foreground">
-                    También preparás la Santa Cena.
-                </p>
+                    <p className="mt-2 text-xl font-semibold">
+                        {roleLabel}
+                    </p>
+                </div>
 
-                {status === "pending" && (
+                {currentYouthAssignment.prepares && (
+                    <div className="mt-4 rounded-xl bg-green-50 p-4">
+                        <p className="text-sm font-medium text-green-800">
+                            También preparás la Santa Cena
+                        </p>
+
+                        <p className="mt-1 text-xs text-green-700">
+                            Formás parte del equipo que prepara antes de la reunión.
+                        </p>
+                    </div>
+                )}
+
+                {isPending && (
                     <div className="mt-6 flex gap-3">
                         <Button
                             variant="outline"
@@ -111,6 +170,20 @@ export default function YouthAssignments({
                         >
                             Confirmar
                         </Button>
+                    </div>
+                )}
+
+                {isConfirmed && (
+                    <div className="mt-6 flex items-center gap-2 text-sm text-green-700">
+                        <Check className="size-4" />
+                        Confirmaste este turno.
+                    </div>
+                )}
+
+                {isDeclined && (
+                    <div className="mt-6 flex items-center gap-2 text-sm text-red-700">
+                        <CircleAlert className="size-4" />
+                        Avisaste que no podés asistir.
                     </div>
                 )}
             </article>
