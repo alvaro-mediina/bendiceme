@@ -2,7 +2,7 @@ import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
 export const metadata = {
-    title: "BendiceMe — Comunidad y servicio",
+    title: "BendiceMe",
     description: "Organiza tus turnos y sirve a tu comunidad con BendiceMe.",
     generator: "v0.app",
 };

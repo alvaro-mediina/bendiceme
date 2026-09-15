@@ -7,6 +7,9 @@ import DateOption from "./date-option";
 import BrandLogo from "../brand-logo";
 import { ensureAvailableSundays } from "@/lib/sundays";
 import { supabase } from "@/lib/supabase";
+import { motion } from "motion/react";
+import { fadeUp, staggerContainer } from "@/lib/animations";
+import DateOptionSkeleton from "@/components/youth/date-option-skeleton"
 
 export default function YouthHome({
     currentYouth,
@@ -292,24 +295,28 @@ export default function YouthHome({
         onSave();
     };
 
-    if (!loaded) {
-        return (
-            <p className="text-sm text-muted-foreground">
-                Cargando disponibilidad...
-            </p>
-        );
-    }
 
     return (
-        <section className="mx-auto w-full max-w-xl">
+        <motion.section
+            className="mx-auto w-full max-w-xl"
+            initial="hidden"
+            animate="visible"
+            variants={staggerContainer}
+        >
             
-            <BrandLogo/>
+            <motion.div variants={fadeUp}>
+                <BrandLogo />
+            </motion.div>
 
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-green-600">
+            <motion.p
+                variants={fadeUp}
+                className="mt-6 text-xs font-semibold uppercase tracking-[0.18em] text-green-600 sm:mt-8"
+            >
                 Disponibilidad · {formattedMonth}
-            </p>
+            </motion.p>
 
-            <div className="mt-3">
+
+            <motion.div variants={fadeUp} className="mt-3">
                 <h1 className="text-3xl font-semibold tracking-tight">
                     Hola, {youthName}
                 </h1>
@@ -321,26 +328,41 @@ export default function YouthHome({
                             : "Maestro"}
                     </span>
                 </div>
-            </div>
+            </motion.div>
 
-            <p className="mt-2 text-muted-foreground">
+            <motion.p variants={fadeUp} className="mt-2 text-muted-foreground">
                 ¿En qué domingos podés servir?
-            </p>
+            </motion.p>
 
                 
             <div className="mt-8 flex flex-col gap-3">
-                {visibleSundays.map((sunday) => (
-                    <DateOption
-                        key={sunday.id}
-                        {...sunday}
-                        selected={selected.includes(
-                            sunday.id
-                        )}
-                        onSelect={() =>
-                            toggleSunday(sunday.id)
-                        }
-                    />
-                ))}
+                {!loaded ? (
+                    <>
+                        <DateOptionSkeleton />
+                        <DateOptionSkeleton />
+                        <DateOptionSkeleton />
+                    </>
+                ) : (
+                    visibleSundays.map((sunday) => (
+                        <motion.div
+                            key={sunday.id}
+                            variants={fadeUp}
+                            whileTap={{
+                                scale: 0.98,
+                            }}
+                        >
+                            <DateOption
+                                {...sunday}
+                                selected={selected.includes(
+                                    sunday.id
+                                )}
+                                onSelect={() =>
+                                    toggleSunday(sunday.id)
+                                }
+                            />
+                        </motion.div>
+                    ))
+                )}
             </div>
 
             {errorMessage && (
@@ -349,34 +371,44 @@ export default function YouthHome({
                 </p>
             )}
 
-           <Button
-                className="mt-8 h-12 w-full rounded-xl bg-green-600 text-white hover:bg-green-700"
-                onClick={handleSave}
-                disabled={saving || !hasChanges}
+            <motion.div 
+                variants={fadeUp}
+                whileTap={{scale: .98,}}
+                disabled={!loaded || saving || !hasChanges}
             >
-                {saving
-                    ? "Guardando..."
-                    : hadAvailability
-                    ? "Actualizar disponibilidad"
-                    : "Guardar disponibilidad"}
-            </Button>
+                <Button
+                        className="mt-8 h-12 w-full rounded-xl bg-green-600 text-white hover:bg-green-700"
+                        onClick={handleSave}
+                        disabled={saving || !hasChanges}
+                    >
+                        {saving
+                            ? "Guardando..."
+                            : hadAvailability
+                            ? "Actualizar disponibilidad"
+                            : "Guardar disponibilidad"}
+                </Button>
+            </motion.div>
+            <motion.div 
+
+            >            
+                <Button
+                    variant="outline"
+                    className="mt-3 h-12 w-full rounded-xl"
+                    onClick={onViewAssignments}
+                    disabled={!loaded}
+                >
+                    Ver mis turnos
+                </Button>
+            </motion.div>
+
             
-            <Button
-                variant="outline"
-                className="mt-3 h-12 w-full rounded-xl"
-                onClick={onViewAssignments}
-            >
-                Ver mis turnos
-            </Button>
-                        
-
-            <p className="mt-3 text-center text-xs text-muted-foreground">
+            <motion.p variants={fadeUp} className="mt-3 text-center text-xs text-muted-foreground">
                 Podés seleccionar más de un domingo.
-            </p>
+            </motion.p>
 
-            <p className="mt-1 text-center text-xs text-muted-foreground">
+            <motion.p variants={fadeUp} className="mt-1 text-center text-xs text-muted-foreground">
                 Tu disponibilidad no garantiza una asignación.
-            </p>
-        </section>
+            </motion.p>
+        </motion.section>
     );
 }

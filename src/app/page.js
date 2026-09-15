@@ -65,7 +65,7 @@ export default function Page() {
 
     if (!currentYouth) {
         return (
-            <div className="flex min-h-screen items-center justify-center px-4">
+            <div className="flex min-h-dvh justify-center px-4 py-6 sm:items-center sm:py-10">
                 <YouthSelector
                     onSelect={(person) => {
                         setCurrentYouth(person);
@@ -82,7 +82,7 @@ export default function Page() {
 
     if (screen === "saved") {
         return (
-            <div className="flex min-h-screen items-center justify-center px-4">
+            <div className="flex min-h-dvh justify-center px-4 py-6 sm:items-center sm:py-10">
                 <AvailabilitySaved
                     currentYouth={currentYouth}
                     onEdit={() => setScreen("home")}
@@ -94,7 +94,7 @@ export default function Page() {
 
     if (screen === "assignments") {
         return (
-            <div className="flex min-h-screen items-center justify-center px-4">
+            <div className="flex min-h-dvh justify-center px-4 py-6 sm:items-center sm:py-10">
                 <YouthAssignments
                     currentYouth={currentYouth}
                     onBack={() => setScreen("home")}
@@ -104,7 +104,7 @@ export default function Page() {
     }
 
     return (
-        <div className="flex min-h-screen items-center justify-center px-4">
+        <div className="flex min-h-dvh justify-center px-4 py-6 sm:items-center sm:py-10">
             <YouthHome
                 currentYouth={currentYouth}
                 onSave={() => setScreen("saved")}
