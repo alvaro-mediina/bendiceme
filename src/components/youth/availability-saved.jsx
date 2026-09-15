@@ -5,6 +5,14 @@ import { Check, ChevronLeft } from "lucide-react";
 import BrandLogo from "../brand-logo";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase";
+import { motion } from "motion/react";
+import {
+    fadeUp,
+    scaleIn,
+    staggerContainer,
+} from "@/lib/animations";
+import AvailabilitySavedSkeleton from "./availability-saved-skeleton";
+
 
 export default function AvailabilitySaved({
     currentYouth,
@@ -74,11 +82,7 @@ export default function AvailabilitySaved({
     }, [currentYouth.id]);
 
     if (loading) {
-        return (
-            <p className="text-sm text-muted-foreground">
-                Cargando disponibilidad...
-            </p>
-        );
+        return <AvailabilitySavedSkeleton />
     }
 
     if (errorMessage) {
@@ -100,39 +104,67 @@ export default function AvailabilitySaved({
     }
 
     return (
-        <section className="mx-auto w-full max-w-xl">
-            <BrandLogo/>
-            <button
+        <motion.section 
+            initial="hidden"
+            animate="visible"
+            variants={staggerContainer}
+            className="mx-auto w-full max-w-xl"
+        >
+            <motion.div variants={fadeUp}>
+                <BrandLogo />
+            </motion.div>
+
+            <motion.button
+                variants={fadeUp}
+                whileTap={{ scale: 0.98 }}
                 type="button"
                 onClick={onEdit}
-                className="mb-8 flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+                className="mb-8 mt-8 flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
             >
                 <ChevronLeft className="size-4" />
                 Cambiar disponibilidad
-            </button>
+            </motion.button>
 
-            <div className="grid size-12 place-items-center rounded-full bg-green-100 text-green-700">
+            <motion.div
+                variants={scaleIn}
+                className="grid size-12 place-items-center rounded-full bg-green-100 text-green-700"
+            >
                 <Check className="size-6" />
-            </div>
+            </motion.div>
 
-            <p className="mt-6 text-xs font-semibold uppercase tracking-[0.18em] text-green-600">
+            <motion.p
+                variants={fadeUp}
+                className="mt-6 text-xs font-semibold uppercase tracking-[0.18em] text-green-600"
+            >
                 Disponibilidad guardada
-            </p>
+            </motion.p>
 
-            <h1 className="mt-3 text-3xl font-semibold tracking-tight">
+            <motion.h1
+                variants={fadeUp}
+                className="mt-3 text-2xl font-semibold tracking-tight sm:text-3xl"
+            >
                 ¡Listo, {currentYouth.name.split(" ")[0]}!
-            </h1>
+            </motion.h1>
 
-            <p className="mt-2 text-muted-foreground">
+            <motion.p
+                variants={fadeUp}
+                className="mt-2 text-muted-foreground"
+            >
                 Guardamos los domingos en los que podés servir.
-            </p>
+            </motion.p>
 
-            <div className="mt-8 rounded-2xl border bg-white p-5">
+            <motion.div
+                variants={fadeUp}
+                className="mt-8 rounded-2xl border bg-white p-4 sm:p-5"
+            >
                 <p className="text-sm font-medium">
                     Tus domingos disponibles
                 </p>
 
-                <div className="mt-4 flex flex-col gap-3">
+                <motion.div
+                    variants={staggerContainer}
+                    className="mt-4 flex flex-col gap-3"
+                >
                     {selectedSundays.length > 0 ? (
                         selectedSundays.map((sunday) => {
                             const date = new Date(
@@ -150,8 +182,9 @@ export default function AvailabilitySaved({
                                 );
 
                             return (
-                                <div
+                                <motion.div
                                     key={sunday.id}
+                                    variants={fadeUp}
                                     className="flex items-center gap-3"
                                 >
                                     <div className="grid size-8 place-items-center rounded-full bg-green-50 text-green-700">
@@ -161,31 +194,44 @@ export default function AvailabilitySaved({
                                     <span className="text-sm font-medium capitalize">
                                         {formattedDate}
                                     </span>
-                                </div>
+                                </motion.div>
                             );
                         })
                     ) : (
-                        <p className="text-sm text-muted-foreground">
+                        <motion.p
+                            variants={fadeUp}
+                            className="text-sm text-muted-foreground"
+                        >
                             No tenés domingos disponibles guardados.
-                        </p>
+                        </motion.p>
                     )}
-                </div>
-            </div>
+                </motion.div>
+            </motion.div>
 
-            <Button
-                className="mt-8 h-12 w-full rounded-xl bg-green-600 text-white hover:bg-green-700"
-                onClick={onViewAssignments}
+            <motion.div
+                variants={fadeUp}
+                whileTap={{ scale: 0.98 }}
             >
-                Ver mis turnos
-            </Button>
+                <Button
+                    className="mt-8 h-12 w-full rounded-xl bg-green-600 text-white hover:bg-green-700"
+                    onClick={onViewAssignments}
+                >
+                    Ver mis turnos
+                </Button>
+            </motion.div>
 
-            <Button
-                variant="ghost"
-                className="mt-2 w-full rounded-xl"
-                onClick={onEdit}
+            <motion.div
+                variants={fadeUp}
+                whileTap={{ scale: 0.98 }}
             >
-                Editar disponibilidad
-            </Button>
-        </section>
+                <Button
+                    variant="ghost"
+                    className="mt-2 h-11 w-full rounded-xl"
+                    onClick={onEdit}
+                >
+                    Editar disponibilidad
+                </Button>
+            </motion.div>
+        </motion.section>
     );
 }
