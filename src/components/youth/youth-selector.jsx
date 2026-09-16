@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { ChevronRight, ChevronLeft } from "lucide-react";
 import BrandLogo from "../brand-logo";
 import { supabase } from "@/lib/supabase";
@@ -15,6 +15,7 @@ export default function YouthSelector({ onSelect, onBack }) {
     const [youth, setYouth] = useState([]);
     const [loading, setLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState(null);
+    const [officeFilter, setOfficeFilter] = useState("all");
 
     useEffect(() => {
         const loadYouth = async () => {
@@ -44,6 +45,26 @@ export default function YouthSelector({ onSelect, onBack }) {
 
         onSelect(person);
     };
+
+    const filteredYouth = useMemo(() => {
+        return [...youth]
+            .filter((person) => {
+                if (officeFilter === "priest") {
+                    return person.office === "priest";
+                }
+
+                if (officeFilter === "teacher") {
+                    return person.office === "teacher";
+                }
+
+                return true;
+            })
+            .sort((a, b) =>
+                a.name.localeCompare(b.name, "es", {
+                    sensitivity: "base",
+                }),
+            );
+    }, [youth, officeFilter]);
 
     if (errorMessage) {
         return (
@@ -100,6 +121,49 @@ export default function YouthSelector({ onSelect, onBack }) {
             </div>
 
             <motion.div
+                variants={fadeUp}
+                className="
+                    mt-4 grid grid-cols-3 gap-2
+                "
+            >
+                <button
+                    type="button"
+                    onClick={() => setOfficeFilter("all")}
+                    className={`w-full rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+                        officeFilter === "all"
+                            ? "bg-green-600 text-white"
+                            : "bg-green-50 text-green-700 hover:bg-green-100"
+                    }`}
+                >
+                    Todos
+                </button>
+
+                <button
+                    type="button"
+                    onClick={() => setOfficeFilter("priest")}
+                    className={`w-full rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+                        officeFilter === "priest"
+                            ? "bg-green-600 text-white"
+                            : "bg-green-50 text-green-700 hover:bg-green-100"
+                    }`}
+                >
+                    Presbíteros
+                </button>
+
+                <button
+                    type="button"
+                    onClick={() => setOfficeFilter("teacher")}
+                    className={`w-full rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+                        officeFilter === "teacher"
+                            ? "bg-green-600 text-white"
+                            : "bg-green-50 text-green-700 hover:bg-green-100"
+                    }`}
+                >
+                    Maestros
+                </button>
+            </motion.div>
+            
+            <motion.div
                 variants={staggerContainer}
                 className="
                     mt-8 min-h-0 flex-1 overflow-y-auto pr-1
@@ -111,7 +175,7 @@ export default function YouthSelector({ onSelect, onBack }) {
                     <YouthSelectorSkeleton />
                 ) : (
                     <div className="flex flex-col gap-3 pb-2">
-                        {youth.map((person) => (
+                        {filteredYouth.map((person) => (
                             <motion.button
                                 key={person.id}
                                 variants={fadeUp}
