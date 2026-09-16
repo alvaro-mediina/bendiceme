@@ -22,6 +22,8 @@ export default function AdvisorView() {
     const [team, setTeam] = useState({});
     const [savingTeam, setSavingTeam] = useState(false);
     const [saveMessage, setSaveMessage] = useState(null);
+    const [initialTeam, setInitialTeam] = useState({});
+
 
     useEffect(() => {
         const loadSundays = async () => {
@@ -186,6 +188,7 @@ export default function AdvisorView() {
             });
 
             setTeam(savedTeam);
+            setInitialTeam(savedTeam);
         };
 
         loadTeam();
@@ -307,6 +310,7 @@ export default function AdvisorView() {
 
         setSavingTeam(true);
         setErrorMessage(null);
+
         setSaveMessage(null);
 
         // 1. Buscar el equipo actualmente guardado
@@ -431,10 +435,11 @@ export default function AdvisorView() {
         setSaveMessage(
             "Equipo guardado correctamente."
         );
-
+        setInitialTeam(team);
         setSavingTeam(false);
     };
 
+    const hasTeamChanges = JSON.stringify(team) !== JSON.stringify(initialTeam);
 
     return (
         <motion.section
@@ -821,12 +826,18 @@ export default function AdvisorView() {
             >
                 <Button
                     className="mt-6 h-12 w-full rounded-xl bg-green-600 text-white hover:bg-green-700"
-                    disabled={!teamIsValid || savingTeam}
+                    disabled={
+                        !teamIsValid ||
+                        savingTeam ||
+                        !hasTeamChanges
+                    }
                     onClick={saveTeam}
                 >
                     {savingTeam
                         ? "Guardando..."
-                        : "Guardar equipo"}
+                        : hasTeamChanges
+                            ? "Guardar cambios"
+                            : "Equipo guardado"}
                 </Button>
             {saveMessage && (
                 <motion.p
