@@ -9,11 +9,13 @@ import { getVisibleSundays } from "@/lib/sundays";
 import { supabase } from "@/lib/supabase";
 import { motion } from "motion/react";
 import { fadeUp, staggerContainer } from "@/lib/animations";
+import { UserRoundCog } from "lucide-react";
 
 export default function YouthHome({
     currentYouth,
     onSave,
     onViewAssignments,
+    onChangeYouth,
 }) {
     const [selected, setSelected] = useState([]);
     const [loaded, setLoaded] = useState(false);
@@ -436,18 +438,33 @@ export default function YouthHome({
             </motion.p>
 
 
-            <motion.div variants={fadeUp} className="mt-3">
-                <h1 className="text-3xl font-semibold tracking-tight">
-                    Hola, {youthName}
-                </h1>
+            <motion.div
+                variants={fadeUp}
+                className="mt-3 flex items-center justify-between gap-4"
+            >
+                <div>
+                    <h1 className="text-3xl font-semibold tracking-tight">
+                        Hola, {youthName}
+                    </h1>
 
-                <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
-                    <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1.5 text-xs font-medium text-green-700">
-                        {currentYouth.office === "priest"
-                            ? "Presbítero"
-                            : "Maestro"}
-                    </span>
+                    <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
+                        <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1.5 text-xs font-medium text-green-700">
+                            {currentYouth.office === "priest"
+                                ? "Presbítero"
+                                : "Maestro"}
+                        </span>
+                    </div>
                 </div>
+
+                <motion.button
+                    whileTap={{ scale: 0.98 }}
+                    type="button"
+                    onClick={onChangeYouth}
+                    className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-green-50 hover:text-green-700"
+                >
+                    <UserRoundCog className="size-4" />
+                    Cambiar joven
+                </motion.button>
             </motion.div>
 
             <motion.p variants={fadeUp} className="mt-5 text-muted-foreground">

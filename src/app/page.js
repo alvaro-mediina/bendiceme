@@ -16,8 +16,13 @@ export default function Page() {
     const [screen, setScreen] = useState("role");
     const [advisorPassword, setAdvisorPassword] = useState("");
     const [advisorError, setAdvisorError] = useState(null);
-    const { currentYouth, youthStartScreen, loadingYouthSession, selectYouth } =
-        useCurrentYouth();
+    const {
+        currentYouth,
+        youthStartScreen,
+        loadingYouthSession,
+        selectYouth,
+        clearYouth,
+    } = useCurrentYouth();
     const [advisorLoading, setAdvisorLoading] = useState(false);
     const [checkingAdvisorSession, setCheckingAdvisorSession] = useState(true);
 
@@ -196,6 +201,10 @@ export default function Page() {
                 currentYouth={currentYouth}
                 onSave={() => setScreen("saved")}
                 onViewAssignments={() => setScreen("assignments")}
+                onChangeYouth={() => {
+                    clearYouth();
+                    setScreen("youth");
+                }}
             />
         </PageContainer>
     );
