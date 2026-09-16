@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, ChevronLeft } from "lucide-react";
 import BrandLogo from "../brand-logo";
 import { supabase } from "@/lib/supabase";
 import { motion } from "motion/react";
@@ -11,7 +11,7 @@ import {
 } from "@/lib/animations";
 import YouthSelectorSkeleton from "./youth-selector-skeleton";
 
-export default function YouthSelector({ onSelect }) {
+export default function YouthSelector({ onSelect, onBack }) {
     const [youth, setYouth] = useState([]);
     const [loading, setLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState(null);
@@ -72,12 +72,24 @@ export default function YouthSelector({ onSelect }) {
                 Acceso de jóvenes
             </motion.p>
 
+            <motion.button
+                variants={fadeUp}
+                whileTap={{ scale: 0.98 }}
+                type="button"
+                onClick={onBack}
+                className="mt-8 flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+            >
+                <ChevronLeft className="size-4" />
+                Volver
+            </motion.button>
+
 
             <motion.h1 
                 variants={fadeUp}
                 className="mt-3 text-3xl font-semibold tracking-tight">
                 ¿Quién sos?
             </motion.h1>
+
 
             <motion.p 
                 variants={fadeUp}
