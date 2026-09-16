@@ -11,11 +11,16 @@ import AdvisorView from "@/components/advisor/advisor-view";
 import { supabase } from "@/lib/supabase";
 
 export default function Page() {
-    const [screen, setScreen] = useState("select");
+    const [screen, setScreen] = useState("advisor");
     const [currentYouth, setCurrentYouth] = useState(null);
     const [loadingUser, setLoadingUser] = useState(true);
 
     useEffect(() => {
+        if (screen === "advisor") {
+            setLoadingUser(false);
+            return;
+        }
+
         const loadSavedYouth = async () => {
             const savedYouthId = localStorage.getItem(
                 "bendiceme-current-youth-id",
@@ -63,6 +68,14 @@ export default function Page() {
         return null;
     }
 
+    if (screen === "advisor") {
+        return (
+            <div className="flex min-h-dvh justify-center px-4 py-6 sm:items-center sm:py-10">
+                <AdvisorView />
+            </div>
+        );
+    }
+
     if (!currentYouth) {
         return (
             <div className="flex min-h-dvh justify-center px-4 py-6 sm:items-center sm:py-10">
@@ -74,10 +87,6 @@ export default function Page() {
                 />
             </div>
         );
-    }
-
-    if (screen === "advisor") {
-        return <AdvisorView />;
     }
 
     if (screen === "saved") {
