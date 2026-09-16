@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react";
 
 import BrandLogo from "../brand-logo";
+import AdvisorYouthCard from "./advisor-youth-card";
+import AdvisorTeamSummary from "./advisor-team-summary";
 import { supabase } from "@/lib/supabase";
 import { motion } from "motion/react";
-import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     fadeUp,
@@ -567,175 +568,24 @@ export default function AdvisorView() {
                             const isPassing =
                                 assignment?.role === "pass";
 
-                            const prepares =
-                                assignment?.prepares ?? false;
-
-                            const canBless =
-                                person.office === "priest";
-
                             const blessFull =
                                 blessCount >= 2 && !isBlessing;
 
                             const passFull =
                                 passCount >= 3 && !isPassing;
 
-                            const isConfirmed = assignment?.status === "confirmed";
-
                             return (
-                                <motion.div
+                                <AdvisorYouthCard
                                     key={person.id}
-                                    variants={fadeUp}
-                                    className={`
-                                        rounded-2xl border p-4
-                                        transition-colors
-                                        ${
-                                            assignment
-                                                ? "border-green-200 bg-green-50/40"
-                                                : "bg-white"
-                                        }
-                                    `}
-                                >
-                                    <div className="flex items-start justify-between gap-4">
-                                        <div>
-                                            <p className="font-medium">
-                                                {person.name}
-                                            </p>
-
-                                            <span className="mt-1 inline-flex rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700 ring-1 ring-green-200">
-                                                {person.office ===
-                                                "priest"
-                                                    ? "Presbítero"
-                                                    : "Maestro"}
-                                            </span>
-                                        </div>
-
-                                        {assignment && (
-                                            <span
-                                                className={`
-                                                    rounded-full px-2.5 py-1
-                                                    text-xs font-medium
-                                                    ${
-                                                        isConfirmed
-                                                            ? "bg-green-100 text-green-700"
-                                                            : "bg-amber-100 text-amber-700"
-                                                    }
-                                                `}
-                                            >
-                                                {isConfirmed
-                                                    ? "Confirmado"
-                                                    : "Pendiente"}
-                                            </span>
-                                        )}
-                                    </div>
-
-                                    <div className="mt-4">
-                                        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                                            Asignación
-                                        </p>
-
-                                        <div className="mt-2 flex flex-wrap gap-2">
-                                            {canBless && (
-                                                <button
-                                                    type="button"
-                                                    disabled={blessFull}
-                                                    onClick={() =>
-                                                        selectRole(
-                                                            person.id,
-                                                            "bless"
-                                                        )
-                                                    }
-                                                    className={`
-                                                        rounded-xl border
-                                                        px-3 py-2
-                                                        text-sm font-medium
-                                                        transition-colors
-                                                        ${
-                                                            isBlessing
-                                                                ? "border-green-600 bg-green-600 text-white"
-                                                                : blessFull
-                                                                    ? "cursor-not-allowed bg-muted text-muted-foreground opacity-50"
-                                                                    : "bg-white hover:border-green-300"
-                                                        }
-                                                    `}
-                                                >
-                                                    Bendecir
-                                                </button>
-                                            )}
-
-                                            <button
-                                                type="button"
-                                                disabled={passFull}
-                                                onClick={() =>
-                                                    selectRole(
-                                                        person.id,
-                                                        "pass"
-                                                    )
-                                                }
-                                                className={`
-                                                    rounded-xl border
-                                                    px-3 py-2
-                                                    text-sm font-medium
-                                                    transition-colors
-                                                    ${
-                                                        isPassing
-                                                            ? "border-green-600 bg-green-600 text-white"
-                                                            : passFull
-                                                                ? "cursor-not-allowed bg-muted text-muted-foreground opacity-50"
-                                                                : "bg-white hover:border-green-300"
-                                                    }
-                                                `}
-                                            >
-                                                Repartir
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    {assignment && (
-                                        <button
-                                            type="button"
-                                            onClick={() =>
-                                                togglePrepares(
-                                                    person.id
-                                                )
-                                            }
-                                            className={`
-                                                mt-3 flex w-full
-                                                items-center justify-between
-                                                rounded-xl border
-                                                px-3 py-3 text-sm
-                                                transition-colors
-                                                ${
-                                                    prepares
-                                                        ? "border-green-300 bg-green-50 text-green-800"
-                                                        : "bg-white hover:border-green-200"
-                                                }
-                                            `}
-                                        >
-                                            <span>
-                                                Prepara la Santa Cena
-                                            </span>
-
-                                            <span
-                                                className={`
-                                                    grid size-5
-                                                    place-items-center
-                                                    rounded-md border
-                                                    ${
-                                                        prepares
-                                                            ? "border-green-600 bg-green-600 text-white"
-                                                            : "border-muted-foreground/30"
-                                                    }
-                                                `}
-                                            >
-                                                {prepares && (
-                                                    <Check className="size-3.5" />
-                                                )}
-                                            </span>
-                                        </button>
-                                    )}
-                                </motion.div>
+                                    person={person}
+                                    assignment={assignment}
+                                    blessFull={blessFull}
+                                    passFull={passFull}
+                                    onSelectRole={selectRole}
+                                    onTogglePrepares={togglePrepares}
+                                />
                             );
-                    })}
+                        })}
 
                     
                     </div>
@@ -750,105 +600,16 @@ export default function AdvisorView() {
                 
             </motion.div>
                 
-
-            <motion.div
-                variants={fadeUp}
-                className="mt-8 rounded-2xl border bg-white p-4 sm:p-5"
-            >
-                <div className="flex items-center justify-between">
-                    <h2 className="font-semibold">
-                        Equipo
-                    </h2>
-
-                    <span className="text-sm text-muted-foreground">
-                        {blessCount + passCount}/5
-                    </span>
-                </div>
-
-                <div className="mt-5 flex flex-col gap-4">
-                    <div className="flex items-center justify-between">
-                        <span className="text-sm">
-                            Bendecir
-                        </span>
-
-                        <span
-                            className={
-                                blessCount === 2
-                                    ? "text-sm font-semibold text-green-700"
-                                    : "text-sm font-semibold text-muted-foreground"
-                            }
-                        >
-                            {blessCount}/2
-                        </span>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                        <span className="text-sm">
-                            Repartir
-                        </span>
-
-                        <span
-                            className={
-                                passCount === 3
-                                    ? "text-sm font-semibold text-green-700"
-                                    : "text-sm font-semibold text-muted-foreground"
-                            }
-                        >
-                            {passCount}/3
-                        </span>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                        <span className="text-sm">
-                            Preparación
-                        </span>
-
-                        <span
-                            className={
-                                prepareCount >= 2
-                                    ? "text-sm font-semibold text-green-700"
-                                    : "text-sm font-semibold text-muted-foreground"
-                            }
-                        >
-                            {prepareCount}/2
-                        </span>
-                    </div>
-                </div>
-            </motion.div>
-
-            <motion.div
-                variants={fadeUp}
-                whileTap={
-                    teamIsValid
-                        ? { scale: 0.98 }
-                        : undefined
-                }
-            >
-                <Button
-                    className="mt-6 h-12 w-full rounded-xl bg-green-600 text-white hover:bg-green-700"
-                    disabled={
-                        !teamIsValid ||
-                        savingTeam ||
-                        !hasTeamChanges
-                    }
-                    onClick={saveTeam}
-                >
-                    {savingTeam
-                        ? "Guardando..."
-                        : hasTeamChanges
-                            ? "Guardar cambios"
-                            : "Equipo guardado"}
-                </Button>
-            {saveMessage && (
-                <motion.p
-                    initial={{ opacity: 0, y: 4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="mt-3 text-center text-sm font-medium text-green-700"
-                >
-                    {saveMessage}
-                </motion.p>
-            )}
-            </motion.div>
+            <AdvisorTeamSummary
+                blessCount={blessCount}
+                passCount={passCount}
+                prepareCount={prepareCount}
+                teamIsValid={teamIsValid}
+                hasTeamChanges={hasTeamChanges}
+                savingTeam={savingTeam}
+                saveMessage={saveMessage}
+                onSave={saveTeam}
+            />
         </motion.section>
         
     );
