@@ -8,6 +8,7 @@ import AvailabilitySaved from "@/components/youth/availability-saved";
 import YouthAssignments from "@/components/youth/youth-assignments";
 import AdvisorView from "@/components/advisor/advisor-view";
 import BrandLogo from "@/components/brand-logo";
+import RoleSelector from "@/components/access/role-selector";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft } from "lucide-react";
 
@@ -82,57 +83,20 @@ export default function Page() {
     if (screen === "role") {
         return (
             <div className="flex min-h-dvh justify-center px-4 py-6 sm:items-center sm:py-10">
-                <div className="w-full max-w-xl">
-                    <BrandLogo />
-
-                    <p className="mb-8 text-xs font-semibold uppercase tracking-[0.18em] text-green-600">
-                        Acceso
-                    </p>
-
-                    <h1 className="mt-5 text-2xl font-semibold tracking-tight sm:text-3xl">
-                        ¿Cómo querés ingresar?
-                    </h1>
-
-                    <p className="mt-2 text-muted-foreground">
-                        Elegí el tipo de acceso que querés usar.
-                    </p>
-
-                    <div className="mt-8 grid gap-3">
-                        <button
-                            type="button"
-                            onClick={() => {
-                                if (currentYouth) {
-                                    setScreen(youthStartScreen);
-                                } else {
-                                    setScreen("youth");
-                                }
-                            }}
-                            className="rounded-2xl border bg-white p-5 text-left transition-colors hover:border-green-300"
-                        >
-                            <p className="font-semibold">Soy joven</p>
-
-                            <p className="mt-1 text-sm text-muted-foreground">
-                                Marcá tu disponibilidad y revisá tus turnos.
-                            </p>
-                        </button>
-
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setAdvisorError(null);
-                                setAdvisorPassword("");
-                                setScreen("advisor-login");
-                            }}
-                            className="rounded-2xl border bg-white p-5 text-left transition-colors hover:border-green-300"
-                        >
-                            <p className="font-semibold">Soy asesor</p>
-
-                            <p className="mt-1 text-sm text-muted-foreground">
-                                Organizá el equipo de la Santa Cena.
-                            </p>
-                        </button>
-                    </div>
-                </div>
+                <RoleSelector
+                    onYouth={() => {
+                        if (currentYouth) {
+                            setScreen(youthStartScreen);
+                        } else {
+                            setScreen("youth");
+                        }
+                    }}
+                    onAdvisor={() => {
+                        setAdvisorError(null);
+                        setAdvisorPassword("");
+                        setScreen("advisor-login");
+                    }}
+                />
             </div>
         );
     }
