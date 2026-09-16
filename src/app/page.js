@@ -9,6 +9,7 @@ import YouthAssignments from "@/components/youth/youth-assignments";
 import AdvisorView from "@/components/advisor/advisor-view";
 import BrandLogo from "@/components/brand-logo";
 import RoleSelector from "@/components/access/role-selector";
+import AdvisorLogin from "@/components/advisor/advisor-login";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft } from "lucide-react";
 
@@ -104,72 +105,27 @@ export default function Page() {
     if (screen === "advisor-login") {
         return (
             <div className="flex min-h-dvh justify-center px-4 py-6 sm:items-center sm:py-10">
-                <div className="w-full max-w-xl">
-                    <BrandLogo />
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-green-600">
-                        Acceso de asesor
-                    </p>
+                <AdvisorLogin
+                    password={advisorPassword}
+                    error={advisorError}
+                    onPasswordChange={setAdvisorPassword}
+                    onBack={() => {
+                        setAdvisorPassword("");
+                        setAdvisorError(null);
+                        setScreen("role");
+                    }}
+                    onSubmit={(event) => {
+                        event.preventDefault();
 
-                    <button
-                        type="button"
-                        onClick={() => {
-                            setAdvisorPassword("");
+                        if (advisorPassword === ADVISOR_PASSWORD) {
                             setAdvisorError(null);
-                            setScreen("role");
-                        }}
-                        className="mt-8 flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
-                    >
-                        <ChevronLeft className="size-4" />
-                        Volver
-                    </button>
+                            setScreen("advisor");
+                            return;
+                        }
 
-                    <h1 className="mt-3 text-2xl font-semibold tracking-tight sm:text-3xl">
-                        Ingresá la contraseña
-                    </h1>
-
-                    <p className="mt-2 text-muted-foreground">
-                        Este acceso está reservado para los asesores.
-                    </p>
-
-                    <form
-                        className="mt-8"
-                        onSubmit={(event) => {
-                            event.preventDefault();
-
-                            if (advisorPassword === ADVISOR_PASSWORD) {
-                                setAdvisorError(null);
-                                setScreen("advisor");
-                                return;
-                            }
-
-                            setAdvisorError("La contraseña no es correcta.");
-                        }}
-                    >
-                        <input
-                            type="password"
-                            value={advisorPassword}
-                            onChange={(event) =>
-                                setAdvisorPassword(event.target.value)
-                            }
-                            placeholder="Contraseña"
-                            autoComplete="current-password"
-                            className="h-12 w-full rounded-xl border bg-white px-4 outline-none transition-colors focus:border-green-600"
-                        />
-
-                        {advisorError && (
-                            <p className="mt-2 text-sm text-red-600">
-                                {advisorError}
-                            </p>
-                        )}
-
-                        <Button
-                            type="submit"
-                            className="mt-4 h-12 w-full rounded-xl bg-green-600 text-white hover:bg-green-700"
-                        >
-                            Ingresar
-                        </Button>
-                    </form>
-                </div>
+                        setAdvisorError("La contraseña no es correcta.");
+                    }}
+                />
             </div>
         );
     }
