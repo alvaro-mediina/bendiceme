@@ -13,7 +13,7 @@ export default function AdvisorYouthList({
 }) {
     if (loadingYouth) {
         return (
-            <div className="mt-4 flex flex-col gap-3">
+            <div className="flex flex-col gap-3">
                 {[1, 2, 3].map((item) => (
                     <div
                         key={item}

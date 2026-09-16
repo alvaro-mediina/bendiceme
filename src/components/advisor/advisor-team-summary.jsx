@@ -1,7 +1,6 @@
 "use client";
 
 import { motion } from "motion/react";
-
 import { Button } from "@/components/ui/button";
 import { fadeUp } from "@/lib/animations";
 
@@ -16,8 +15,8 @@ export default function AdvisorTeamSummary({
     availablePriests,
     availableYouthCount,
     onSave,
+    showSaveButton = true,
 }) {
-
     let warningMessage = null;
 
     if (availableYouthCount < 5) {
@@ -56,33 +55,36 @@ export default function AdvisorTeamSummary({
                 } para preparar la Santa Cena.`;
         }
     }
+
     return (
         <>
             <motion.div
                 variants={fadeUp}
-                className="mt-8 rounded-2xl border bg-white p-4 sm:p-5"
+                className="rounded-2xl border bg-white p-4 sm:p-5"
             >
                 <div className="flex items-center justify-between">
-                    <h2 className="font-semibold">
-                        Equipo
-                    </h2>
+                    <div>
+                        <h2 className="font-semibold">
+                            Equipo
+                        </h2>
+
+                        <p
+                            className={`mt-1 text-xs ${
+                                teamIsValid
+                                    ? "text-green-700"
+                                    : "text-amber-700"
+                            }`}
+                        >
+                            {teamIsValid
+                                ? "Equipo completo"
+                                : "Equipo todavía incompleto"}
+                        </p>
+                    </div>
 
                     <span className="text-sm text-muted-foreground">
                         {blessCount + passCount}/5
                     </span>
                 </div>
-
-                <p
-                    className={`mt-1 text-xs ${
-                        teamIsValid
-                            ? "text-green-700"
-                            : "text-amber-700"
-                    }`}
-                >
-                    {teamIsValid
-                        ? "Equipo completo"
-                        : "Equipo incompleto"}
-                </p>
 
                 <div className="mt-5 flex flex-col gap-4">
                     <div className="flex items-center justify-between">
@@ -133,57 +135,70 @@ export default function AdvisorTeamSummary({
                         </span>
                     </div>
                 </div>
-            </motion.div>
+
                 {warningMessage && (
                     <motion.div
-                        initial={{ opacity: 0, y: 4 }}
-                        animate={{ opacity: 1, y: 0 }}
+                        initial={{
+                            opacity: 0,
+                            y: 4,
+                        }}
+                        animate={{
+                            opacity: 1,
+                            y: 0,
+                        }}
                         className="mt-5 rounded-xl bg-amber-50 p-3 text-sm text-amber-800"
                     >
                         {warningMessage}
                     </motion.div>
                 )}
-            <motion.div
-                variants={fadeUp}
-                whileTap={
-                    teamIsValid &&
-                    hasTeamChanges &&
-                    !savingTeam
-                        ? { scale: 0.98 }
-                        : undefined
-                }
-            >
-                <Button
-                    className="mt-6 h-12 w-full rounded-xl bg-green-600 text-white hover:bg-green-700"
-                    disabled={
-                        savingTeam ||
-                        !hasTeamChanges
-                    }
-                    onClick={onSave}
-                >
-                    {savingTeam
-                        ? "Guardando..."
-                        : hasTeamChanges
-                            ? "Guardar cambios"
-                            : "Equipo guardado"}
-                </Button>
-            </motion.div>
 
-            {saveMessage && (
-                <motion.p
-                    initial={{
-                        opacity: 0,
-                        y: 4,
-                    }}
-                    animate={{
-                        opacity: 1,
-                        y: 0,
-                    }}
-                    className="mt-3 text-center text-sm font-medium text-green-700"
-                >
-                    {saveMessage}
-                </motion.p>
-            )}
+                {showSaveButton && (
+                    <>
+                        <motion.div
+                            variants={fadeUp}
+                            whileTap={
+                                hasTeamChanges &&
+                                !savingTeam
+                                    ? {
+                                          scale: 0.98,
+                                      }
+                                    : undefined
+                            }
+                        >
+                            <Button
+                                className="mt-6 h-12 w-full rounded-xl bg-green-600 text-white hover:bg-green-700"
+                                disabled={
+                                    savingTeam ||
+                                    !hasTeamChanges
+                                }
+                                onClick={onSave}
+                            >
+                                {savingTeam
+                                    ? "Guardando..."
+                                    : hasTeamChanges
+                                      ? "Guardar cambios"
+                                      : "Equipo guardado"}
+                            </Button>
+                        </motion.div>
+
+                        {saveMessage && (
+                            <motion.p
+                                initial={{
+                                    opacity: 0,
+                                    y: 4,
+                                }}
+                                animate={{
+                                    opacity: 1,
+                                    y: 0,
+                                }}
+                                className="mt-3 text-center text-sm font-medium text-green-700"
+                            >
+                                {saveMessage}
+                            </motion.p>
+                        )}
+                    </>
+                )}
+            </motion.div>
         </>
     );
 }

@@ -170,7 +170,7 @@ export default function Page() {
 
     if (screen === "saved") {
         return (
-            <PageContainer>
+            <PageContainer center>
                 <AvailabilitySaved
                     currentYouth={currentYouth}
                     onEdit={() => setScreen("home")}
@@ -182,7 +182,7 @@ export default function Page() {
 
     if (screen === "assignments") {
         return (
-            <PageContainer>
+            <PageContainer center>
                 <YouthAssignments
                     currentYouth={currentYouth}
                     onBack={() => setScreen("home")}
@@ -192,7 +192,7 @@ export default function Page() {
     }
 
     return (
-        <PageContainer>
+        <PageContainer center>
             <YouthHome
                 currentYouth={currentYouth}
                 onSave={() => setScreen("saved")}
