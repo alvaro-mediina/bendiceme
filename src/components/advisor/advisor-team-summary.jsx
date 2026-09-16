@@ -13,8 +13,49 @@ export default function AdvisorTeamSummary({
     hasTeamChanges,
     savingTeam,
     saveMessage,
+    availablePriests,
+    availableYouthCount,
     onSave,
 }) {
+
+    let warningMessage = null;
+
+    if (availableYouthCount < 5) {
+        warningMessage =
+            `Solo hay ${availableYouthCount} jóvenes disponibles. Se necesitan 5 para completar el equipo.`;
+    } else if (availablePriests < 2) {
+        warningMessage =
+            "No hay suficientes presbíteros disponibles para asignar 2 a bendecir.";
+    } else if (!teamIsValid) {
+        if (blessCount < 2) {
+            const missing = 2 - blessCount;
+
+            warningMessage =
+                `Falta${missing > 1 ? "n" : ""} ${missing} ${
+                    missing === 1
+                        ? "joven"
+                        : "jóvenes"
+                } para bendecir.`;
+        } else if (passCount < 3) {
+            const missing = 3 - passCount;
+
+            warningMessage =
+                `Falta${missing > 1 ? "n" : ""} ${missing} ${
+                    missing === 1
+                        ? "joven"
+                        : "jóvenes"
+                } para repartir.`;
+        } else if (prepareCount < 2) {
+            const missing = 2 - prepareCount;
+
+            warningMessage =
+                `Falta${missing > 1 ? "n" : ""} ${missing} ${
+                    missing === 1
+                        ? "joven"
+                        : "jóvenes"
+                } para preparar la Santa Cena.`;
+        }
+    }
     return (
         <>
             <motion.div
@@ -81,7 +122,15 @@ export default function AdvisorTeamSummary({
                     </div>
                 </div>
             </motion.div>
-
+                {warningMessage && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="mt-5 rounded-xl bg-amber-50 p-3 text-sm text-amber-800"
+                    >
+                        {warningMessage}
+                    </motion.div>
+                )}
             <motion.div
                 variants={fadeUp}
                 whileTap={

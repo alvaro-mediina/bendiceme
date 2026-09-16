@@ -43,6 +43,11 @@ export default function AdvisorView({onBack}) {
         saveTeam,
     } = useAdvisorTeam(selectedSundayId);
     
+    const availablePriests = availableYouth.filter(
+        (person) => person.office === "priest"
+    ).length;
+
+
     if (loadingSundays) {
         return <AdvisorViewSkeleton />;
     }
@@ -137,7 +142,7 @@ export default function AdvisorView({onBack}) {
                 
             </motion.div>
                 
-            {loadingTeam ? (
+            {loadingTeam  || loadingYouth ? (
                 <div className="mt-8 rounded-2xl border bg-white p-4 sm:p-5">
                     <div className="relative h-5 w-28 overflow-hidden rounded bg-gray-200">
                         <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-gray-200/80 to-transparent" />
@@ -169,6 +174,8 @@ export default function AdvisorView({onBack}) {
                     hasTeamChanges={hasTeamChanges}
                     savingTeam={savingTeam}
                     saveMessage={saveMessage}
+                    availablePriests={availablePriests}
+                    availableYouthCount={availableYouth.length}
                     onSave={saveTeam}
                 />
             )}
