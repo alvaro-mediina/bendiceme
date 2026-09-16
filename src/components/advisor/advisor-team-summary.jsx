@@ -72,6 +72,18 @@ export default function AdvisorTeamSummary({
                     </span>
                 </div>
 
+                <p
+                    className={`mt-1 text-xs ${
+                        teamIsValid
+                            ? "text-green-700"
+                            : "text-amber-700"
+                    }`}
+                >
+                    {teamIsValid
+                        ? "Equipo completo"
+                        : "Equipo incompleto"}
+                </p>
+
                 <div className="mt-5 flex flex-col gap-4">
                     <div className="flex items-center justify-between">
                         <span className="text-sm">
@@ -144,7 +156,6 @@ export default function AdvisorTeamSummary({
                 <Button
                     className="mt-6 h-12 w-full rounded-xl bg-green-600 text-white hover:bg-green-700"
                     disabled={
-                        !teamIsValid ||
                         savingTeam ||
                         !hasTeamChanges
                     }

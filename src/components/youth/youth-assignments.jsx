@@ -67,7 +67,7 @@ export default function YouthAssignments({
         loadAssignment();
     }, [currentYouth.id]);
 
-   const updateStatus = async (newStatus) => {
+    const updateStatus = async (newStatus) => {
         if (!assignment) {
             return;
         }
@@ -134,41 +134,10 @@ export default function YouthAssignments({
             }
         }
 
-        if (newStatus === "confirmed") {
-            const { error: availabilityError } =
-                await supabase
-                    .from("availability")
-                    .upsert(
-                        {
-                            youth_id:
-                                currentYouth.id,
-                            sunday_id:
-                                assignment.sunday_id,
-                            available: true,
-                        },
-                        {
-                            onConflict:
-                                "youth_id,sunday_id",
-                        }
-                    );
-
-            if (availabilityError) {
-                console.error(
-                    availabilityError
-                );
-
-                setErrorMessage(
-                    "No se pudo actualizar tu disponibilidad."
-                );
-
-                setUpdating(false);
-                return;
-            }
-        }
-
         setAssignment(data);
         setUpdating(false);
     };
+
 
     if (loading) {
        return <YouthAssignmentSkeleton/>;

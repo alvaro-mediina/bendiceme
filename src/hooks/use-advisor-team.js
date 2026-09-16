@@ -192,7 +192,7 @@ export default function useAdvisorTeam(selectedSundayId) {
     const hasTeamChanges = JSON.stringify(team) !== JSON.stringify(initialTeam);
 
     const saveTeam = async () => {
-        if (!teamIsValid || !selectedSundayId) {
+        if (!selectedSundayId || !hasTeamChanges) {
             return;
         }
 

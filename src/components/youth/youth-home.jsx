@@ -5,7 +5,7 @@ import { useEffect, useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import DateOption from "./date-option";
 import BrandLogo from "../brand-logo";
-import { ensureAvailableSundays, getVisibleSundays } from "@/lib/sundays";
+import { getVisibleSundays } from "@/lib/sundays";
 import { supabase } from "@/lib/supabase";
 import { motion } from "motion/react";
 import { fadeUp, staggerContainer } from "@/lib/animations";
@@ -69,9 +69,9 @@ export default function YouthHome({
             sunday.date >= currentDate
     );
 
-    const visibleSundayIds = visibleSundays.map(
-        (sunday) => sunday.id
-    );
+    const visibleSundayIds = visibleSundays
+        .filter((sunday) => sunday.id !== null)
+        .map((sunday) => sunday.id);
 
     const currentVisibleSelected = selected
         .filter((id) =>
@@ -104,8 +104,20 @@ export default function YouthHome({
 
             try {
                 const {
-                    sundays: sundayData,
-                } = await ensureAvailableSundays();
+                    data: sundayData,
+                    error: sundayError,
+                } = await supabase
+                    .from("sundays")
+                    .select("id, date")
+                    .eq("active", true)
+                    .in("date", visibleSundayDates)
+                    .order("date", {
+                        ascending: true,
+                    });
+
+                if (sundayError) {
+                    throw sundayError;
+                }
 
                 const sundaysWithIds =
                     visibleSundayDates.map((date) => {
@@ -143,7 +155,7 @@ export default function YouthHome({
                 }
 
                 const sundayIds =
-                    availabilityData.map(
+                    (availabilityData ?? []).map(
                         (item) =>
                             item.sunday_id
                     );
@@ -182,7 +194,11 @@ export default function YouthHome({
         };
 
         loadData();
-    }, [ currentYouth.id ]);
+    }, [
+        currentYouth.id,
+        visibleSundayDates,
+        activeMonthDate,
+    ]);
 
     const toggleSunday = (id) => {
         setSelected((current) => {
@@ -200,13 +216,19 @@ export default function YouthHome({
         setSaving(true);
         setErrorMessage(null);
 
-        const visibleSundayIds = visibleSundays.map(
-            (sunday) => sunday.id
-        );
+        const visibleSundayIds =
+            visibleSundays
+                .filter(
+                    (sunday) =>
+                        sunday.id !== null
+                )
+                .map(
+                    (sunday) =>
+                        sunday.id
+                );
 
-        // Si quitó disponibilidad de un domingo
-        // donde tenía una asignación activa,
-        // esa asignación pasa a declined.
+        // 1. Si quitó disponibilidad y tenía
+        // una asignación activa, pasa a declined.
         if (removedSundayIds.length > 0) {
             const { error: assignmentError } =
                 await supabase
@@ -239,26 +261,28 @@ export default function YouthHome({
                 setSaving(false);
                 return;
             }
-        }
 
-        // Borra la disponibilidad actual
-        // únicamente para los domingos visibles.
-        if (visibleSundayIds.length > 0) {
-            const { error: deleteError } =
+            // 2. La disponibilidad existente
+            // pasa a false.
+            const { error: availabilityError } =
                 await supabase
                     .from("availability")
-                    .delete()
+                    .update({
+                        available: false,
+                    })
                     .eq(
                         "youth_id",
                         currentYouth.id
                     )
                     .in(
                         "sunday_id",
-                        visibleSundayIds
+                        removedSundayIds
                     );
 
-            if (deleteError) {
-                console.error(deleteError);
+            if (availabilityError) {
+                console.error(
+                    availabilityError
+                );
 
                 setErrorMessage(
                     "No se pudo actualizar tu disponibilidad."
@@ -276,36 +300,114 @@ export default function YouthHome({
                 )
             );
 
-        const newAvailability =
-            selectedVisibleSundays.map(
-                (sundayId) => ({
-                    youth_id:
-                        currentYouth.id,
-                    sunday_id:
-                        sundayId,
-                    available: true,
-                })
-            );
+        if (selectedVisibleSundays.length > 0) {
+            // 3. Averiguamos cuáles filas
+            // ya existen.
+            const {
+                data: existingAvailability,
+                error: existingError,
+            } = await supabase
+                .from("availability")
+                .select("sunday_id")
+                .eq(
+                    "youth_id",
+                    currentYouth.id
+                )
+                .in(
+                    "sunday_id",
+                    selectedVisibleSundays
+                );
 
-        if (newAvailability.length > 0) {
-            const { error: insertError } =
-                await supabase
-                    .from("availability")
-                    .insert(
-                        newAvailability
-                    );
-
-            if (insertError) {
+            if (existingError) {
                 console.error(
-                    insertError
+                    existingError
                 );
 
                 setErrorMessage(
-                    "No se pudo guardar tu disponibilidad."
+                    "No se pudo comprobar tu disponibilidad."
                 );
 
                 setSaving(false);
                 return;
+            }
+
+            const existingSundayIds =
+                (existingAvailability ?? []).map(
+                    (item) =>
+                        item.sunday_id
+                );
+
+            // 4. Si ya existían, simplemente
+            // las reactivamos.
+            if (existingSundayIds.length > 0) {
+                const { error: updateError } =
+                    await supabase
+                        .from("availability")
+                        .update({
+                            available: true,
+                        })
+                        .eq(
+                            "youth_id",
+                            currentYouth.id
+                        )
+                        .in(
+                            "sunday_id",
+                            existingSundayIds
+                        );
+
+                if (updateError) {
+                    console.error(
+                        updateError
+                    );
+
+                    setErrorMessage(
+                        "No se pudo actualizar tu disponibilidad."
+                    );
+
+                    setSaving(false);
+                    return;
+                }
+            }
+
+            // 5. Las que nunca existieron
+            // se insertan.
+            const newSundayIds =
+                selectedVisibleSundays.filter(
+                    (id) =>
+                        !existingSundayIds.includes(
+                            id
+                        )
+                );
+
+            if (newSundayIds.length > 0) {
+                const rows =
+                    newSundayIds.map(
+                        (sundayId) => ({
+                            youth_id:
+                                currentYouth.id,
+                            sunday_id:
+                                sundayId,
+                            available: true,
+                        })
+                    );
+
+                const { error: insertError } =
+                    await supabase
+                        .from("availability")
+                        .insert(rows);
+
+                if (insertError) {
+                    console.error(
+                        insertError
+                    );
+
+                    setErrorMessage(
+                        "No se pudo guardar tu disponibilidad."
+                    );
+
+                    setSaving(false);
+                    return;
+                }
             }
         }
 
