@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 
 import { supabase } from "@/lib/supabase";
 
@@ -11,6 +11,7 @@ export default function useAdvisorTeam(selectedSundayId) {
     const [saveMessage, setSaveMessage] = useState(null);
     const [teamError, setTeamError] = useState(null);
     const [loadingTeam, setLoadingTeam] = useState(false);
+    const saveMessageTimeoutRef = useRef(null);
 
     const loadTeam = useCallback(
         async ({ showLoading = true } = {}) => {
@@ -61,7 +62,6 @@ export default function useAdvisorTeam(selectedSundayId) {
 
             setTeam(savedTeam);
             setInitialTeam(savedTeam);
-            setSaveMessage(null);
             setLoadingTeam(false);
         },
         [selectedSundayId],
@@ -93,7 +93,7 @@ export default function useAdvisorTeam(selectedSundayId) {
         return () => {
             supabase.removeChannel(channel);
         };
-    }, [selectedSundayId]);
+    }, [selectedSundayId, loadTeam]);
 
     useEffect(() => {
         loadTeam();
@@ -273,8 +273,23 @@ export default function useAdvisorTeam(selectedSundayId) {
 
         setSaveMessage("Equipo guardado correctamente.");
 
+        if (saveMessageTimeoutRef.current) {
+            clearTimeout(saveMessageTimeoutRef.current);
+        }
+
+        saveMessageTimeoutRef.current = setTimeout(() => {
+            setSaveMessage(null);
+        }, 3000);
         setSavingTeam(false);
     };
+
+    useEffect(() => {
+        return () => {
+            if (saveMessageTimeoutRef.current) {
+                clearTimeout(saveMessageTimeoutRef.current);
+            }
+        };
+    }, []);
 
     return {
         team,

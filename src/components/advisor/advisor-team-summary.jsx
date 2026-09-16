@@ -60,33 +60,35 @@ export default function AdvisorTeamSummary({
         <>
             <motion.div
                 variants={fadeUp}
-                className="rounded-2xl border bg-white p-4 sm:p-5"
+                className="rounded-2xl border bg-white p-5 text-center"
             >
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h2 className="font-semibold">
-                            Equipo
-                        </h2>
+                <div className="flex flex-col items-center">
+                    <h2 className="text-lg font-semibold">
+                        Equipo
+                    </h2>
 
-                        <p
-                            className={`mt-1 text-xs ${
-                                teamIsValid
-                                    ? "text-green-700"
-                                    : "text-amber-700"
-                            }`}
-                        >
-                            {teamIsValid
-                                ? "Equipo completo"
-                                : "Equipo todavía incompleto"}
-                        </p>
-                    </div>
+                    <p
+                        className={`mt-1 text-xs ${
+                            teamIsValid
+                                ? "text-green-700"
+                                : "text-amber-700"
+                        }`}
+                    >
+                        {teamIsValid
+                            ? "Equipo completo"
+                            : "Equipo todavía incompleto"}
+                    </p>
 
-                    <span className="text-sm text-muted-foreground">
+                    <span className="mt-3 text-2xl font-semibold tracking-tight">
                         {blessCount + passCount}/5
+                    </span>
+
+                    <span className="text-xs text-muted-foreground">
+                        jóvenes asignados
                     </span>
                 </div>
 
-                <div className="mt-5 flex flex-col gap-4">
+                <div className="mx-auto mt-6 flex max-w-[220px] flex-col gap-4 text-left">
                     <div className="flex items-center justify-between">
                         <span className="text-sm">
                             Bendecir
@@ -146,7 +148,7 @@ export default function AdvisorTeamSummary({
                             opacity: 1,
                             y: 0,
                         }}
-                        className="mt-5 rounded-xl bg-amber-50 p-3 text-sm text-amber-800"
+                        className="mx-auto mt-6 max-w-[240px] rounded-xl bg-amber-50 p-3 text-sm text-amber-800"
                     >
                         {warningMessage}
                     </motion.div>
@@ -160,10 +162,11 @@ export default function AdvisorTeamSummary({
                                 hasTeamChanges &&
                                 !savingTeam
                                     ? {
-                                          scale: 0.98,
-                                      }
+                                        scale: 0.98,
+                                    }
                                     : undefined
                             }
+                            className="mx-auto max-w-[240px]"
                         >
                             <Button
                                 className="mt-6 h-12 w-full rounded-xl bg-green-600 text-white hover:bg-green-700"
@@ -176,8 +179,8 @@ export default function AdvisorTeamSummary({
                                 {savingTeam
                                     ? "Guardando..."
                                     : hasTeamChanges
-                                      ? "Guardar cambios"
-                                      : "Equipo guardado"}
+                                    ? "Guardar cambios"
+                                    : "Equipo guardado"}
                             </Button>
                         </motion.div>
 
