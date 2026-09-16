@@ -20,6 +20,8 @@ export default function AdvisorView() {
     const [loadingYouth, setLoadingYouth] = useState(false);
     const [errorMessage, setErrorMessage] = useState(null);
     const [team, setTeam] = useState([]);
+    const [savingTeam, setSavingTeam] = useState(false);
+    const [saveMessage, setSaveMessage] = useState(null);
 
     useEffect(() => {
         const loadSundays = async () => {
@@ -147,24 +149,95 @@ export default function AdvisorView() {
     };
 
     useEffect(() => {
-        setTeam({});
+        if (!selectedSundayId) {
+            return;
+        }
+
+        const loadTeam = async () => {
+            const { data, error } = await supabase
+                .from("assignments")
+                .select(`
+                    youth_id,
+                    role,
+                    prepares,
+                    status
+                `)
+                .eq("sunday_id", selectedSundayId)
+                .in("status", ["pending", "confirmed"]);
+
+            if (error) {
+                console.error(error);
+
+                setErrorMessage(
+                    "No se pudo cargar el equipo guardado."
+                );
+
+                return;
+            }
+
+            const savedTeam = {};
+
+            (data ?? []).forEach((assignment) => {
+                savedTeam[assignment.youth_id] = {
+                    role: assignment.role,
+                    prepares: assignment.prepares,
+                    status: assignment.status,
+                };
+            });
+
+            setTeam(savedTeam);
+        };
+
+        loadTeam();
     }, [selectedSundayId]);
 
     const selectRole = (youthId, role) => {
         setTeam((current) => {
-            const currentAssignment =
-                current[youthId];
+            const currentAssignment = current[youthId];
 
-            // Si toca nuevamente el mismo rol,
-            // quitamos al joven del equipo.
-            if (
-                currentAssignment?.role === role
-            ) {
+            // Si toca el mismo rol, lo quitamos del equipo
+            if (currentAssignment?.role === role) {
                 const next = { ...current };
-
                 delete next[youthId];
-
                 return next;
+            }
+
+            const assignments = Object.values(current);
+
+            const currentBlessCount = assignments.filter(
+                (assignment) => assignment.role === "bless"
+            ).length;
+
+            const currentPassCount = assignments.filter(
+                (assignment) => assignment.role === "pass"
+            ).length;
+
+            // Si cambia de repartir a bendecir,
+            // el rol anterior no debe contar.
+            const wasBlessing =
+                currentAssignment?.role === "bless";
+
+            const wasPassing =
+                currentAssignment?.role === "pass";
+
+            const blessCountWithoutCurrent =
+                currentBlessCount - (wasBlessing ? 1 : 0);
+
+            const passCountWithoutCurrent =
+                currentPassCount - (wasPassing ? 1 : 0);
+
+            if (
+                role === "bless" &&
+                blessCountWithoutCurrent >= 2
+            ) {
+                return current;
+            }
+
+            if (
+                role === "pass" &&
+                passCountWithoutCurrent >= 3
+            ) {
+                return current;
             }
 
             return {
@@ -172,8 +245,7 @@ export default function AdvisorView() {
                 [youthId]: {
                     role,
                     prepares:
-                        currentAssignment?.prepares ??
-                        false,
+                        currentAssignment?.prepares ?? false,
                 },
             };
         });
@@ -225,6 +297,51 @@ export default function AdvisorView() {
         blessCount === 2 &&
         passCount === 3 &&
         prepareCount >= 2;
+
+
+    const saveTeam = async () => {
+        if (!teamIsValid || !selectedSundayId) {
+            return;
+        }
+
+        setSavingTeam(true);
+        setErrorMessage(null);
+        setSaveMessage(null);
+
+        const rows = Object.entries(team).map(
+            ([youthId, assignment]) => ({
+                youth_id: Number(youthId),
+                sunday_id: selectedSundayId,
+                role: assignment.role,
+                prepares: assignment.prepares,
+                status: "pending",
+            })
+        );
+
+        const { error } = await supabase
+            .from("assignments")
+            .upsert(rows, {
+                onConflict: "youth_id,sunday_id",
+            });
+
+        if (error) {
+            console.error(error);
+
+            setErrorMessage(
+                "No se pudo guardar el equipo."
+            );
+
+            setSavingTeam(false);
+            return;
+        }
+
+        setSaveMessage(
+            "Equipo guardado correctamente."
+        );
+
+        setSavingTeam(false);
+    };
+
 
     return (
         <motion.section
@@ -358,6 +475,12 @@ export default function AdvisorView() {
                             const canBless =
                                 person.office === "priest";
 
+                            const blessFull =
+                                blessCount >= 2 && !isBlessing;
+
+                            const passFull =
+                                passCount >= 3 && !isPassing;
+
                             return (
                                 <motion.div
                                     key={person.id}
@@ -402,6 +525,7 @@ export default function AdvisorView() {
                                             {canBless && (
                                                 <button
                                                     type="button"
+                                                    disabled={blessFull}
                                                     onClick={() =>
                                                         selectRole(
                                                             person.id,
@@ -416,7 +540,9 @@ export default function AdvisorView() {
                                                         ${
                                                             isBlessing
                                                                 ? "border-green-600 bg-green-600 text-white"
-                                                                : "bg-white hover:border-green-300"
+                                                                : blessFull
+                                                                    ? "cursor-not-allowed bg-muted text-muted-foreground opacity-50"
+                                                                    : "bg-white hover:border-green-300"
                                                         }
                                                     `}
                                                 >
@@ -426,6 +552,7 @@ export default function AdvisorView() {
 
                                             <button
                                                 type="button"
+                                                disabled={passFull}
                                                 onClick={() =>
                                                     selectRole(
                                                         person.id,
@@ -440,7 +567,9 @@ export default function AdvisorView() {
                                                     ${
                                                         isPassing
                                                             ? "border-green-600 bg-green-600 text-white"
-                                                            : "bg-white hover:border-green-300"
+                                                            : passFull
+                                                                ? "cursor-not-allowed bg-muted text-muted-foreground opacity-50"
+                                                                : "bg-white hover:border-green-300"
                                                     }
                                                 `}
                                             >
@@ -585,12 +714,23 @@ export default function AdvisorView() {
             >
                 <Button
                     className="mt-6 h-12 w-full rounded-xl bg-green-600 text-white hover:bg-green-700"
-                    disabled={!teamIsValid}
+                    disabled={!teamIsValid || savingTeam}
+                    onClick={saveTeam}
                 >
-                    Guardar equipo
+                    {savingTeam
+                        ? "Guardando..."
+                        : "Guardar equipo"}
                 </Button>
+            {saveMessage && (
+                <motion.p
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-3 text-center text-sm font-medium text-green-700"
+                >
+                    {saveMessage}
+                </motion.p>
+            )}
             </motion.div>
-
         </motion.section>
         
     );
