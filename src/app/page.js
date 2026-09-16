@@ -76,7 +76,7 @@ export default function Page() {
     if (screen === "advisor") {
         return (
             <PageContainer>
-                <AdvisorView />
+                <AdvisorView onBack={() => setScreen("role")} />
             </PageContainer>
         );
     }

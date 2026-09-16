@@ -13,7 +13,7 @@ import {
     staggerContainer,
 } from "@/lib/animations";
 
-export default function AdvisorView() {
+export default function AdvisorView({onBack}) {
     const {
         sundays,
         selectedSundayId,
@@ -51,10 +51,21 @@ export default function AdvisorView() {
 
             <motion.p
                 variants={fadeUp}
-                className="mb-8 text-xs font-semibold uppercase tracking-[0.18em] text-green-600"
+                className="text-xs font-semibold uppercase tracking-[0.18em] text-green-600"
             >
                 Gestión del domingo
             </motion.p>
+
+             <motion.button
+                variants={fadeUp}
+                whileTap={{ scale: 0.98 }}
+                type="button"
+                onClick={onBack}
+                className="mt-3 flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+            >
+                <ChevronLeft className="size-4" />
+                Volver
+            </motion.button>
 
             <motion.h1
                 variants={fadeUp}
