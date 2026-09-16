@@ -113,6 +113,12 @@ export default function AvailabilitySaved({
             <motion.div variants={fadeUp}>
                 <BrandLogo />
             </motion.div>
+            <motion.p
+                variants={fadeUp}
+                className="text-xs font-semibold uppercase tracking-[0.18em] text-green-600"
+            >
+                Disponibilidad guardada
+            </motion.p>
 
             <motion.button
                 variants={fadeUp}
@@ -124,20 +130,6 @@ export default function AvailabilitySaved({
                 <ChevronLeft className="size-4" />
                 Cambiar disponibilidad
             </motion.button>
-
-            <motion.div
-                variants={scaleIn}
-                className="grid size-12 place-items-center rounded-full bg-green-100 text-green-700"
-            >
-                <Check className="size-6" />
-            </motion.div>
-
-            <motion.p
-                variants={fadeUp}
-                className="mt-6 text-xs font-semibold uppercase tracking-[0.18em] text-green-600"
-            >
-                Disponibilidad guardada
-            </motion.p>
 
             <motion.h1
                 variants={fadeUp}

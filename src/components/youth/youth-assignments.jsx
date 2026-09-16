@@ -190,6 +190,13 @@ export default function YouthAssignments({
                     <BrandLogo />
                 </motion.div>
 
+                <motion.p
+                    variants={fadeUp}
+                    className="text-xs font-semibold uppercase tracking-[0.18em] text-green-600"
+                >
+                    Mis turnos
+                </motion.p>
+                
                 <motion.button
                     variants={fadeUp}
                     whileTap={{ scale: 0.98 }}
@@ -201,12 +208,6 @@ export default function YouthAssignments({
                     Volver
                 </motion.button>
 
-                <motion.p
-                    variants={fadeUp}
-                    className="text-xs font-semibold uppercase tracking-[0.18em] text-green-600"
-                >
-                    Mis turnos
-                </motion.p>
 
                 <motion.h1
                     variants={fadeUp}

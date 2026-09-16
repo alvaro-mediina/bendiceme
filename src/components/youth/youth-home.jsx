@@ -432,7 +432,7 @@ export default function YouthHome({
 
             <motion.p
                 variants={fadeUp}
-                className="mt-4 text-xs font-semibold uppercase tracking-[0.18em] text-green-600 sm:mt-3"
+                className="text-xs font-semibold uppercase tracking-[0.18em] text-green-600 sm:mt-3"
             >
                 Disponibilidad · {formattedMonth}
             </motion.p>
