@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import YouthSelector from "@/components/youth/youth-selector";
 import YouthHome from "@/components/youth/youth-home";
 import AvailabilitySaved from "@/components/youth/availability-saved";
@@ -19,8 +19,35 @@ export default function Page() {
     const { currentYouth, youthStartScreen, loadingYouthSession, selectYouth } =
         useCurrentYouth();
     const [advisorLoading, setAdvisorLoading] = useState(false);
+    const [checkingAdvisorSession, setCheckingAdvisorSession] = useState(true);
 
-    if (loadingYouthSession) {
+    useEffect(() => {
+        const restoreAdvisorScreen = async () => {
+            const advisorWasActive =
+                sessionStorage.getItem("bendiceme-advisor-active") === "true";
+
+            if (!advisorWasActive) {
+                setCheckingAdvisorSession(false);
+                return;
+            }
+
+            const {
+                data: { session },
+            } = await supabase.auth.getSession();
+
+            if (session) {
+                setScreen("advisor");
+            } else {
+                sessionStorage.removeItem("bendiceme-advisor-active");
+            }
+
+            setCheckingAdvisorSession(false);
+        };
+
+        restoreAdvisorScreen();
+    }, []);
+
+    if (loadingYouthSession || checkingAdvisorSession) {
         return null;
     }
 
@@ -48,6 +75,11 @@ export default function Page() {
                         } = await supabase.auth.getSession();
 
                         if (session) {
+                            sessionStorage.setItem(
+                                "bendiceme-advisor-active",
+                                "true",
+                            );
+
                             setScreen("advisor");
                             return;
                         }
@@ -94,6 +126,12 @@ export default function Page() {
 
                         setAdvisorPassword("");
                         setAdvisorLoading(false);
+
+                        sessionStorage.setItem(
+                            "bendiceme-advisor-active",
+                            "true",
+                        );
+
                         setScreen("advisor");
                     }}
                 />

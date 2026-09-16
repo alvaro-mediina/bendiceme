@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+
+import { ensureAvailableSundays, getVisibleSundays } from "@/lib/sundays";
 
 import { supabase } from "@/lib/supabase";
 
@@ -11,39 +13,37 @@ export default function useAdvisorAvailability() {
     const [availableYouth, setAvailableYouth] = useState([]);
 
     const [loadingSundays, setLoadingSundays] = useState(true);
+
     const [loadingYouth, setLoadingYouth] = useState(false);
 
     const [availabilityError, setAvailabilityError] = useState(null);
 
-    useEffect(() => {
-        const loadSundays = async () => {
-            setLoadingSundays(true);
-            setAvailabilityError(null);
+    const loadSundays = useCallback(async () => {
+        setLoadingSundays(true);
+        setAvailabilityError(null);
 
-            const now = new Date();
+        try {
+            await ensureAvailableSundays();
 
-            const today = [
-                now.getFullYear(),
-                String(now.getMonth() + 1).padStart(2, "0"),
-                String(now.getDate()).padStart(2, "0"),
-            ].join("-");
+            const { dates } = getVisibleSundays();
+
+            if (dates.length === 0) {
+                setSundays([]);
+                setSelectedSundayId(null);
+                return;
+            }
 
             const { data, error } = await supabase
                 .from("sundays")
                 .select("id, date")
                 .eq("active", true)
-                .gte("date", today)
+                .in("date", dates)
                 .order("date", {
                     ascending: true,
                 });
 
             if (error) {
-                console.error("Error cargando domingos:", error);
-
-                setAvailabilityError("No se pudieron cargar los domingos.");
-
-                setLoadingSundays(false);
-                return;
+                throw error;
             }
 
             const sundayList = data ?? [];
@@ -52,36 +52,44 @@ export default function useAdvisorAvailability() {
 
             if (sundayList.length > 0) {
                 setSelectedSundayId(sundayList[0].id);
+            } else {
+                setSelectedSundayId(null);
             }
+        } catch (error) {
+            console.error("Error cargando domingos:", error);
 
+            setAvailabilityError("No se pudieron cargar los domingos.");
+        } finally {
             setLoadingSundays(false);
-        };
-
-        loadSundays();
+        }
     }, []);
 
-    useEffect(() => {
-        if (!selectedSundayId) {
-            setAvailableYouth([]);
-            return;
-        }
+    const loadAvailableYouth = useCallback(
+        async ({ showLoading = true } = {}) => {
+            if (!selectedSundayId) {
+                setAvailableYouth([]);
+                setLoadingYouth(false);
+                return;
+            }
 
-        const loadAvailableYouth = async () => {
-            setLoadingYouth(true);
+            if (showLoading) {
+                setLoadingYouth(true);
+            }
+
             setAvailabilityError(null);
 
             const { data, error } = await supabase
                 .from("availability")
                 .select(
                     `
-                    youth_id,
-                    youth:youth (
-                        id,
-                        name,
-                        office,
-                        active
-                    )
-                `,
+                            youth_id,
+                            youth:youth (
+                                id,
+                                name,
+                                office,
+                                active
+                            )
+                        `,
                 )
                 .eq("sunday_id", selectedSundayId)
                 .eq("available", true);
@@ -103,22 +111,55 @@ export default function useAdvisorAvailability() {
                 .sort((a, b) => a.name.localeCompare(b.name));
 
             setAvailableYouth(youthList);
-            setLoadingYouth(false);
-        };
 
+            setLoadingYouth(false);
+        },
+        [selectedSundayId],
+    );
+
+    useEffect(() => {
+        loadSundays();
+    }, [loadSundays]);
+
+    useEffect(() => {
         loadAvailableYouth();
-    }, [selectedSundayId]);
+    }, [loadAvailableYouth]);
+
+    useEffect(() => {
+        if (!selectedSundayId) {
+            return;
+        }
+
+        const channel = supabase
+            .channel(`advisor-availability-${selectedSundayId}`)
+            .on(
+                "postgres_changes",
+                {
+                    event: "*",
+                    schema: "public",
+                    table: "availability",
+                    filter: `sunday_id=eq.${selectedSundayId}`,
+                },
+                () => {
+                    loadAvailableYouth({
+                        showLoading: false,
+                    });
+                },
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, [selectedSundayId, loadAvailableYouth]);
 
     return {
         sundays,
         selectedSundayId,
         setSelectedSundayId,
-
         availableYouth,
-
         loadingSundays,
         loadingYouth,
-
         availabilityError,
     };
 }

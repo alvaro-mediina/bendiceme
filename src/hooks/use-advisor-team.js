@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 
 import { supabase } from "@/lib/supabase";
 
@@ -12,16 +12,19 @@ export default function useAdvisorTeam(selectedSundayId) {
     const [teamError, setTeamError] = useState(null);
     const [loadingTeam, setLoadingTeam] = useState(false);
 
-    useEffect(() => {
-        if (!selectedSundayId) {
-            setTeam({});
-            setInitialTeam({});
-            setLoadingTeam(false);
-            return;
-        }
+    const loadTeam = useCallback(
+        async ({ showLoading = true } = {}) => {
+            if (!selectedSundayId) {
+                setTeam({});
+                setInitialTeam({});
+                setLoadingTeam(false);
+                return;
+            }
 
-        const loadTeam = async () => {
-            setLoadingTeam(true);
+            if (showLoading) {
+                setLoadingTeam(true);
+            }
+
             setTeamError(null);
 
             const { data, error } = await supabase
@@ -60,10 +63,41 @@ export default function useAdvisorTeam(selectedSundayId) {
             setInitialTeam(savedTeam);
             setSaveMessage(null);
             setLoadingTeam(false);
-        };
+        },
+        [selectedSundayId],
+    );
 
-        loadTeam();
+    useEffect(() => {
+        if (!selectedSundayId) {
+            return;
+        }
+
+        const channel = supabase
+            .channel(`advisor-assignments-${selectedSundayId}`)
+            .on(
+                "postgres_changes",
+                {
+                    event: "*",
+                    schema: "public",
+                    table: "assignments",
+                    filter: `sunday_id=eq.${selectedSundayId}`,
+                },
+                () => {
+                    loadTeam({
+                        showLoading: false,
+                    });
+                },
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
     }, [selectedSundayId]);
+
+    useEffect(() => {
+        loadTeam();
+    }, [loadTeam]);
 
     const selectRole = (youthId, role) => {
         setTeam((current) => {
