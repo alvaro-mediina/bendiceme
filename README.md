@@ -1,36 +1,81 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# 🌿 BendiceMe
 
-## Getting Started
+BendiceMe es una aplicación web pensada para facilitar la organización de los jóvenes que participan en la preparación, bendición y reparto de la Santa Cena.
 
-First, run the development server:
+La aplicación permite que cada joven indique su disponibilidad para los próximos domingos y que un asesor pueda organizar el equipo, asignar responsabilidades y realizar el seguimiento de las confirmaciones.
+
+## ✨ Funcionalidades
+
+### 👤 Jóvenes
+
+- Selección del joven.
+- Filtro por oficio:
+  - Todos.
+  - Presbíteros.
+  - Maestros.
+- Listado ordenado alfabéticamente.
+- Selección de disponibilidad para los próximos domingos.
+- Posibilidad de modificar la disponibilidad posteriormente.
+- Visualización de asignaciones.
+- Confirmación o rechazo de un turno asignado.
+- Persistencia del joven seleccionado en el dispositivo.
+
+### 🧑‍💼 Asesor
+
+- Acceso protegido mediante autenticación.
+- Selección del domingo a organizar.
+- Visualización de jóvenes disponibles.
+- Asignación de responsabilidades:
+  - Bendecir.
+  - Repartir.
+  - Preparar la Santa Cena.
+- Restricciones según oficio:
+  - Los presbíteros pueden bendecir, repartir y preparar.
+  - Los maestros pueden repartir y preparar.
+- Máximo de:
+  - 2 jóvenes para bendecir.
+  - 3 jóvenes para repartir.
+- Al menos 2 integrantes del equipo pueden ser asignados a preparación.
+- Posibilidad de guardar equipos incompletos y continuar organizándolos posteriormente.
+- Estado de las asignaciones:
+  - Pendiente.
+  - Confirmada.
+  - Rechazada.
+- Actualización en tiempo real mediante Supabase Realtime.
+- Resumen del equipo y estado de conformación.
+- Diseño responsive para escritorio y dispositivos móviles.
+
+## 🙏 Equipo esperado por domingo
+
+La conformación ideal del equipo es:
+
+| Responsabilidad | Cantidad |
+|---|---:|
+| 🙏 Bendecir | 2 |
+| 🤲 Repartir | 3 |
+| 🍞 Preparar | mínimo 2 |
+
+Los jóvenes encargados de preparar forman parte de los mismos cinco integrantes asignados para bendecir o repartir.
+
+## 🛠️ Tecnologías
+
+- ⚡ Next.js
+- ⚛️ React
+- 🟨 JavaScript
+- 🎨 Tailwind CSS
+- 🧩 shadcn/ui
+- 🟢 Supabase
+- 🔐 Supabase Auth
+- 🔄 Supabase Realtime
+- 🐘 PostgreSQL
+- 🎬 Motion
+- 🔷 Lucide React
+- 📦 pnpm
+
+## 🚀 Instalación
+
+Clonar el repositorio:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+git clone <URL_DEL_REPOSITORIO>
+cd bendiceme
