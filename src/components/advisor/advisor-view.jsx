@@ -13,13 +13,13 @@ import {
 } from "@/lib/animations";
 
 export default function AdvisorView() {
-    const [sundays, setSundays] = useState({});
+    const [sundays, setSundays] = useState([]);
     const [selectedSundayId, setSelectedSundayId] = useState(null);
     const [availableYouth, setAvailableYouth] = useState([]);
     const [loadingSundays, setLoadingSundays] = useState(true);
     const [loadingYouth, setLoadingYouth] = useState(false);
     const [errorMessage, setErrorMessage] = useState(null);
-    const [team, setTeam] = useState([]);
+    const [team, setTeam] = useState({});
     const [savingTeam, setSavingTeam] = useState(false);
     const [saveMessage, setSaveMessage] = useState(null);
 
@@ -246,6 +246,7 @@ export default function AdvisorView() {
                     role,
                     prepares:
                         currentAssignment?.prepares ?? false,
+                    status: "pending",
                 },
             };
         });
@@ -266,8 +267,8 @@ export default function AdvisorView() {
                 ...current,
                 [youthId]: {
                     ...assignment,
-                    prepares:
-                        !assignment.prepares,
+                    prepares: !assignment.prepares,
+                    status:"pending",
                 },
             };
         });
@@ -308,24 +309,116 @@ export default function AdvisorView() {
         setErrorMessage(null);
         setSaveMessage(null);
 
+        // 1. Buscar el equipo actualmente guardado
+        const {
+            data: existingAssignments,
+            error: loadError,
+        } = await supabase
+            .from("assignments")
+            .select("youth_id, status")
+            .eq("sunday_id", selectedSundayId)
+            .in("status", ["pending", "confirmed"]);
+
+        if (loadError) {
+            console.error(
+                "Error cargando asignaciones existentes:",
+                loadError
+            );
+
+            setErrorMessage(
+                "No se pudo comprobar el equipo actual."
+            );
+
+            setSavingTeam(false);
+            return;
+        }
+
+        // 2. IDs de los jóvenes que forman el equipo nuevo
+        const currentYouthIds = Object.keys(team).map(Number);
+
+        // 3. Detectar quién estaba asignado pero fue quitado
+        const removedYouthIds = (
+            existingAssignments ?? []
+        )
+            .filter(
+                (assignment) =>
+                    !currentYouthIds.includes(
+                        assignment.youth_id
+                    )
+            )
+            .map(
+                (assignment) =>
+                    assignment.youth_id
+            );
+
+        // 4. Marcar como declined a los que fueron quitados
+        if (removedYouthIds.length > 0) {
+            const { error: removeError } =
+                await supabase
+                    .from("assignments")
+                    .update({
+                        status: "declined",
+                    })
+                    .eq(
+                        "sunday_id",
+                        selectedSundayId
+                    )
+                    .in(
+                        "youth_id",
+                        removedYouthIds
+                    )
+                    .in(
+                        "status",
+                        [
+                            "pending",
+                            "confirmed",
+                        ]
+                    );
+
+            if (removeError) {
+                console.error(
+                    "Error quitando jóvenes del equipo:",
+                    removeError
+                );
+
+                setErrorMessage(
+                    "No se pudo actualizar el equipo."
+                );
+
+                setSavingTeam(false);
+                return;
+            }
+        }
+
+        // 5. Preparar el equipo actual
         const rows = Object.entries(team).map(
             ([youthId, assignment]) => ({
                 youth_id: Number(youthId),
                 sunday_id: selectedSundayId,
                 role: assignment.role,
                 prepares: assignment.prepares,
-                status: "pending",
+                status:
+                    assignment.status ===
+                    "confirmed"
+                        ? "confirmed"
+                        : "pending",
             })
         );
 
-        const { error } = await supabase
-            .from("assignments")
-            .upsert(rows, {
-                onConflict: "youth_id,sunday_id",
-            });
+        // 6. Crear o actualizar las 5 asignaciones
+        const { error: saveError } =
+            await supabase
+                .from("assignments")
+                .upsert(rows, {
+                    onConflict:
+                        "youth_id,sunday_id",
+                });
 
-        if (error) {
-            console.error(error);
+        if (saveError) {
+            console.error(
+                "Error guardando equipo:",
+                saveError
+            );
 
             setErrorMessage(
                 "No se pudo guardar el equipo."
@@ -481,6 +574,8 @@ export default function AdvisorView() {
                             const passFull =
                                 passCount >= 3 && !isPassing;
 
+                            const isConfirmed = assignment?.status === "confirmed";
+
                             return (
                                 <motion.div
                                     key={person.id}
@@ -510,8 +605,20 @@ export default function AdvisorView() {
                                         </div>
 
                                         {assignment && (
-                                            <span className="text-xs font-medium text-green-700">
-                                                En el equipo
+                                            <span
+                                                className={`
+                                                    rounded-full px-2.5 py-1
+                                                    text-xs font-medium
+                                                    ${
+                                                        isConfirmed
+                                                            ? "bg-green-100 text-green-700"
+                                                            : "bg-amber-100 text-amber-700"
+                                                    }
+                                                `}
+                                            >
+                                                {isConfirmed
+                                                    ? "Confirmado"
+                                                    : "Pendiente"}
                                             </span>
                                         )}
                                     </div>
