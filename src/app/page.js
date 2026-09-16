@@ -56,13 +56,9 @@ export default function Page() {
         return null;
     }
 
-    if (loadingYouthSession) {
-        return null;
-    }
-
     if (screen === "role") {
         return (
-            <PageContainer>
+            <PageContainer center>
                 <RoleSelector
                     onYouth={() => {
                         if (currentYouth) {
@@ -98,7 +94,7 @@ export default function Page() {
 
     if (screen === "advisor-login") {
         return (
-            <PageContainer>
+            <PageContainer center>
                 <AdvisorLogin
                     password={advisorPassword}
                     error={advisorError}

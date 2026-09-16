@@ -54,58 +54,59 @@ export default function YouthSelector({ onSelect, onBack }) {
     }
 
     return (
-        <motion.section 
+        <motion.section
             initial="hidden"
             animate="visible"
             variants={staggerContainer}
-            className="mx-auto w-full max-w-xl"
+            className="mx-auto flex h-[calc(100dvh-3rem)] w-full max-w-xl flex-col overflow-hidden sm:h-[calc(100dvh-4rem)]"
         >
-            
-            <motion.div variants={fadeUp}>
-                <BrandLogo/>
-            </motion.div>            
+            <div className="shrink-0">
+                <motion.div variants={fadeUp}>
+                    <BrandLogo />
+                </motion.div>
 
+                <motion.p
+                    variants={fadeUp}
+                    className="text-xs font-semibold uppercase tracking-[0.18em] text-green-600"
+                >
+                    Acceso de jóvenes
+                </motion.p>
 
-            <motion.p 
-                variants={fadeUp}
-                className="text-xs font-semibold uppercase tracking-[0.18em] text-green-600">
-                Acceso de jóvenes
-            </motion.p>
+                <motion.button
+                    variants={fadeUp}
+                    whileTap={{ scale: 0.98 }}
+                    type="button"
+                    onClick={onBack}
+                    className="mt-8 flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+                >
+                    <ChevronLeft className="size-4" />
+                    Volver
+                </motion.button>
 
-            <motion.button
-                variants={fadeUp}
-                whileTap={{ scale: 0.98 }}
-                type="button"
-                onClick={onBack}
-                className="mt-8 flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
-            >
-                <ChevronLeft className="size-4" />
-                Volver
-            </motion.button>
+                <motion.h1
+                    variants={fadeUp}
+                    className="mt-3 text-3xl font-semibold tracking-tight"
+                >
+                    ¿Quién sos?
+                </motion.h1>
 
+                <motion.p
+                    variants={fadeUp}
+                    className="mt-2 text-muted-foreground"
+                >
+                    Elegí tu nombre para administrar tu disponibilidad
+                    y revisar tus turnos.
+                </motion.p>
+            </div>
 
-            <motion.h1 
-                variants={fadeUp}
-                className="mt-3 text-3xl font-semibold tracking-tight">
-                ¿Quién sos?
-            </motion.h1>
-
-
-            <motion.p 
-                variants={fadeUp}
-                className="mt-2 text-muted-foreground">
-                Elegí tu nombre para administrar tu disponibilidad
-                y revisar tus turnos.
-            </motion.p>
-            
             <motion.div
                 variants={staggerContainer}
-                className="mt-8"
+                className="mt-8 min-h-0 flex-1 overflow-y-auto pr-1"
             >
                 {loading ? (
                     <YouthSelectorSkeleton />
                 ) : (
-                    <div className="flex flex-col gap-3">
+                    <div className="flex flex-col gap-3 pb-2">
                         {youth.map((person) => (
                             <motion.button
                                 key={person.id}
