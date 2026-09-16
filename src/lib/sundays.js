@@ -117,3 +117,13 @@ export function getVisibleSundays() {
         activeMonthDate,
     };
 }
+
+export function formatSunday(dateString) {
+    const date = new Date(`${dateString}T00:00:00`);
+
+    return date.toLocaleDateString("es-AR", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+    });
+}
