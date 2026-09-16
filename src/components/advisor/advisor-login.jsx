@@ -14,6 +14,7 @@ import {
 export default function AdvisorLogin({
     password,
     error,
+    loading,
     onPasswordChange,
     onBack,
     onSubmit,
@@ -101,9 +102,12 @@ export default function AdvisorLogin({
                 >
                     <Button
                         type="submit"
-                        className="mt-4 h-12 w-full rounded-xl bg-green-600 text-white hover:bg-green-700"
+                        disabled={loading || !password.trim()}
+                        className="mt-5 h-12 w-full rounded-xl bg-green-600 text-white hover:bg-green-700"
                     >
-                        Ingresar
+                        {loading
+                            ? "Ingresando..."
+                            : "Ingresar como asesor"}
                     </Button>
                 </motion.div>
             </motion.form>

@@ -7,7 +7,7 @@ import AdvisorYouthList from "./advisor-youth-list";
 import useAdvisorTeam from "@/hooks/use-advisor-team";
 import useAdvisorAvailability from "@/hooks/use-advisor-availability";
 import AdvisorViewSkeleton from "./advisor-view-skeleton";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, LogOut } from "lucide-react";
 import { formatSunday } from "@/lib/sundays";
 import { motion } from "motion/react";
 import {
@@ -15,7 +15,7 @@ import {
     staggerContainer,
 } from "@/lib/animations";
 
-export default function AdvisorView({onBack}) {
+export default function AdvisorView({onBack, onLogout}) {
     const {
         sundays,
         selectedSundayId,
@@ -70,16 +70,29 @@ export default function AdvisorView({onBack}) {
                 Gestión del domingo
             </motion.p>
 
-             <motion.button
-                variants={fadeUp}
-                whileTap={{ scale: 0.98 }}
-                type="button"
-                onClick={onBack}
-                className="mt-3 flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
-            >
-                <ChevronLeft className="size-4" />
-                Volver
-            </motion.button>
+            <motion.div className="mt-3 flex items-center justify-between">
+                <motion.button
+                    variants={fadeUp}
+                    whileTap={{ scale: 0.98 }}
+                    type="button"
+                    onClick={onBack}
+                    className="mt-3 flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+                >
+                    <ChevronLeft className="size-4" />
+                    Volver
+                </motion.button>
+
+                <motion.button
+                    variants={fadeUp}
+                    whileTap={{ scale: 0.98 }}
+                    type="button"
+                    onClick={onLogout}
+                    className="flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-red-600"
+                >
+                    <LogOut className="size-4"/>
+                    Cerrar sesión
+                </motion.button>
+            </motion.div>
 
             <motion.h1
                 variants={fadeUp}
