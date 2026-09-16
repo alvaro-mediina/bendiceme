@@ -6,6 +6,8 @@ import AdvisorSundaySelector from "./advisor-sunday-selector";
 import AdvisorYouthList from "./advisor-youth-list";
 import useAdvisorTeam from "@/hooks/use-advisor-team";
 import useAdvisorAvailability from "@/hooks/use-advisor-availability";
+import AdvisorViewSkeleton from "./advisor-view-skeleton";
+import { ChevronLeft } from "lucide-react";
 import { formatSunday } from "@/lib/sundays";
 import { motion } from "motion/react";
 import {
@@ -23,6 +25,8 @@ export default function AdvisorView({onBack}) {
         loadingYouth,
         availabilityError,
     } = useAdvisorAvailability();
+
+    
     const {
         team,
         blessCount,
@@ -30,6 +34,7 @@ export default function AdvisorView({onBack}) {
         prepareCount,
         teamIsValid,
         hasTeamChanges,
+        loadingTeam,
         savingTeam,
         saveMessage,
         teamError,
@@ -37,6 +42,10 @@ export default function AdvisorView({onBack}) {
         togglePrepares,
         saveTeam,
     } = useAdvisorTeam(selectedSundayId);
+    
+    if (loadingSundays) {
+        return <AdvisorViewSkeleton />;
+    }
 
     return (
         <motion.section
@@ -91,14 +100,13 @@ export default function AdvisorView({onBack}) {
                 </motion.p>
             )}
 
-           {!loadingSundays && (
-                <AdvisorSundaySelector
-                    sundays={sundays}
-                    selectedSundayId={selectedSundayId}
-                    onSelect={setSelectedSundayId}
-                    formatSunday={formatSunday}
-                />
-            )}
+            <AdvisorSundaySelector
+                sundays={sundays}
+                selectedSundayId={selectedSundayId}
+                onSelect={setSelectedSundayId}
+                formatSunday={formatSunday}
+            />
+            
 
             <motion.div
                 variants={fadeUp}
@@ -129,16 +137,41 @@ export default function AdvisorView({onBack}) {
                 
             </motion.div>
                 
-            <AdvisorTeamSummary
-                blessCount={blessCount}
-                passCount={passCount}
-                prepareCount={prepareCount}
-                teamIsValid={teamIsValid}
-                hasTeamChanges={hasTeamChanges}
-                savingTeam={savingTeam}
-                saveMessage={saveMessage}
-                onSave={saveTeam}
-            />
+            {loadingTeam ? (
+                <div className="mt-8 rounded-2xl border bg-white p-4 sm:p-5">
+                    <div className="relative h-5 w-28 overflow-hidden rounded bg-gray-200">
+                        <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-gray-200/80 to-transparent" />
+                    </div>
+
+                    <div className="mt-5 flex flex-col gap-4">
+                        {[1, 2, 3].map((item) => (
+                            <div
+                                key={item}
+                                className="flex items-center justify-between"
+                            >
+                                <div className="relative h-4 w-24 overflow-hidden rounded bg-gray-200">
+                                    <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-gray-200/80 to-transparent" />
+                                </div>
+
+                                <div className="relative h-4 w-10 overflow-hidden rounded bg-gray-200">
+                                    <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-gray-200/80 to-transparent" />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            ) : (
+                <AdvisorTeamSummary
+                    blessCount={blessCount}
+                    passCount={passCount}
+                    prepareCount={prepareCount}
+                    teamIsValid={teamIsValid}
+                    hasTeamChanges={hasTeamChanges}
+                    savingTeam={savingTeam}
+                    saveMessage={saveMessage}
+                    onSave={saveTeam}
+                />
+            )}
         </motion.section>
         
     );

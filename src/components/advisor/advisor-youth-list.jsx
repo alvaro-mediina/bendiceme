@@ -17,8 +17,10 @@ export default function AdvisorYouthList({
                 {[1, 2, 3].map((item) => (
                     <div
                         key={item}
-                        className="h-[76px] animate-pulse rounded-2xl border bg-muted"
-                    />
+                        className="relative h-[110px] overflow-hidden rounded-2xl border bg-gray-100"
+                    >
+                        <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-gray-200/80 to-transparent" />
+                    </div>
                 ))}
             </div>
         );

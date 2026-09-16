@@ -10,26 +10,29 @@ export default function useAdvisorTeam(selectedSundayId) {
     const [savingTeam, setSavingTeam] = useState(false);
     const [saveMessage, setSaveMessage] = useState(null);
     const [teamError, setTeamError] = useState(null);
+    const [loadingTeam, setLoadingTeam] = useState(false);
 
     useEffect(() => {
         if (!selectedSundayId) {
             setTeam({});
             setInitialTeam({});
+            setLoadingTeam(false);
             return;
         }
 
         const loadTeam = async () => {
+            setLoadingTeam(true);
             setTeamError(null);
 
             const { data, error } = await supabase
                 .from("assignments")
                 .select(
                     `
-                    youth_id,
-                    role,
-                    prepares,
-                    status
-                `,
+                youth_id,
+                role,
+                prepares,
+                status
+            `,
                 )
                 .eq("sunday_id", selectedSundayId)
                 .in("status", ["pending", "confirmed"]);
@@ -39,6 +42,7 @@ export default function useAdvisorTeam(selectedSundayId) {
 
                 setTeamError("No se pudo cargar el equipo guardado.");
 
+                setLoadingTeam(false);
                 return;
             }
 
@@ -55,6 +59,7 @@ export default function useAdvisorTeam(selectedSundayId) {
             setTeam(savedTeam);
             setInitialTeam(savedTeam);
             setSaveMessage(null);
+            setLoadingTeam(false);
         };
 
         loadTeam();
@@ -245,6 +250,7 @@ export default function useAdvisorTeam(selectedSundayId) {
         teamIsValid,
         hasTeamChanges,
 
+        loadingTeam,
         savingTeam,
         saveMessage,
         teamError,
