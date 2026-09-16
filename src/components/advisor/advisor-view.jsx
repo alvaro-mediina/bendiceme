@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import BrandLogo from "../brand-logo";
 import AdvisorTeamSummary from "./advisor-team-summary";
 import AdvisorSundaySelector from "./advisor-sunday-selector";
@@ -52,11 +53,12 @@ export default function AdvisorView({
         saveTeam,
     } = useAdvisorTeam(selectedSundayId);
 
-    const availablePriests =
-        availableYouth.filter(
-            (person) =>
-                person.office === "priest"
-        ).length;
+    const [mobileSummaryOpen, setMobileSummaryOpen] =
+        useState(false);
+
+    const availablePriests = availableYouth.filter(
+        (person) => person.office === "priest",
+    ).length;
 
     if (loadingSundays) {
         return <AdvisorViewSkeleton />;
@@ -95,7 +97,7 @@ export default function AdvisorView({
             initial="hidden"
             animate="visible"
             variants={staggerContainer}
-            className="mx-auto flex h-[calc(100dvh-3rem)] w-full max-w-5xl flex-col overflow-hidden sm:h-[calc(100dvh-4rem)]"
+            className="mx-auto flex h-[calc(100dvh-3rem)] w-full max-w-5xl flex-col sm:h-[calc(100dvh-4rem)]"
         >
             {/* ENCABEZADO FIJO */}
             <div className="shrink-0">
@@ -179,63 +181,18 @@ export default function AdvisorView({
                 />
             </div>
 
-            {/* CONTENIDO */}
+            {/* CONTENIDO PRINCIPAL */}
             <div className="mt-6 min-h-0 flex-1 overflow-hidden">
                 <div
                     className="
-                        h-full overflow-y-auto pb-24
+                        h-full
                         lg:grid
                         lg:grid-cols-[minmax(0,1fr)_300px]
                         lg:gap-6
-                        lg:overflow-hidden
-                        lg:pb-0
                     "
                 >
-                    {/* RESUMEN MOBILE */}
-                    <div className="mb-6 lg:hidden">
-                        {teamLoading ? (
-                            <TeamSkeleton />
-                        ) : (
-                            <AdvisorTeamSummary
-                                blessCount={
-                                    blessCount
-                                }
-                                passCount={
-                                    passCount
-                                }
-                                prepareCount={
-                                    prepareCount
-                                }
-                                teamIsValid={
-                                    teamIsValid
-                                }
-                                hasTeamChanges={
-                                    hasTeamChanges
-                                }
-                                savingTeam={
-                                    savingTeam
-                                }
-                                saveMessage={
-                                    saveMessage
-                                }
-                                availablePriests={
-                                    availablePriests
-                                }
-                                availableYouthCount={
-                                    availableYouth.length
-                                }
-                                onSave={
-                                    saveTeam
-                                }
-                                showSaveButton={
-                                    false
-                                }
-                            />
-                        )}
-                    </div>
-
                     {/* LISTA */}
-                    <div className="flex min-h-0 flex-col">
+                    <div className="flex h-full min-h-0 flex-col">
                         <motion.div
                             variants={fadeUp}
                             className="shrink-0"
@@ -247,24 +204,44 @@ export default function AdvisorView({
 
                                 {!loadingYouth && (
                                     <span className="text-sm text-muted-foreground">
-                                        {availableYouth.length}
+                                        {
+                                            availableYouth.length
+                                        }
                                     </span>
                                 )}
                             </div>
                         </motion.div>
 
-                        <div className="mt-4 min-h-0 flex-1 overflow-y-auto pr-2">
+                        <div
+                            className="
+                                mt-4 min-h-0 flex-1 overflow-y-auto pr-2
+                                [scrollbar-width:none]
+                                [&::-webkit-scrollbar]:hidden
+                            "
+                        >
                             <AdvisorYouthList
-                                availableYouth={availableYouth}
+                                availableYouth={
+                                    availableYouth
+                                }
                                 team={team}
-                                blessCount={blessCount}
-                                passCount={passCount}
-                                loadingYouth={loadingYouth}
-                                onSelectRole={selectRole}
-                                onTogglePrepares={togglePrepares}
+                                blessCount={
+                                    blessCount
+                                }
+                                passCount={
+                                    passCount
+                                }
+                                loadingYouth={
+                                    loadingYouth
+                                }
+                                onSelectRole={
+                                    selectRole
+                                }
+                                onTogglePrepares={
+                                    togglePrepares
+                                }
                             />
                         </div>
-                </div>
+                    </div>
 
                     {/* RESUMEN DESKTOP */}
                     <div className="hidden lg:block lg:self-start">
@@ -308,8 +285,83 @@ export default function AdvisorView({
                 </div>
             </div>
 
-            {/* GUARDAR FIJO EN MOBILE */}
-            <div className="shrink-0 border-t bg-background/95 pt-3 backdrop-blur lg:hidden">
+           {/* PANEL INFERIOR MOBILE */}
+            <div className="relative shrink-0 border-t bg-background/95 pt-2 backdrop-blur lg:hidden">
+
+                {/* RESUMEN DESPLEGABLE */}
+                {mobileSummaryOpen && (
+                    <motion.div
+                        initial={{
+                            opacity: 0,
+                            y: 10,
+                            scale: 0.98,
+                        }}
+                        animate={{
+                            opacity: 1,
+                            y: 0,
+                            scale: 1,
+                        }}
+                        className="
+                            absolute bottom-full left-0 right-0 z-50 mb-2
+                            max-h-[50dvh] overflow-y-auto
+                            rounded-2xl bg-background
+                            shadow-lg
+                            [scrollbar-width:none]
+                            [&::-webkit-scrollbar]:hidden
+                        "
+                    >
+                        {teamLoading ? (
+                            <TeamSkeleton />
+                        ) : (
+                            <motion.div
+                                initial="hidden"
+                                animate="visible"
+                                variants={staggerContainer}
+                            >
+                                <AdvisorTeamSummary
+                                    blessCount={blessCount}
+                                    passCount={passCount}
+                                    prepareCount={prepareCount}
+                                    teamIsValid={teamIsValid}
+                                    hasTeamChanges={hasTeamChanges}
+                                    savingTeam={savingTeam}
+                                    saveMessage={saveMessage}
+                                    availablePriests={availablePriests}
+                                    availableYouthCount={availableYouth.length}
+                                    onSave={saveTeam}
+                                    showSaveButton={false}
+                                />
+                            </motion.div>
+                        )}
+                    </motion.div>
+                )}
+
+                {/* ABRIR / CERRAR RESUMEN */}
+                <button
+                    type="button"
+                    onClick={() =>
+                        setMobileSummaryOpen((current) => !current)
+                    }
+                    className="flex w-full items-center justify-between py-2.5 text-sm"
+                >
+                    <div className="flex items-center gap-2">
+                        <span className="font-medium">
+                            Equipo
+                        </span>
+
+                        <span className="text-muted-foreground">
+                            {blessCount + passCount}/5
+                        </span>
+                    </div>
+
+                    <span className="font-medium text-green-700">
+                        {mobileSummaryOpen
+                            ? "Ocultar"
+                            : "Ver resumen"}
+                    </span>
+                </button>
+
+                {/* GUARDAR */}
                 <Button
                     className="h-12 w-full rounded-xl bg-green-600 text-white hover:bg-green-700"
                     disabled={
@@ -322,8 +374,8 @@ export default function AdvisorView({
                     {savingTeam
                         ? "Guardando..."
                         : hasTeamChanges
-                          ? "Guardar cambios"
-                          : "Equipo guardado"}
+                        ? "Guardar cambios"
+                        : "Equipo guardado"}
                 </Button>
 
                 {saveMessage && (

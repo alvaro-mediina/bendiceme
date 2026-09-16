@@ -101,7 +101,11 @@ export default function YouthSelector({ onSelect, onBack }) {
 
             <motion.div
                 variants={staggerContainer}
-                className="mt-8 min-h-0 flex-1 overflow-y-auto pr-1"
+                className="
+                    mt-8 min-h-0 flex-1 overflow-y-auto pr-1
+                    [scrollbar-width:none]
+                    [&::-webkit-scrollbar]:hidden
+                "
             >
                 {loading ? (
                     <YouthSelectorSkeleton />

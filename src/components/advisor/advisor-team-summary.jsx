@@ -2,7 +2,6 @@
 
 import { motion } from "motion/react";
 import { Button } from "@/components/ui/button";
-import { fadeUp } from "@/lib/animations";
 
 export default function AdvisorTeamSummary({
     blessCount,
@@ -57,151 +56,147 @@ export default function AdvisorTeamSummary({
     }
 
     return (
-        <>
-            <motion.div
-                variants={fadeUp}
-                className="rounded-2xl border bg-white p-5 text-center"
-            >
-                <div className="flex flex-col items-center">
-                    <h2 className="text-lg font-semibold">
-                        Equipo
-                    </h2>
+        <div
+            className="rounded-2xl border bg-white p-5 text-center"
+        >
+            <div className="flex flex-col items-center">
+                <h2 className="text-lg font-semibold">
+                    Equipo
+                </h2>
 
-                    <p
-                        className={`mt-1 text-xs ${
-                            teamIsValid
-                                ? "text-green-700"
-                                : "text-amber-700"
-                        }`}
+                <p
+                    className={`mt-1 text-xs ${
+                        teamIsValid
+                            ? "text-green-700"
+                            : "text-amber-700"
+                    }`}
+                >
+                    {teamIsValid
+                        ? "Equipo completo"
+                        : "Equipo todavía incompleto"}
+                </p>
+
+                <span className="mt-3 text-2xl font-semibold tracking-tight">
+                    {blessCount + passCount}/5
+                </span>
+
+                <span className="text-xs text-muted-foreground">
+                    jóvenes asignados
+                </span>
+            </div>
+
+            <div className="mx-auto mt-6 flex max-w-[220px] flex-col gap-4 text-left">
+                <div className="flex items-center justify-between">
+                    <span className="text-sm">
+                        Bendecir
+                    </span>
+
+                    <span
+                        className={
+                            blessCount === 2
+                                ? "text-sm font-semibold text-green-700"
+                                : "text-sm font-semibold text-muted-foreground"
+                        }
                     >
-                        {teamIsValid
-                            ? "Equipo completo"
-                            : "Equipo todavía incompleto"}
-                    </p>
-
-                    <span className="mt-3 text-2xl font-semibold tracking-tight">
-                        {blessCount + passCount}/5
-                    </span>
-
-                    <span className="text-xs text-muted-foreground">
-                        jóvenes asignados
+                        {blessCount}/2
                     </span>
                 </div>
 
-                <div className="mx-auto mt-6 flex max-w-[220px] flex-col gap-4 text-left">
-                    <div className="flex items-center justify-between">
-                        <span className="text-sm">
-                            Bendecir
-                        </span>
+                <div className="flex items-center justify-between">
+                    <span className="text-sm">
+                        Repartir
+                    </span>
 
-                        <span
-                            className={
-                                blessCount === 2
-                                    ? "text-sm font-semibold text-green-700"
-                                    : "text-sm font-semibold text-muted-foreground"
-                            }
-                        >
-                            {blessCount}/2
-                        </span>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                        <span className="text-sm">
-                            Repartir
-                        </span>
-
-                        <span
-                            className={
-                                passCount === 3
-                                    ? "text-sm font-semibold text-green-700"
-                                    : "text-sm font-semibold text-muted-foreground"
-                            }
-                        >
-                            {passCount}/3
-                        </span>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                        <span className="text-sm">
-                            Preparación
-                        </span>
-
-                        <span
-                            className={
-                                prepareCount >= 2
-                                    ? "text-sm font-semibold text-green-700"
-                                    : "text-sm font-semibold text-muted-foreground"
-                            }
-                        >
-                            {prepareCount}/2
-                        </span>
-                    </div>
+                    <span
+                        className={
+                            passCount === 3
+                                ? "text-sm font-semibold text-green-700"
+                                : "text-sm font-semibold text-muted-foreground"
+                        }
+                    >
+                        {passCount}/3
+                    </span>
                 </div>
 
-                {warningMessage && (
+                <div className="flex items-center justify-between">
+                    <span className="text-sm">
+                        Preparación
+                    </span>
+
+                    <span
+                        className={
+                            prepareCount >= 2
+                                ? "text-sm font-semibold text-green-700"
+                                : "text-sm font-semibold text-muted-foreground"
+                        }
+                    >
+                        {prepareCount}/2
+                    </span>
+                </div>
+            </div>
+
+            {warningMessage && (
+                <motion.div
+                    initial={{
+                        opacity: 0,
+                        y: 4,
+                    }}
+                    animate={{
+                        opacity: 1,
+                        y: 0,
+                    }}
+                    className="mx-auto mt-6 max-w-[240px] rounded-xl bg-amber-50 p-3 text-sm text-amber-800"
+                >
+                    {warningMessage}
+                </motion.div>
+            )}
+
+            {showSaveButton && (
+                <>
                     <motion.div
-                        initial={{
-                            opacity: 0,
-                            y: 4,
-                        }}
-                        animate={{
-                            opacity: 1,
-                            y: 0,
-                        }}
-                        className="mx-auto mt-6 max-w-[240px] rounded-xl bg-amber-50 p-3 text-sm text-amber-800"
-                    >
-                        {warningMessage}
-                    </motion.div>
-                )}
-
-                {showSaveButton && (
-                    <>
-                        <motion.div
-                            variants={fadeUp}
-                            whileTap={
-                                hasTeamChanges &&
-                                !savingTeam
-                                    ? {
-                                        scale: 0.98,
-                                    }
-                                    : undefined
-                            }
-                            className="mx-auto max-w-[240px]"
-                        >
-                            <Button
-                                className="mt-6 h-12 w-full rounded-xl bg-green-600 text-white hover:bg-green-700"
-                                disabled={
-                                    savingTeam ||
-                                    !hasTeamChanges
+                        whileTap={
+                            hasTeamChanges &&
+                            !savingTeam
+                                ? {
+                                    scale: 0.98,
                                 }
-                                onClick={onSave}
-                            >
-                                {savingTeam
-                                    ? "Guardando..."
-                                    : hasTeamChanges
-                                    ? "Guardar cambios"
-                                    : "Equipo guardado"}
-                            </Button>
-                        </motion.div>
+                                : undefined
+                        }
+                        className="mx-auto max-w-[240px]"
+                    >
+                        <Button
+                            className="mt-6 h-12 w-full rounded-xl bg-green-600 text-white hover:bg-green-700"
+                            disabled={
+                                savingTeam ||
+                                !hasTeamChanges
+                            }
+                            onClick={onSave}
+                        >
+                            {savingTeam
+                                ? "Guardando..."
+                                : hasTeamChanges
+                                ? "Guardar cambios"
+                                : "Equipo guardado"}
+                        </Button>
+                    </motion.div>
 
-                        {saveMessage && (
-                            <motion.p
-                                initial={{
-                                    opacity: 0,
-                                    y: 4,
-                                }}
-                                animate={{
-                                    opacity: 1,
-                                    y: 0,
-                                }}
-                                className="mt-3 text-center text-sm font-medium text-green-700"
-                            >
-                                {saveMessage}
-                            </motion.p>
-                        )}
-                    </>
-                )}
-            </motion.div>
-        </>
+                    {saveMessage && (
+                        <motion.p
+                            initial={{
+                                opacity: 0,
+                                y: 4,
+                            }}
+                            animate={{
+                                opacity: 1,
+                                y: 0,
+                            }}
+                            className="mt-3 text-center text-sm font-medium text-green-700"
+                        >
+                            {saveMessage}
+                        </motion.p>
+                    )}
+                </>
+            )}
+        </div>
     );
 }

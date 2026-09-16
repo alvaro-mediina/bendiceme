@@ -18,7 +18,11 @@ export default function AdvisorSundaySelector({
             variants={fadeUp}
             className="mt-8"
         >
-            <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+            <div className="
+                flex gap-2 overflow-x-auto pb-1
+                [scrollbar-width:none]
+                [&::-webkit-scrollbar]:hidden
+            ">
                 {sundays.map((sunday) => {
                     const selected =
                         selectedSundayId === sunday.id;
