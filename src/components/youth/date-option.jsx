@@ -1,11 +1,13 @@
 import { Check } from "lucide-react";
 
 export default function DateOption({
+    sunday,
     selected,
-    onSelect,
-    date,
+    disabled = false,
+    disabledReason = null,
+    onToggle,
 }) {
-    const sundayDate = new Date(`${date}T00:00:00`);
+    const sundayDate = new Date(`${sunday.date}T00:00:00`);
 
     const day = sundayDate.getDate();
 
@@ -28,15 +30,17 @@ export default function DateOption({
     return (
         <button
             type="button"
-            onClick={onSelect}
+            onClick={onToggle}
+            disabled={disabled}
             aria-pressed={selected}
             className={`
-                flex w-full items-center gap-4 rounded-2xl border p-4
-                text-left transition-all
+                flex w-full items-center gap-4 rounded-2xl border p-4 text-left transition-colors
                 ${
-                    selected
-                        ? "border-green-600 bg-green-50"
-                        : "border-border bg-white hover:border-green-300"
+                    disabled
+                        ? "cursor-not-allowed border-amber-200 bg-amber-50 text-amber-950"
+                        : selected
+                        ? "border-green-500 bg-green-50"
+                        : "bg-white hover:border-green-300 hover:bg-green-50"
                 }
             `}
         >
@@ -44,7 +48,9 @@ export default function DateOption({
                 className={`
                     flex size-14 shrink-0 flex-col items-center justify-center rounded-xl
                     ${
-                        selected
+                        disabled
+                            ? "bg-amber-100 text-amber-800"
+                            : selected
                             ? "bg-green-600 text-white"
                             : "bg-muted text-foreground"
                     }
@@ -59,24 +65,34 @@ export default function DateOption({
                 </span>
             </div>
 
-            <span className="flex-1 text-sm font-medium capitalize sm:text-[15px]">
-                {label}
-            </span>
+            <div className="flex-1">
+                <p className="text-sm font-medium capitalize sm:text-[15px]">
+                    {label}
+                </p>
 
-            <div
-                className={`
-                    grid size-6 shrink-0 place-items-center rounded-full border
-                    ${
-                        selected
-                            ? "border-green-600 bg-green-600 text-white"
-                            : "border-muted-foreground/30"
-                    }
-                `}
-            >
-                {selected && (
-                    <Check className="size-4" />
+                {disabled && disabledReason && (
+                    <p className="mt-1 text-sm font-medium text-amber-700">
+                        ⛪ {disabledReason}
+                    </p>
                 )}
             </div>
+            
+            {!disabled &&
+                <div
+                    className={`
+                        grid size-6 shrink-0 place-items-center rounded-full border
+                        ${
+                            selected
+                                ? "border-green-600 bg-green-600 text-white"
+                                : "border-muted-foreground/30"
+                        }
+                    `}
+                >                
+                    {selected &&  (
+                        <Check className="size-4" />
+                    )}
+                </div>
+            }
         </button>
     );
 }

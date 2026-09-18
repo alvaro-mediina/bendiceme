@@ -116,7 +116,7 @@ export default function YouthHome({
                     error: sundayError,
                 } = await supabase
                     .from("sundays")
-                    .select("id, date")
+                    .select("id, date, enabled, disabled_reason")
                     .eq("active", true)
                     .in("date", visibleSundayDates)
                     .order("date", {
@@ -135,11 +135,13 @@ export default function YouthHome({
                                     sunday.date === date
                             );
 
+                        
                         return {
                             date,
-                            id:
-                                databaseSunday?.id ??
-                                null,
+                            id: databaseSunday?.id ?? null,
+                            enabled: databaseSunday?.enabled ?? true,
+                            disabled_reason:
+                                databaseSunday?.disabled_reason ?? null,
                         };
                     });
 
@@ -171,16 +173,13 @@ export default function YouthHome({
                 setSelected(sundayIds);
                 setInitialSelected(sundayIds);
 
-                const visibleSundayIds =
-                    sundaysWithIds
-                        .filter(
-                            (sunday) =>
-                                sunday.id !== null
-                        )
-                        .map(
-                            (sunday) =>
-                                sunday.id
-                        );
+                const visibleSundayIds = visibleSundays
+                    .filter(
+                        (sunday) =>
+                            sunday.id !== null &&
+                            sunday.enabled,
+                    )
+                    .map((sunday) => sunday.id);
 
                 const hasCurrentAvailability =
                     sundayIds.some((id) =>
@@ -592,17 +591,11 @@ export default function YouthHome({
                         }}
                     >
                         <DateOption
-                            {...sunday}
-                            selected={
-                                sunday.id
-                                    ? selected.includes(sunday.id)
-                                    : false
-                            }
-                            onSelect={() => {
-                                if (!sunday.id) return;
-
-                                toggleSunday(sunday.id);
-                            }}
+                            sunday={sunday}
+                            selected={selected.includes(sunday.id)}
+                            disabled={!sunday.enabled}
+                            disabledReason={sunday.disabled_reason}
+                            onToggle={() => toggleSunday(sunday.id)}
                         />
                     </motion.div>
                 ))}
