@@ -19,7 +19,6 @@ function formatLocalDate(date) {
 
 function getNextSunday() {
     const today = new Date();
-
     const nextSunday = new Date(today);
 
     const daysUntilSunday = (7 - today.getDay()) % 7 || 7;
@@ -29,7 +28,23 @@ function getNextSunday() {
     return formatLocalDate(nextSunday);
 }
 
-export async function POST() {
+export async function GET(request) {
+    const authHeader = request.headers.get("authorization");
+
+    if (
+        !process.env.CRON_SECRET ||
+        authHeader !== `Bearer ${process.env.CRON_SECRET}`
+    ) {
+        return NextResponse.json(
+            {
+                error: "Unauthorized",
+            },
+            {
+                status: 401,
+            },
+        );
+    }
+
     try {
         const sundayDate = getNextSunday();
 
@@ -120,15 +135,13 @@ export async function POST() {
             }
 
             const roleText =
-                assignment.role === "bless" ? "Bendecir" : "Repartir";
+                assignment.role === "bless" ? "bendecir" : "repartir";
 
-            const preparationText = assignment.prepares
-                ? " y preparar la Santa Cena"
-                : "";
+            const preparationText = assignment.prepares ? " y preparar" : "";
 
             const payload = JSON.stringify({
                 title: "🌿 BendiceMe",
-                body: `Este domingo te toca ${roleText.toLowerCase()}${preparationText}.`,
+                body: `Este domingo te toca ${roleText}${preparationText}.`,
                 url: "/",
             });
 
