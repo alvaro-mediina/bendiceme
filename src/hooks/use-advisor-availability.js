@@ -35,7 +35,7 @@ export default function useAdvisorAvailability() {
 
             const { data, error } = await supabase
                 .from("sundays")
-                .select("id, date")
+                .select("id, date, enabled, disabled_reason")
                 .eq("active", true)
                 .in("date", dates)
                 .order("date", {
@@ -50,11 +50,11 @@ export default function useAdvisorAvailability() {
 
             setSundays(sundayList);
 
-            if (sundayList.length > 0) {
-                setSelectedSundayId(sundayList[0].id);
-            } else {
-                setSelectedSundayId(null);
-            }
+            const firstEnabledSunday = sundayList.find(
+                (sunday) => sunday.enabled,
+            );
+
+            setSelectedSundayId(firstEnabledSunday?.id ?? null);
         } catch (error) {
             console.error("Error cargando domingos:", error);
 

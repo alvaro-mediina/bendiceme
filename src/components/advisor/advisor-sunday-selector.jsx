@@ -1,6 +1,7 @@
 "use client";
 
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
+import { useState } from "react";
 import { fadeUp } from "@/lib/animations";
 
 export default function AdvisorSundaySelector({
@@ -9,6 +10,8 @@ export default function AdvisorSundaySelector({
     onSelect,
     formatSunday,
 }) {
+    const [showReasonId, setShowReasonId] = useState(null);
+
     if (sundays.length === 0) {
         return null;
     }
@@ -23,35 +26,99 @@ export default function AdvisorSundaySelector({
                 [scrollbar-width:none]
                 [&::-webkit-scrollbar]:hidden
             ">
-                {sundays.map((sunday) => {
-                    const selected =
-                        selectedSundayId === sunday.id;
+            {sundays.map((sunday) => {
+                const selected =
+                    selectedSundayId === sunday.id;
 
-                    return (
-                        <motion.button
-                            key={sunday.id}
-                            type="button"
-                            whileTap={{ scale: 0.98 }}
-                            onClick={() =>
-                                onSelect(sunday.id)
+                const disabled = !sunday.enabled;
+
+                const showingReason =
+                    showReasonId === sunday.id;
+
+                const handleClick = () => {
+                    if (disabled) {
+                        setShowReasonId(sunday.id);
+
+                        setTimeout(() => {
+                            setShowReasonId(null);
+                        }, 3000);
+
+                        return;
+                    }
+
+                    onSelect(sunday.id);
+                };
+
+                return (
+                    <motion.button
+                        key={sunday.id}
+                        type="button"
+                        aria-disabled={disabled}
+                        whileTap={{ scale: 0.97 }}
+                        onClick={handleClick}
+                        className={`
+                            shrink-0 rounded-2xl border px-4 py-3
+                            text-left transition-colors
+                            ${
+                                disabled
+                                    ? "border-amber-200 bg-amber-50"
+                                    : selected
+                                    ? "border-green-500 bg-green-50"
+                                    : "bg-white hover:border-green-300 hover:bg-green-50"
                             }
-                            className={`
-                                shrink-0 rounded-xl
-                                border px-4 py-3
-                                text-sm font-medium
-                                transition-colors
-                                ${
-                                    selected
-                                        ? "border-green-600 bg-green-50 text-green-700"
-                                        : "bg-white hover:border-green-300"
-                                }
-                            `}
-                        >
-                            {formatSunday(sunday.date)}
-                        </motion.button>
-                    );
-                })}
-            </div>
+                        `}
+                    >
+                        <AnimatePresence mode="wait" initial={false}>
+                            {showingReason ? (
+                                <motion.span
+                                    key="reason"
+                                    initial={{
+                                        opacity: 0,
+                                        y: 4,
+                                    }}
+                                    animate={{
+                                        opacity: 1,
+                                        y: 0,
+                                    }}
+                                    exit={{
+                                        opacity: 0,
+                                        y: -4,
+                                    }}
+                                    transition={{
+                                        duration: 0.18,
+                                    }}
+                                    className="block text-sm font-medium text-amber-700"
+                                >
+                                    ⛪ {sunday.disabled_reason}
+                                </motion.span>
+                            ) : (
+                                <motion.span
+                                    key="date"
+                                    initial={{
+                                        opacity: 0,
+                                        y: 4,
+                                    }}
+                                    animate={{
+                                        opacity: 1,
+                                        y: 0,
+                                    }}
+                                    exit={{
+                                        opacity: 0,
+                                        y: -4,
+                                    }}
+                                    transition={{
+                                        duration: 0.18,
+                                    }}
+                                    className="block text-sm font-medium"
+                                >
+                                    {formatSunday(sunday.date)}
+                                </motion.span>
+                            )}
+                        </AnimatePresence>
+                    </motion.button>
+                );
+            })}
+           </div>
         </motion.div>
     );
 }
