@@ -10,6 +10,9 @@ import { supabase } from "@/lib/supabase";
 import { motion } from "motion/react";
 import { fadeUp, staggerContainer } from "@/lib/animations";
 import { UserRoundCog } from "lucide-react";
+import { registerServiceWorker } from "@/lib/register-service-worker";
+import { Bell } from "lucide-react";
+import { subscribeToPush } from "@/lib/push";
 
 export default function YouthHome({
     currentYouth,
@@ -42,6 +45,9 @@ export default function YouthHome({
     );
 
     const [activeMonth, setActiveMonth] = useState(activeMonthDate);
+    const [pushLoading, setPushLoading] = useState(false);
+    const [pushEnabled, setPushEnabled] = useState(false);
+    const [pushError, setPushError] = useState(null);
     
     const monthName = activeMonth
     ? activeMonth.toLocaleDateString(
@@ -417,6 +423,30 @@ export default function YouthHome({
         onSave();
     };
 
+    //Notificaciones web-push
+    const handleEnableNotifications =
+    async () => {
+        setPushLoading(true);
+        setPushError(null);
+
+        try {
+            await subscribeToPush(
+                currentYouth.id,
+            );
+
+            setPushEnabled(true);
+        } catch (error) {
+            console.error(
+                "Error activando notificaciones:",
+                error,
+            );
+
+            setPushError(error.message);
+        } finally {
+            setPushLoading(false);
+        }
+    };
+
 
     return (
         <motion.section
@@ -466,6 +496,49 @@ export default function YouthHome({
                     Cambiar joven
                 </motion.button>
             </motion.div>
+
+            <div className="mt-6 rounded-2xl border bg-white p-4">
+                <div className="flex items-start gap-3">
+                    <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-green-50">
+                        <Bell className="size-5 text-green-700" />
+                    </div>
+
+                    <div className="flex-1">
+                        <h2 className="font-medium">
+                            Recordatorios
+                        </h2>
+
+                        <p className="mt-1 text-sm text-muted-foreground">
+                            Recibí una notificación cuando se acerque uno de tus turnos.
+                        </p>
+
+                        {pushEnabled ? (
+                            <p className="mt-3 text-sm font-medium text-green-700">
+                                Notificaciones activadas
+                            </p>
+                        ) : (
+                            <button
+                                type="button"
+                                onClick={
+                                    handleEnableNotifications
+                                }
+                                disabled={pushLoading}
+                                className="mt-3 text-sm font-medium text-green-700 transition-colors hover:text-green-800 disabled:opacity-50"
+                            >
+                                {pushLoading
+                                    ? "Activando..."
+                                    : "Activar notificaciones"}
+                            </button>
+                        )}
+
+                        {pushError && (
+                            <p className="mt-2 text-sm text-red-600">
+                                {pushError}
+                            </p>
+                        )}
+                    </div>
+                </div>
+            </div>
 
             <motion.p variants={fadeUp} className="mt-5 text-muted-foreground">
                 ¿En qué domingos podés servir?
