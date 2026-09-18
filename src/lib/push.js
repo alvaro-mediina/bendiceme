@@ -59,5 +59,6 @@ export async function subscribeToPush(youthId) {
         throw new Error(data.error ?? "No se pudo guardar la suscripción.");
     }
 
+    localStorage.setItem("bendiceme-push-youth-id", String(youthId));
     return subscription;
 }

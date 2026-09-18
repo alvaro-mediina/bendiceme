@@ -208,6 +208,40 @@ export default function YouthHome({
         activeMonthDate,
     ]);
 
+    useEffect(() => {
+        const checkPushSubscription = async () => {
+            if (
+                !("serviceWorker" in navigator) ||
+                !("PushManager" in window)
+            ) {
+                return;
+            }
+
+            try {
+                const registration =
+                    await navigator.serviceWorker.ready;
+
+                const subscription =
+                    await registration.pushManager.getSubscription();
+
+                const pushYouthId = localStorage.getItem("bendiceme-push-youth-id");
+
+                const belongsToCurrentYouth = pushYouthId === String(currentYouth.id);
+
+                
+                setPushEnabled(Boolean(subscription && belongsToCurrentYouth));
+                
+            } catch (error) {
+                console.error(
+                    "Error comprobando notificaciones:",
+                    error,
+                );
+            }
+        };
+
+        checkPushSubscription();
+    }, [currentYouth.id]);
+
     const toggleSunday = (id) => {
         setSelected((current) => {
             if (current.includes(id)) {
