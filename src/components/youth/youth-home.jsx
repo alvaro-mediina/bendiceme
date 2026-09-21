@@ -81,12 +81,22 @@ export default function YouthHome({
             return false;
         }
 
-        // Si es hoy, solo está disponible antes de las 13:00.
-        return now.getHours() < 13;
+        const currentMinutes =
+            now.getHours() * 60 +
+            now.getMinutes();
+
+        const cutoffMinutes =
+            11 * 60 + 30;
+
+        return currentMinutes < cutoffMinutes;
     });
 
     const visibleSundayIds = visibleSundays
-        .filter((sunday) => sunday.id !== null)
+        .filter(
+            (sunday) =>
+                sunday.id !== null &&
+                sunday.enabled
+        )
         .map((sunday) => sunday.id);
 
     const currentVisibleSelected = selected
@@ -181,12 +191,29 @@ export default function YouthHome({
                 setSelected(sundayIds);
                 setInitialSelected(sundayIds);
 
-                const visibleSundayIds = visibleSundays
-                    .filter(
-                        (sunday) =>
-                            sunday.id !== null &&
-                            sunday.enabled,
-                    )
+                const visibleSundayIds = sundaysWithIds
+                    .filter((sunday) => {
+                        if (!sunday.enabled || sunday.id === null) {
+                            return false;
+                        }
+
+                        if (sunday.date > currentDate) {
+                            return true;
+                        }
+
+                        if (sunday.date < currentDate) {
+                            return false;
+                        }
+
+                        const currentMinutes =
+                            now.getHours() * 60 +
+                            now.getMinutes();
+
+                        const cutoffMinutes =
+                            11 * 60 + 30;
+
+                        return currentMinutes < cutoffMinutes;
+                    })
                     .map((sunday) => sunday.id);
 
                 const hasCurrentAvailability =
@@ -265,16 +292,13 @@ export default function YouthHome({
         setSaving(true);
         setErrorMessage(null);
 
-        const visibleSundayIds =
-            visibleSundays
-                .filter(
-                    (sunday) =>
-                        sunday.id !== null
-                )
-                .map(
-                    (sunday) =>
-                        sunday.id
-                );
+    const visibleSundayIds = visibleSundays
+        .filter(
+            (sunday) =>
+                sunday.id !== null &&
+                sunday.enabled
+        )
+        .map((sunday) => sunday.id);
 
         // 1. Si quitó disponibilidad y tenía
         // una asignación activa, pasa a declined.
