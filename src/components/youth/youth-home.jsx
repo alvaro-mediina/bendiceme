@@ -72,10 +72,18 @@ export default function YouthHome({
         ).padStart(2, "0"),
     ].join("-");
 
-    const visibleSundays = sundays.filter(
-        (sunday) =>
-            sunday.date >= currentDate
-    );
+    const visibleSundays = sundays.filter((sunday) => {
+        if (sunday.date > currentDate) {
+            return true;
+        }
+
+        if (sunday.date < currentDate) {
+            return false;
+        }
+
+        // Si es hoy, solo está disponible antes de las 13:00.
+        return now.getHours() < 13;
+    });
 
     const visibleSundayIds = visibleSundays
         .filter((sunday) => sunday.id !== null)
@@ -582,7 +590,7 @@ export default function YouthHome({
                 variants={staggerContainer}
                 className="mt-5 flex flex-col gap-3"
             >
-                {sundays.map((sunday) => (
+                {visibleSundays.map((sunday) => (
                     <motion.div
                         key={sunday.date}
                         variants={fadeUp}
