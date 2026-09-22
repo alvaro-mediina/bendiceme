@@ -72,24 +72,7 @@ export default function YouthHome({
         ).padStart(2, "0"),
     ].join("-");
 
-    const visibleSundays = sundays.filter((sunday) => {
-        if (sunday.date > currentDate) {
-            return true;
-        }
-
-        if (sunday.date < currentDate) {
-            return false;
-        }
-
-        const currentMinutes =
-            now.getHours() * 60 +
-            now.getMinutes();
-
-        const cutoffMinutes =
-            11 * 60 + 30;
-
-        return currentMinutes < cutoffMinutes;
-    });
+    const visibleSundays = sundays
 
     const visibleSundayIds = visibleSundays
         .filter(
@@ -192,28 +175,11 @@ export default function YouthHome({
                 setInitialSelected(sundayIds);
 
                 const visibleSundayIds = sundaysWithIds
-                    .filter((sunday) => {
-                        if (!sunday.enabled || sunday.id === null) {
-                            return false;
-                        }
-
-                        if (sunday.date > currentDate) {
-                            return true;
-                        }
-
-                        if (sunday.date < currentDate) {
-                            return false;
-                        }
-
-                        const currentMinutes =
-                            now.getHours() * 60 +
-                            now.getMinutes();
-
-                        const cutoffMinutes =
-                            11 * 60 + 30;
-
-                        return currentMinutes < cutoffMinutes;
-                    })
+                    .filter(
+                        (sunday) =>
+                            sunday.id !== null &&
+                            sunday.enabled
+                    )
                     .map((sunday) => sunday.id);
 
                 const hasCurrentAvailability =
