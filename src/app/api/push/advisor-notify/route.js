@@ -24,7 +24,12 @@ export async function POST(request) {
             );
         }
 
-        const allowedTypes = ["youth_available", "youth_unavailable"];
+        const allowedTypes = [
+            "youth_available",
+            "youth_unavailable",
+            "assignment_confirmed",
+            "assignment_declined",
+        ];
 
         if (!allowedTypes.includes(type)) {
             return NextResponse.json(
@@ -39,49 +44,107 @@ export async function POST(request) {
 
         // Comprobamos que el joven realmente
         // esté disponible para ese domingo.
-        const { data: availability, error: availabilityError } =
-            await supabaseAdmin
-                .from("availability")
-                .select("available")
-                .eq("youth_id", youthId)
-                .eq("sunday_id", sundayId)
-                .maybeSingle();
+        if (type === "youth_available" || type === "youth_unavailable") {
+            const { data: availability, error: availabilityError } =
+                await supabaseAdmin
+                    .from("availability")
+                    .select("available")
+                    .eq("youth_id", youthId)
+                    .eq("sunday_id", sundayId)
+                    .maybeSingle();
 
-        if (availabilityError) {
-            throw availabilityError;
+            if (availabilityError) {
+                throw availabilityError;
+            }
+
+            if (!availability) {
+                return NextResponse.json(
+                    {
+                        error: "No existe disponibilidad para ese domingo.",
+                    },
+                    {
+                        status: 404,
+                    },
+                );
+            }
+
+            if (type === "youth_available" && availability.available !== true) {
+                return NextResponse.json(
+                    {
+                        error: "El joven no está disponible para ese domingo.",
+                    },
+                    {
+                        status: 409,
+                    },
+                );
+            }
+
+            if (
+                type === "youth_unavailable" &&
+                availability.available !== false
+            ) {
+                return NextResponse.json(
+                    {
+                        error: "El joven todavía figura disponible para ese domingo.",
+                    },
+                    {
+                        status: 409,
+                    },
+                );
+            }
         }
 
-        if (!availability) {
-            return NextResponse.json(
-                {
-                    error: "No existe disponibilidad para ese domingo.",
-                },
-                {
-                    status: 404,
-                },
-            );
-        }
+        if (type === "assignment_confirmed" || type === "assignment_declined") {
+            const { data: assignment, error: assignmentError } =
+                await supabaseAdmin
+                    .from("assignments")
+                    .select("status")
+                    .eq("youth_id", youthId)
+                    .eq("sunday_id", sundayId)
+                    .maybeSingle();
 
-        if (type === "youth_available" && availability.available !== true) {
-            return NextResponse.json(
-                {
-                    error: "El joven no está disponible para ese domingo.",
-                },
-                {
-                    status: 409,
-                },
-            );
-        }
+            if (assignmentError) {
+                throw assignmentError;
+            }
 
-        if (type === "youth_unavailable" && availability.available !== false) {
-            return NextResponse.json(
-                {
-                    error: "El joven todavía figura disponible para ese domingo.",
-                },
-                {
-                    status: 409,
-                },
-            );
+            if (!assignment) {
+                return NextResponse.json(
+                    {
+                        error: "No existe una asignación para ese domingo.",
+                    },
+                    {
+                        status: 404,
+                    },
+                );
+            }
+
+            if (
+                type === "assignment_confirmed" &&
+                assignment.status !== "confirmed"
+            ) {
+                return NextResponse.json(
+                    {
+                        error: "La asignación todavía no está confirmada.",
+                    },
+                    {
+                        status: 409,
+                    },
+                );
+            }
+
+            if (
+                type === "assignment_declined" &&
+                assignment.status !== "declined"
+            ) {
+                return NextResponse.json(
+                    {
+                        error: "La asignación todavía no está rechazada.",
+                    },
+                    {
+                        status: 409,
+                    },
+                );
+            }
         }
 
         const { data: youth, error: youthError } = await supabaseAdmin
@@ -130,14 +193,26 @@ export async function POST(request) {
         let title;
         let body;
         const youthName = youth.name.split(" ")[0];
-        if (type === "youth_available") {
-            title = "🙋 Nueva disponibilidad";
-            body = `${youthName} está disponible para el domingo ${formattedSunday}.`;
-        }
+        switch (type) {
+            case "youth_available":
+                title = "🙋 Nueva disponibilidad";
+                body = `${youthName} está disponible para el domingo ${formattedSunday}.`;
+                break;
 
-        if (type === "youth_unavailable") {
-            title = "⚠️ Cambio de disponibilidad";
-            body = `${youthName} ya no está disponible para el domingo ${formattedSunday}.`;
+            case "youth_unavailable":
+                title = "⚠️ Cambio de disponibilidad";
+                body = `${youthName} ya no está disponible para el domingo ${formattedSunday}.`;
+                break;
+
+            case "assignment_confirmed":
+                title = "✅ Asignación confirmada";
+                body = `${youthName} confirmó su asignación para el domingo ${formattedSunday}.`;
+                break;
+
+            case "assignment_declined":
+                title = "❌ Asignación rechazada";
+                body = `${youthName} rechazó su asignación para el domingo ${formattedSunday}.`;
+                break;
         }
 
         const payload = JSON.stringify({
@@ -147,6 +222,7 @@ export async function POST(request) {
         });
 
         let sent = 0;
+        let failed = 0;
 
         for (const subscription of subscriptions) {
             try {
@@ -163,6 +239,7 @@ export async function POST(request) {
 
                 sent += 1;
             } catch (error) {
+                failed += 1;
                 console.error("Error enviando push al asesor:", error);
 
                 // Suscripción vencida o eliminada.
@@ -178,6 +255,7 @@ export async function POST(request) {
         return NextResponse.json({
             success: true,
             sent,
+            failed,
         });
     } catch (error) {
         console.error("Error notificando al asesor:", error);

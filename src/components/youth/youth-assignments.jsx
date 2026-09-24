@@ -17,6 +17,7 @@ import {
     staggerContainer,
 } from "@/lib/animations";
 import YouthAssignmentSkeleton from "./youth-assignment-skeleton";
+import { notifyAdvisor } from "@/lib/advisor-notifications";
 
 
 export default function YouthAssignments({
@@ -71,7 +72,6 @@ export default function YouthAssignments({
         if (!assignment) {
             return;
         }
-
         setUpdating(true);
         setErrorMessage(null);
 
@@ -132,6 +132,22 @@ export default function YouthAssignments({
                 setUpdating(false);
                 return;
             }
+        }
+        
+        try {
+            await notifyAdvisor({
+                type:
+                    newStatus === "confirmed"
+                        ? "assignment_confirmed"
+                        : "assignment_declined",
+                youthId: currentYouth.id,
+                sundayId: assignment.sunday_id,
+            });
+        } catch (error) {
+            console.error(
+                "No se pudo notificar al asesor:",
+                error
+            );
         }
 
         setAssignment(data);
