@@ -12,6 +12,7 @@ import { fadeUp, staggerContainer } from "@/lib/animations";
 import { UserRoundCog } from "lucide-react";
 import { Bell } from "lucide-react";
 import { subscribeToPush } from "@/lib/push";
+import { notifyAdvisor } from "@/lib/advisor-notifications";
 
 export default function YouthHome({
     currentYouth,
@@ -363,6 +364,22 @@ export default function YouthHome({
                 setSaving(false);
                 return;
             }
+
+            for (const sundayId of removedSundayIds) {
+                try {
+                    await notifyAdvisor({
+                        type: "youth_unavailable",
+                        youthId: currentYouth.id,
+                        sundayId,
+                    });
+                } catch (error) {
+                    console.error(
+                        "No se pudo notificar al asesor:",
+                        error
+                    );
+                }
+            }
+
         }
 
         const selectedVisibleSundays =
@@ -439,6 +456,21 @@ export default function YouthHome({
                     setSaving(false);
                     return;
                 }
+
+                for (const sundayId of existingSundayIds) {
+                    try {
+                        await notifyAdvisor({
+                            type: "youth_available",
+                            youthId: currentYouth.id,
+                            sundayId,
+                        });
+                    } catch (error) {
+                        console.error(
+                            "No se pudo notificar al asesor:",
+                            error
+                        );
+                    }
+                }
             }
 
             // 5. Las que nunca existieron
@@ -479,6 +511,21 @@ export default function YouthHome({
 
                     setSaving(false);
                     return;
+                }
+
+                for (const sundayId of newSundayIds) {
+                    try {
+                        await notifyAdvisor({
+                            type: "youth_available",
+                            youthId: currentYouth.id,
+                            sundayId,
+                        });
+                    } catch (error) {
+                        console.error(
+                            "No se pudo notificar al asesor:",
+                            error
+                        );
+                    }
                 }
             }
         }

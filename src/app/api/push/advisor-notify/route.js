@@ -24,7 +24,9 @@ export async function POST(request) {
             );
         }
 
-        if (type !== "youth_available") {
+        const allowedTypes = ["youth_available", "youth_unavailable"];
+
+        if (!allowedTypes.includes(type)) {
             return NextResponse.json(
                 {
                     error: "Tipo de evento no válido.",
@@ -49,10 +51,32 @@ export async function POST(request) {
             throw availabilityError;
         }
 
-        if (!availability?.available) {
+        if (!availability) {
+            return NextResponse.json(
+                {
+                    error: "No existe disponibilidad para ese domingo.",
+                },
+                {
+                    status: 404,
+                },
+            );
+        }
+
+        if (type === "youth_available" && availability.available !== true) {
             return NextResponse.json(
                 {
                     error: "El joven no está disponible para ese domingo.",
+                },
+                {
+                    status: 409,
+                },
+            );
+        }
+
+        if (type === "youth_unavailable" && availability.available !== false) {
+            return NextResponse.json(
+                {
+                    error: "El joven todavía figura disponible para ese domingo.",
                 },
                 {
                     status: 409,
@@ -103,9 +127,22 @@ export async function POST(request) {
             month: "long",
         });
 
+        let title;
+        let body;
+        const youthName = youth.name.split(" ")[0];
+        if (type === "youth_available") {
+            title = "🙋 Nueva disponibilidad";
+            body = `${youthName} está disponible para el domingo ${formattedSunday}.`;
+        }
+
+        if (type === "youth_unavailable") {
+            title = "⚠️ Cambio de disponibilidad";
+            body = `${youthName} ya no está disponible para el domingo ${formattedSunday}.`;
+        }
+
         const payload = JSON.stringify({
-            title: "🌿 Nueva disponibilidad",
-            body: `${youth.name.split(" ")[0]} está disponible para el domingo ${formattedSunday}.`,
+            title,
+            body,
             url: "/",
         });
 
