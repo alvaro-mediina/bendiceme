@@ -62,3 +62,57 @@ export async function subscribeToPush(youthId) {
     localStorage.setItem("bendiceme-push-youth-id", String(youthId));
     return subscription;
 }
+
+export async function subscribeAdvisorToPush(userId) {
+    if (!("serviceWorker" in navigator)) {
+        throw new Error("Este navegador no soporta Service Workers.");
+    }
+
+    if (!("PushManager" in window)) {
+        throw new Error("Este navegador no soporta notificaciones push.");
+    }
+
+    const permission = await Notification.requestPermission();
+
+    if (permission !== "granted") {
+        throw new Error("No se otorgó permiso para las notificaciones.");
+    }
+
+    const registration = await navigator.serviceWorker.ready;
+
+    let subscription = await registration.pushManager.getSubscription();
+
+    if (!subscription) {
+        const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+
+        if (!publicKey) {
+            throw new Error("No está configurada la clave pública VAPID.");
+        }
+
+        subscription = await registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlBase64ToUint8Array(publicKey),
+        });
+    }
+
+    const response = await fetch("/api/push/advisor-subscribe", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            userId,
+            subscription: subscription.toJSON(),
+        }),
+    });
+
+    if (!response.ok) {
+        const data = await response.json();
+
+        throw new Error(data.error ?? "No se pudo guardar la suscripción.");
+    }
+
+    localStorage.setItem("bendiceme-advisor-push-user-id", String(userId));
+
+    return subscription;
+}

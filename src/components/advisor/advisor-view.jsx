@@ -8,10 +8,12 @@ import AdvisorYouthList from "./advisor-youth-list";
 import useAdvisorTeam from "@/hooks/use-advisor-team";
 import useAdvisorAvailability from "@/hooks/use-advisor-availability";
 import AdvisorViewSkeleton from "./advisor-view-skeleton";
+import { subscribeAdvisorToPush } from "@/lib/push";
 
 import {
     ChevronLeft,
     LogOut,
+    Bell
 } from "lucide-react";
 
 import { formatSunday } from "@/lib/sundays";
@@ -22,6 +24,7 @@ import {
     fadeUp,
     staggerContainer,
 } from "@/lib/animations";
+import { supabase } from "@/lib/supabase";
 
 export default function AdvisorView({
     onBack,
@@ -59,6 +62,50 @@ export default function AdvisorView({
     const availablePriests = availableYouth.filter(
         (person) => person.office === "priest",
     ).length;
+
+    const [pushLoading, setPushLoading] = useState(false);
+
+    const [pushEnabled, setPushEnabled] = useState(false);
+
+    const [pushError, setPushError] = useState(null);
+
+
+    const getAdvisorUser = async () => {
+        const { data:{ user }, error } = await supabase.auth.getUser();
+        if (error) throw error;
+        
+        if(!user) {
+            throw new Error("No se encontró la sesión del asesor.")
+        }
+
+        return user;
+    }
+
+    const handleEnableNotifications = async () => {
+        setPushLoading(true);
+        setPushError(null);
+
+        try {
+            const user = await getAdvisorUser();
+
+            await subscribeAdvisorToPush(
+                user.id
+            );
+
+            setPushEnabled(true);
+        } catch (error) {
+            console.error(
+                "Error activando notificaciones del asesor:",
+                error
+            );
+
+            setPushError(
+                error.message
+            );
+        } finally {
+            setPushLoading(false);
+        }
+    };
 
     if (loadingSundays) {
         return <AdvisorViewSkeleton />;
@@ -128,17 +175,47 @@ export default function AdvisorView({
                         Volver
                     </motion.button>
 
-                    <motion.button
-                        whileTap={{
-                            scale: 0.98,
-                        }}
-                        type="button"
-                        onClick={onLogout}
-                        className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-red-50 hover:text-red-600"
-                    >
-                        <LogOut className="size-4" />
-                        Cerrar sesión
-                    </motion.button>
+                    <div className="flex items-center gap-2">
+                        <motion.button
+                            whileTap={{ scale: 0.98 }}
+                            type="button"
+                            onClick={pushEnabled ? undefined : handleEnableNotifications}
+                            disabled={pushLoading}
+                            title={
+                                pushEnabled
+                                    ? "Notificaciones activadas"
+                                    : "Activar notificaciones"
+                            }
+                            className={`
+                                flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm transition-colors
+                                ${
+                                    pushEnabled
+                                        ? "bg-green-100 text-green-700"
+                                        : "text-muted-foreground hover:bg-green-50 hover:text-green-700"
+                                }
+                            `}
+                        >
+                            <Bell className="size-4" />
+
+                            <span className="hidden sm:inline">
+                                {pushLoading
+                                    ? "Activando..."
+                                    : pushEnabled
+                                    ? "Notificaciones activadas"
+                                    : "Activar notificaciones"}
+                            </span>
+                        </motion.button>
+
+                        <motion.button
+                            whileTap={{ scale: 0.98 }}
+                            type="button"
+                            onClick={onLogout}
+                            className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-red-50 hover:text-red-600"
+                        >
+                            <LogOut className="size-4" />
+                            Cerrar sesión
+                        </motion.button>
+                    </div>
                 </motion.div>
 
                 <motion.h1

@@ -10,7 +10,6 @@ import { supabase } from "@/lib/supabase";
 import { motion } from "motion/react";
 import { fadeUp, staggerContainer } from "@/lib/animations";
 import { UserRoundCog } from "lucide-react";
-import { registerServiceWorker } from "@/lib/register-service-worker";
 import { Bell } from "lucide-react";
 import { subscribeToPush } from "@/lib/push";
 
