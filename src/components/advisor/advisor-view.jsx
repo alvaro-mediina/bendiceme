@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import BrandLogo from "../brand-logo";
 import AdvisorTeamSummary from "./advisor-team-summary";
 import AdvisorSundaySelector from "./advisor-sunday-selector";
@@ -68,6 +68,50 @@ export default function AdvisorView({
     const [pushEnabled, setPushEnabled] = useState(false);
 
     const [pushError, setPushError] = useState(null);
+
+
+    useEffect(() => {
+        const checkAdvisorPushSubscription = async () => {
+            if (
+                !("serviceWorker" in navigator) ||
+                !("PushManager" in window)
+            ) {
+                return;
+            }
+
+            try {
+                const user = await getAdvisorUser();
+
+                const registration =
+                    await navigator.serviceWorker.ready;
+
+                const subscription =
+                    await registration.pushManager.getSubscription();
+
+                const storedUserId =
+                    localStorage.getItem(
+                        "bendiceme-advisor-push-user-id"
+                    );
+
+                const belongsToAdvisor =
+                    storedUserId === String(user.id);
+
+                setPushEnabled(
+                    Boolean(
+                        subscription &&
+                        belongsToAdvisor
+                    )
+                );
+            } catch (error) {
+                console.error(
+                    "Error comprobando notificaciones del asesor:",
+                    error
+                );
+            }
+        };
+
+        checkAdvisorPushSubscription();
+    }, []);
 
 
     const getAdvisorUser = async () => {
