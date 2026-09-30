@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
+import { toast } from "sonner";
 import {
-    Check,
     ChevronLeft,
     CircleAlert,
 } from "lucide-react";
@@ -226,9 +225,19 @@ export default function YouthAssignments({
                 error
             );
         }
-
         setAssignment(data);
         setUpdating(false);
+        if (newStatus === "confirmed") {
+            toast.success("Turno confirmado", {
+                description:
+                    "Confirmaste que vas a servir este domingo.",
+            });
+        } else {
+            toast.info("Turno rechazado", {
+                description:
+                    "El asesor fue notificado.",
+            });
+        }
     };
 
 
@@ -707,53 +716,6 @@ export default function YouthAssignments({
                         </motion.div>
                     )}
 
-                    {isConfirmed && (
-                        <motion.div
-                            key="confirmed"
-                            initial={{
-                                opacity: 0,
-                                scale: 0.97,
-                            }}
-                            animate={{
-                                opacity: 1,
-                                scale: 1,
-                            }}
-                            exit={{
-                                opacity: 0,
-                            }}
-                            transition={{
-                                duration: 0.25,
-                            }}
-                            className="mt-6 rounded-xl bg-green-50 p-4"
-                        >
-                            <div className="flex items-center gap-2 text-green-700">
-                                <div className="grid size-8 place-items-center rounded-full bg-green-100">
-                                    <Check className="size-4" />
-                                </div>
-
-                                <p className="font-semibold">
-                                    Turno confirmado
-                                </p>
-                            </div>
-
-                            <p className="mt-3 text-sm text-green-800">
-                                Confirmaste que vas a servir el{" "}
-                                <span className="font-semibold">
-                                    {formattedDate}
-                                </span>.
-                            </p>
-
-                            <p className="mt-1 text-sm text-green-700">
-                                Tu asignación es{" "}
-                                <span className="font-semibold">
-                                    {roleLabel.toLowerCase()}
-                                </span>
-                                {assignment.prepares
-                                    ? " y también vas a preparar la Santa Cena."
-                                    : "."}
-                            </p>
-                        </motion.div>
-                    )}
                 </AnimatePresence>
             </motion.article>
         </motion.section>
