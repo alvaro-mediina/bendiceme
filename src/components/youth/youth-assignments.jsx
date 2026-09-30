@@ -28,6 +28,8 @@ export default function YouthAssignments({
     const [loading, setLoading] = useState(true);
     const [updating, setUpdating] = useState(false);
     const [errorMessage, setErrorMessage] = useState(null);
+    const [confirmedTeam, setConfirmedTeam] = useState([]);
+    const [loadingTeam, setLoadingTeam] = useState(false);
     const youthName = currentYouth.name.split(" ")[0]
 
     useEffect(() => {
@@ -93,6 +95,55 @@ export default function YouthAssignments({
 
         loadAssignment();
     }, [currentYouth.id]);
+
+    useEffect(() => {
+        const loadConfirmedTeam = async () => {
+            if (!assignment?.sunday_id) {
+                setConfirmedTeam([]);
+                return;
+            }
+
+            setLoadingTeam(true);
+
+            const { data, error } = await supabase
+                .from("assignments")
+                .select(`
+                    youth_id,
+                    role,
+                    prepares,
+                    status,
+                    youth:youth (
+                        id,
+                        name,
+                        office
+                    )
+                `)
+                .eq(
+                    "sunday_id",
+                    assignment.sunday_id
+                )
+                .eq(
+                    "status",
+                    "confirmed"
+                );
+
+            if (error) {
+                console.error(
+                    "Error cargando equipo confirmado:",
+                    error
+                );
+
+                setConfirmedTeam([]);
+                setLoadingTeam(false);
+                return;
+            }
+
+            setConfirmedTeam(data ?? []);
+            setLoadingTeam(false);
+        };
+
+        loadConfirmedTeam();
+    }, [assignment?.sunday_id, assignment?.status]);
 
     const updateStatus = async (newStatus) => {
         if (!assignment) {
@@ -244,7 +295,7 @@ export default function YouthAssignments({
                     whileTap={{ scale: 0.98 }}
                     type="button"
                     onClick={onBack}
-                    className="mb-8 mt-8 flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+                    className="mb-5 mt-8 flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
                     <ChevronLeft className="size-4" />
                     Volver
@@ -318,6 +369,18 @@ export default function YouthAssignments({
 
     const isDeclined =
         assignment.status === "declined";
+
+    const blessingTeam =
+        confirmedTeam.filter(
+            (member) =>
+                member.role === "bless"
+        );
+
+    const passingTeam =
+        confirmedTeam.filter(
+            (member) =>
+                member.role === "pass"
+        );
 
     if (isDeclined) {
         return (
@@ -415,7 +478,7 @@ export default function YouthAssignments({
 
            <motion.article
                 variants={fadeUp}
-                className="mt-6 rounded-2xl border bg-white p-4 shadow-sm sm:mt-8 sm:p-5"
+                className="mt-4 rounded-2xl border bg-white p-4 shadow-sm sm:mt-8 sm:p-5"
             >
                 <div className="flex items-start justify-between gap-4">
                     <div>
@@ -445,7 +508,7 @@ export default function YouthAssignments({
                     </span>
                 </div>
 
-                <div className="my-5 border-t" />
+                <div className="my-4 border-t sm:my-5" />
 
                 <div>
                     <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -482,6 +545,97 @@ export default function YouthAssignments({
                         </p>
                     </motion.div>
                 )}
+
+                <div className="my-5 border-t" />
+
+                <div>
+                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                        Equipo confirmado
+                    </p>
+
+                    {loadingTeam ? (
+                        <p className="mt-3 text-sm text-muted-foreground">
+                            Cargando equipo...
+                        </p>
+                    ) : confirmedTeam.length === 0 ? (
+                        <p className="mt-3 text-sm text-muted-foreground">
+                            Todavía no hay jóvenes confirmados para este domingo.
+                        </p>
+                    ) : (
+                        <div className="mt-4 space-y-5">
+                            {blessingTeam.length > 0 && (
+                                <div>
+                                    <p className="text-sm font-semibold">
+                                        Bendicen
+                                    </p>
+
+                                    <div className="mt-2 space-y-2">
+                                        {blessingTeam.map((member) => (
+                                            <div
+                                                key={member.youth_id}
+                                            >
+                                                <div className="flex items-center gap-2 text-sm">
+                                                    <span>
+                                                        {member.youth?.name}
+                                                    </span>
+
+                                                    {member.youth_id === currentYouth.id && (
+                                                    <span className="inline-flex items-center gap-1.5 rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700">
+                                                        <span className="size-1.5 rounded-full bg-green-500" />
+                                                        Vos
+                                                    </span>
+                                                    )}
+
+                                                    {member.prepares && (
+                                                    <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                                                        <span className="size-1.5 rounded-full bg-emerald-400" />
+                                                        Prepara Santa Cena
+                                                    </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {passingTeam.length > 0 && (
+                                <div>
+                                    <p className="text-sm font-semibold">
+                                        Reparten
+                                    </p>
+
+                                    <div className="mt-2 space-y-2">
+                                        {passingTeam.map((member) => (
+                                            <div
+                                                key={member.youth_id}
+                                                className="flex items-center gap-2 text-sm"
+                                            >
+                                                <span>
+                                                    {member.youth?.name}
+                                                </span>
+
+                                                {member.youth_id === currentYouth.id && (
+                                                    <span className="inline-flex items-center gap-1.5 rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700">
+                                                        <span className="size-1.5 rounded-full bg-green-500" />
+                                                        Vos
+                                                    </span>
+                                                )}
+
+                                                {member.prepares && (
+                                                    <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                                                        <span className="size-1.5 rounded-full bg-emerald-400" />
+                                                        Prepara Santa Cena
+                                                    </span>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
 
                 {errorMessage && (
                     <motion.p
