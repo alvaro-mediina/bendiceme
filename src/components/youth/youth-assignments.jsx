@@ -32,6 +32,18 @@ export default function YouthAssignments({
 
     useEffect(() => {
         const loadAssignment = async () => {
+            const today = new Date();
+
+            const currentDate = [
+                today.getFullYear(),
+                String(
+                    today.getMonth() + 1
+                ).padStart(2, "0"),
+                String(
+                    today.getDate()
+                ).padStart(2, "0"),
+            ].join("-");
+
             const { data, error } = await supabase
                 .from("assignments")
                 .select(`
@@ -41,16 +53,14 @@ export default function YouthAssignments({
                         date
                     )
                 `)
-                .eq("youth_id", currentYouth.id)
+                .eq(
+                    "youth_id",
+                    currentYouth.id
+                )
                 .in("status", [
                     "pending",
                     "confirmed",
-                ])
-                .order("sunday_id", {
-                    ascending: true,
-                })
-                .limit(1)
-                .maybeSingle();
+                ]);
 
             if (error) {
                 console.error(error);
@@ -59,7 +69,23 @@ export default function YouthAssignments({
                     "No se pudieron cargar tus turnos."
                 );
             } else {
-                setAssignment(data);
+                const futureAssignments =
+                    (data ?? [])
+                        .filter(
+                            (item) =>
+                                item.sunday &&
+                                item.sunday.date >=
+                                    currentDate
+                        )
+                        .sort((a, b) =>
+                            a.sunday.date.localeCompare(
+                                b.sunday.date
+                            )
+                        );
+
+                const nextAssignment = futureAssignments[0] ?? null;
+
+                setAssignment(nextAssignment);
             }
 
             setLoading(false);
