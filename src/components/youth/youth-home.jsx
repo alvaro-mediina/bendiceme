@@ -129,21 +129,29 @@ export default function YouthHome({
             setErrorMessage(null);
 
             try {
-                const {
-                    data: sundayData,
-                    error: sundayError,
-                } = await supabase
-                    .from("sundays")
-                    .select("id, date, enabled, disabled_reason")
-                    .eq("active", true)
-                    .in("date", visibleSundayDates)
-                    .order("date", {
-                        ascending: true,
-                    });
+                const response = await fetch(
+                    "/api/sundays/sync",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                            dates: visibleSundayDates,
+                        }),
+                    },
+                );
 
-                if (sundayError) {
-                    throw sundayError;
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(
+                        data.error ??
+                            "No se pudieron sincronizar los domingos.",
+                    );
                 }
+
+                const sundayData = data.sundays ?? [];
 
                 const sundaysWithIds =
                     visibleSundayDates.map((date) => {
@@ -670,10 +678,29 @@ export default function YouthHome({
                     >
                         <DateOption
                             sunday={sunday}
-                            selected={selected.includes(sunday.id)}
-                            disabled={!sunday.enabled}
-                            disabledReason={sunday.disabled_reason}
-                            onToggle={() => toggleSunday(sunday.id)}
+                            selected={
+                                sunday.id !== null &&
+                                selected.includes(sunday.id)
+                            }
+                            disabled={
+                                sunday.id === null ||
+                                !sunday.enabled
+                            }
+                            disabledReason={
+                                sunday.id === null
+                                    ? "Domingo no disponible"
+                                    : sunday.disabled_reason
+                            }
+                            onToggle={() => {
+                                if (
+                                    sunday.id === null ||
+                                    !sunday.enabled
+                                ) {
+                                    return;
+                                }
+
+                                toggleSunday(sunday.id);
+                            }}
                         />
                     </motion.div>
                 ))}
