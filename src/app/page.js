@@ -34,8 +34,14 @@ export default function Page() {
         const youthWasActive =
             sessionStorage.getItem("bendiceme-youth-active") === "true";
 
-        if (currentYouth && youthWasActive) {
+        if (!youthWasActive) {
+            return;
+        }
+
+        if (currentYouth) {
             setScreen("home");
+        } else {
+            setScreen("youth");
         }
     }, [loadingYouthSession, currentYouth]);
 
