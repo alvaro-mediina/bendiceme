@@ -298,16 +298,20 @@ export default function YouthHome({
     };
 
     const handleSave = async () => {
+        const selectedSnapshot = [...selected];
+
+
         setSaving(true);
         setErrorMessage(null);
+        setSelected(selectedSnapshot);
 
-    const visibleSundayIds = visibleSundays
-        .filter(
-            (sunday) =>
-                sunday.id !== null &&
-                sunday.enabled
-        )
-        .map((sunday) => sunday.id);
+        const visibleSundayIds = visibleSundays
+            .filter(
+                (sunday) =>
+                    sunday.id !== null &&
+                    sunday.enabled
+            )
+            .map((sunday) => sunday.id);
 
         // 1. Si quitó disponibilidad y tenía
         // una asignación activa, pasa a declined.
@@ -539,6 +543,7 @@ export default function YouthHome({
             }
         }
 
+        setInitialSelected(selected);
         setSaving(false);
         onSave();
     };
@@ -683,9 +688,16 @@ export default function YouthHome({
                     <motion.div
                         key={sunday.date}
                         variants={fadeUp}
-                        whileTap={{
-                            scale: 0.98,
-                        }}
+                        whileTap={
+                            saving
+                                ? undefined
+                                : { scale: 0.98 }
+                        }
+                        className={
+                            saving
+                                ? "pointer-events-none opacity-60"
+                                : ""
+                        }
                     >
                         <DateOption
                             sunday={sunday}
@@ -704,6 +716,7 @@ export default function YouthHome({
                             }
                             onToggle={() => {
                                 if (
+                                    saving ||
                                     sunday.id === null ||
                                     !sunday.enabled
                                 ) {
