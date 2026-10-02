@@ -17,6 +17,7 @@ import {
 } from "@/lib/animations";
 import YouthAssignmentSkeleton from "./youth-assignment-skeleton";
 import { notifyAdvisor } from "@/lib/advisor-notifications";
+import { notifyConfirmedTeamMembers } from "@/lib/team-notifications";
 
 
 export default function YouthAssignments({
@@ -225,6 +226,21 @@ export default function YouthAssignments({
                 error
             );
         }
+
+        if (newStatus === "confirmed") {
+            try {
+                await notifyConfirmedTeamMembers({
+                    youthId: currentYouth.id,
+                    sundayId: assignment.sunday_id,
+                });
+            } catch (error) {
+                console.error(
+                    "No se pudo notificar al equipo:",
+                    error
+                );
+            }
+        }
+
         setAssignment(data);
         setUpdating(false);
         if (newStatus === "confirmed") {
