@@ -13,6 +13,7 @@ import { UserRoundCog } from "lucide-react";
 import { Bell } from "lucide-react";
 import { subscribeToPush } from "@/lib/push";
 import { notifyAdvisor } from "@/lib/advisor-notifications";
+import DateOptionSkeleton from "./date-option-skeleton";
 
 export default function YouthHome({
     currentYouth,
@@ -663,8 +664,18 @@ export default function YouthHome({
                 ¿En qué domingos podés servir?
             </motion.p>
 
-                
-            <motion.div
+            {
+                !loaded ? (
+                    <div className="mt-5 flex flex-col gap-3">
+                        {visibleSundays.map((sunday) => (
+                            <DateOptionSkeleton
+                                key={sunday.date}
+                            />
+                        ))}
+                    </div>
+
+                ): (
+                    <motion.div
                 variants={staggerContainer}
                 className="mt-5 flex flex-col gap-3"
             >
@@ -705,6 +716,9 @@ export default function YouthHome({
                     </motion.div>
                 ))}
             </motion.div>
+                )
+            }
+            
 
             {errorMessage && (
                 <p className="mt-4 text-sm text-red-600">
