@@ -612,10 +612,23 @@ export default function YouthHome({
                 </div>
 
                 <motion.button
-                    whileTap={{ scale: 0.98 }}
+                    whileTap={
+                        saving
+                            ? undefined
+                            : { scale: 0.98 }
+                    }
                     type="button"
                     onClick={onChangeYouth}
-                    className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-green-50 hover:text-green-700"
+                    disabled={saving}
+                    className={`
+                        flex items-center gap-2 rounded-lg px-2.5 py-1.5
+                        text-sm transition-colors
+                        ${
+                            saving
+                                ? "cursor-not-allowed text-muted-foreground/50"
+                                : "text-muted-foreground hover:bg-green-50 hover:text-green-700"
+                        }
+                    `}
                 >
                     <UserRoundCog className="size-4" />
                     Cambiar joven
@@ -644,11 +657,9 @@ export default function YouthHome({
                         ) : (
                             <button
                                 type="button"
-                                onClick={
-                                    handleEnableNotifications
-                                }
-                                disabled={pushLoading}
-                                className="mt-3 text-sm font-medium text-green-700 transition-colors hover:text-green-800 disabled:opacity-50"
+                                onClick={handleEnableNotifications}
+                                disabled={pushLoading || saving}
+                                className="mt-3 text-sm font-medium text-green-700 transition-colors hover:text-green-800 disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 {pushLoading
                                     ? "Activando..."
@@ -763,7 +774,7 @@ export default function YouthHome({
                     variant="outline"
                     className="mt-3 h-12 w-full rounded-xl"
                     onClick={onViewAssignments}
-                    disabled={!loaded}
+                    disabled={!loaded || saving}
                 >
                     Ver mis turnos
                 </Button>
