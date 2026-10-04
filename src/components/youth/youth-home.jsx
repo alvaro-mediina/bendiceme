@@ -5,7 +5,8 @@ import { motion } from "motion/react";
 import { staggerContainer } from "@/lib/animations";
 import useYouthAvailability from "@/hooks/use-youth-availability";
 import useYouthPushNotifications from "@/hooks/use-youth-push-notifications";
-import YouthHeader from "./youth-header";
+import PageHeader from "@/components/page-header";
+import { Bell, UserRoundCog } from "lucide-react";
 import YouthNotificationCard from "./youth-notification-card";
 import YouthAvailabilityList from "./youth-availability-list";
 import YouthHomeActions from "./youth-home-actions";
@@ -57,20 +58,49 @@ export default function YouthHome({
             variants={staggerContainer}
         >
             
-            <YouthHeader
-                currentYouth={currentYouth}
-                formattedMonth={formattedMonth}
-                saving={saving}
-                onChangeYouth={onChangeYouth}
+            <PageHeader
+                eyebrow={`Disponibilidad · ${formattedMonth}`}
+                title={`Hola, ${currentYouth.name.split(" ")[0]}`}
+                description={
+                    currentYouth.office === "priest"
+                        ? "Presbítero"
+                        : "Maestro"
+                }
+                action={
+                    <div className="flex items-center gap-2">
+                        {pushEnabled && (
+                            <button
+                                type="button"
+                                aria-label="Notificaciones activadas"
+                                title="Notificaciones activadas"
+                                className="grid size-9 place-items-center rounded-lg text-green-700 transition-colors hover:bg-green-50"
+                            >
+                                <Bell className="size-4" />
+                            </button>
+                        )}
+
+                        <button
+                            type="button"
+                            onClick={onChangeYouth}
+                            disabled={saving}
+                            className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-green-50 hover:text-green-700 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                            <UserRoundCog className="size-4" />
+                            Cambiar joven
+                        </button>
+                    </div>
+                }
             />
 
-            <YouthNotificationCard
-                pushEnabled={pushEnabled}
-                pushLoading={pushLoading}
-                pushError={pushError}
-                saving={saving}
-                onEnableNotifications={enableNotifications}
-            />
+            {!pushEnabled && (
+                <YouthNotificationCard
+                    pushEnabled={pushEnabled}
+                    pushLoading={pushLoading}
+                    pushError={pushError}
+                    saving={saving}
+                    onEnableNotifications={enableNotifications}
+                />
+            )}
 
             <YouthAvailabilityList
                 loaded={loaded}

@@ -43,7 +43,7 @@ export default function PageHeader({
                 )}
 
                 {(title || description || action) && (
-                    <div className="mt-3 flex items-start justify-between gap-4">
+                    <div className="mt-3 flex items-center justify-between gap-4">
                         <div>
                             {title && (
                                 <h1 className="text-3xl font-semibold tracking-tight">
@@ -52,7 +52,7 @@ export default function PageHeader({
                             )}
 
                             {description && (
-                                <p className="mt-2 text-sm text-muted-foreground">
+                                <p className="mt-1 text-sm text-xs font-semibold uppercase tracking-[0.18em] text-green-600">
                                     {description}
                                 </p>
                             )}
