@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import DateOption from "./date-option";
@@ -9,9 +8,9 @@ import { motion } from "motion/react";
 import { fadeUp, staggerContainer } from "@/lib/animations";
 import { UserRoundCog } from "lucide-react";
 import { Bell } from "lucide-react";
-import { subscribeToPush } from "@/lib/push";
 import DateOptionSkeleton from "./date-option-skeleton";
 import useYouthAvailability from "@/hooks/use-youth-availability";
+import useYouthPushNotifications from "@/hooks/use-youth-push-notifications";
 
 export default function YouthHome({
     currentYouth,
@@ -33,78 +32,22 @@ export default function YouthHome({
     } = useYouthAvailability(
         currentYouth
     );
-    
+    const {
+        pushLoading,
+        pushEnabled,
+        pushError,
+        enableNotifications,
+    } = useYouthPushNotifications(
+        currentYouth.id
+    );
     const youthName = currentYouth.name.split(" ")[0];
-
-    const [pushLoading, setPushLoading] = useState(false);
-    const [pushEnabled, setPushEnabled] = useState(false);
-    const [pushError, setPushError] = useState(null);
     
-
-    useEffect(() => {
-        const checkPushSubscription = async () => {
-            if (
-                !("serviceWorker" in navigator) ||
-                !("PushManager" in window)
-            ) {
-                return;
-            }
-
-            try {
-                const registration =
-                    await navigator.serviceWorker.ready;
-
-                const subscription =
-                    await registration.pushManager.getSubscription();
-
-                const pushYouthId = localStorage.getItem("bendiceme-push-youth-id");
-
-                const belongsToCurrentYouth = pushYouthId === String(currentYouth.id);
-
-                
-                setPushEnabled(Boolean(subscription && belongsToCurrentYouth));
-                
-            } catch (error) {
-                console.error(
-                    "Error comprobando notificaciones:",
-                    error,
-                );
-            }
-        };
-
-        checkPushSubscription();
-    }, [currentYouth.id]);
-
     const handleSave = async () => {
-    const success =
-        await saveAvailability();
+        const success =
+            await saveAvailability();
 
-    if (success) {
-        onSave();
-    }
-};
-
-    //Notificaciones web-push
-    const handleEnableNotifications =
-    async () => {
-        setPushLoading(true);
-        setPushError(null);
-
-        try {
-            await subscribeToPush(
-                currentYouth.id,
-            );
-
-            setPushEnabled(true);
-        } catch (error) {
-            console.error(
-                "Error activando notificaciones:",
-                error,
-            );
-
-            setPushError(error.message);
-        } finally {
-            setPushLoading(false);
+        if (success) {
+            onSave();
         }
     };
 
@@ -193,7 +136,7 @@ export default function YouthHome({
                         ) : (
                             <button
                                 type="button"
-                                onClick={handleEnableNotifications}
+                                onClick={enableNotifications}
                                 disabled={pushLoading || saving}
                                 className="mt-3 text-sm font-medium text-green-700 transition-colors hover:text-green-800 disabled:cursor-not-allowed disabled:opacity-50"
                             >
