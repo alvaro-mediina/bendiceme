@@ -24,7 +24,7 @@ export default function AssignmentCard({
     return (
         <motion.article
             variants={fadeUp}
-            className="mt-4 rounded-2xl border bg-white p-4 shadow-sm sm:mt-8 sm:p-5"
+            className="mt-6 rounded-2xl border bg-white p-4 shadow-sm sm:mt-8 sm:p-5"
         >
             <div className="flex items-start justify-between gap-4">
                 <div>

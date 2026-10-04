@@ -3,7 +3,7 @@
 import { motion } from "motion/react";
 import { CircleAlert } from "lucide-react";
 
-import YouthAssignmentsHeader from "./youth-assignments-header";
+import PageHeader from "../page-header";
 import { scaleIn, staggerContainer } from "@/lib/animations";
 
 export default function AssignmentDeclinedState({
@@ -17,14 +17,14 @@ export default function AssignmentDeclinedState({
             variants={staggerContainer}
             className="mx-auto w-full max-w-xl"
         >
-            <YouthAssignmentsHeader
+            <PageHeader
+                eyebrow="Mis turnos"
                 onBack={onBack}
-                backClassName="mb-3 mt-3"
             />
 
             <motion.div
                 variants={scaleIn}
-                className="mt-8"
+                className="mt-6"
             >
                 <div className="grid size-12 place-items-center rounded-full bg-red-100 text-red-700">
                     <CircleAlert className="size-6" />

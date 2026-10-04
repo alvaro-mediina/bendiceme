@@ -10,13 +10,13 @@ import {
     fadeUp,
     staggerContainer,
 } from "@/lib/animations";
-import YouthAssignmentsHeader from "./youth-assignments-header";
 import YouthAssignmentSkeleton from "./youth-assignment-skeleton";
 import AssignmentEmptyState from "./assignment-empty-state";
 import useNextAssignment from "@/hooks/use-next-assignment";
 import useConfirmedTeam from "@/hooks/use-confirmed-team";
 import AssignmentCard from "./assignment-card";
 import AssignmentDeclinedState from "./assignment-declined-state";
+import PageHeader from "../page-header";
 
 export default function YouthAssignments({
     currentYouth,
@@ -157,17 +157,11 @@ export default function YouthAssignments({
             variants={staggerContainer}
             className="mx-auto w-full max-w-xl"
         >
-            <YouthAssignmentsHeader
+            <PageHeader
+                eyebrow="Mis turnos"
+                title={`Hola, ${youthName}`}
                 onBack={onBack}
-                backClassName="mb-8"
             />
-
-            <motion.h1 
-                variants={fadeUp}
-                className="mt-3 text-3xl font-semibold tracking-tight"
-            >
-                Hola, {youthName}
-            </motion.h1>
 
             <AssignmentCard
                 assignment={assignment}

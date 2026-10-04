@@ -2,8 +2,8 @@
 
 import { motion } from "motion/react";
 
-import YouthAssignmentsHeader from "./youth-assignments-header";
 import { fadeUp, staggerContainer } from "@/lib/animations";
+import PageHeader from "../page-header";
 
 export default function AssignmentEmptyState({
     onBack,
@@ -15,14 +15,14 @@ export default function AssignmentEmptyState({
             variants={staggerContainer}
             className="mx-auto w-full max-w-xl"
         >
-            <YouthAssignmentsHeader
+            <PageHeader
+                eyebrow="Mis turnos"
                 onBack={onBack}
-                backClassName="mb-5 mt-8"
             />
 
             <motion.h1
                 variants={fadeUp}
-                className="mt-3 text-2xl font-semibold tracking-tight sm:text-3xl"
+                className="mt-6 text-2xl font-semibold tracking-tight sm:text-3xl"
             >
                 Todavía no tenés turnos asignados
             </motion.h1>
