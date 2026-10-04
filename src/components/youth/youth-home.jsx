@@ -67,7 +67,7 @@ export default function YouthHome({
                         : "Maestro"
                 }
                 action={
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5">
                         {pushEnabled && (
                             <button
                                 type="button"
@@ -83,10 +83,17 @@ export default function YouthHome({
                             type="button"
                             onClick={onChangeYouth}
                             disabled={saving}
-                            className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-green-50 hover:text-green-700 disabled:cursor-not-allowed disabled:opacity-50"
+                            className="flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-green-50 hover:text-green-700 disabled:cursor-not-allowed disabled:opacity-50"
                         >
-                            <UserRoundCog className="size-4" />
-                            Cambiar joven
+                            <UserRoundCog className="size-4 shrink-0" />
+
+                            <span className="hidden sm:inline">
+                                Cambiar joven
+                            </span>
+
+                            <span className="sm:hidden">
+                                Cambiar
+                            </span>
                         </button>
                     </div>
                 }

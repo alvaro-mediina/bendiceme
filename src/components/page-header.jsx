@@ -43,22 +43,26 @@ export default function PageHeader({
                 )}
 
                 {(title || description || action) && (
-                    <div className="mt-3 flex items-center justify-between gap-4">
-                        <div>
+                   <div className="mt-3 flex items-center justify-between gap-2">
+                        <div className="min-w-0 flex-1">
                             {title && (
-                                <h1 className="text-3xl font-semibold tracking-tight">
+                                <h1 className="text-3xl font-semibold leading-tight tracking-tight">
                                     {title}
                                 </h1>
                             )}
 
                             {description && (
-                                <p className="mt-1 text-sm text-xs font-semibold uppercase tracking-[0.18em] text-green-600">
+                                <p className="mt-1 text-sm font-medium text-muted-foreground">
                                     {description}
                                 </p>
                             )}
                         </div>
 
-                        {action}
+                        {action && (
+                            <div className="flex shrink-0 items-center gap-1.5">
+                                {action}
+                            </div>
+                        )}
                     </div>
                 )}
             </motion.div>
