@@ -10,6 +10,7 @@ import {
     staggerContainer,
 } from "@/lib/animations";
 import YouthSelectorSkeleton from "./youth-selector-skeleton";
+import PageHeader from "../page-header";
 
 export default function YouthSelector({ onSelect, onBack }) {
     const [youth, setYouth] = useState([]);
@@ -82,48 +83,18 @@ export default function YouthSelector({ onSelect, onBack }) {
             className="mx-auto flex h-[calc(100dvh-3rem)] w-full max-w-xl flex-col overflow-hidden sm:h-[calc(100dvh-4rem)]"
         >
             <div className="shrink-0">
-                <motion.div variants={fadeUp}>
-                    <BrandLogo />
-                </motion.div>
-
-                <motion.p
-                    variants={fadeUp}
-                    className="text-xs font-semibold uppercase tracking-[0.18em] text-green-600"
-                >
-                    Acceso de jóvenes
-                </motion.p>
-
-                <motion.button
-                    variants={fadeUp}
-                    whileTap={{ scale: 0.98 }}
-                    type="button"
-                    onClick={onBack}
-                    className="mt-8 flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
-                >
-                    <ChevronLeft className="size-4" />
-                    Volver
-                </motion.button>
-
-                <motion.h1
-                    variants={fadeUp}
-                    className="mt-3 text-3xl font-semibold tracking-tight"
-                >
-                    ¿Quién sos?
-                </motion.h1>
-
-                <motion.p
-                    variants={fadeUp}
-                    className="mt-2 text-muted-foreground"
-                >
-                    Elegí tu nombre para administrar tu disponibilidad
-                    y revisar tus turnos.
-                </motion.p>
+                <PageHeader
+                    eyebrow="Acceso de jóvenes"
+                    title="¿Quién sos?"
+                    description="Elegí tu nombre para administrar tu disponibilidad y revisar tus turnos."
+                    onBack={onBack}
+                />
             </div>
 
             <motion.div
                 variants={fadeUp}
                 className="
-                    mt-4 grid grid-cols-3 gap-2
+                    mt-6 grid grid-cols-3 gap-2
                 "
             >
                 <button
@@ -166,7 +137,7 @@ export default function YouthSelector({ onSelect, onBack }) {
             <motion.div
                 variants={staggerContainer}
                 className="
-                    mt-8 min-h-0 flex-1 overflow-y-auto pr-1
+                    mt-4 min-h-0 flex-1 overflow-y-auto pr-1
                     [scrollbar-width:none]
                     [&::-webkit-scrollbar]:hidden
                 "
