@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { ChevronRight, ChevronLeft } from "lucide-react";
-import BrandLogo from "../brand-logo";
+import { ChevronRight } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { motion } from "motion/react";
 import {

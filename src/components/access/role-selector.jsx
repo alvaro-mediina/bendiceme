@@ -1,6 +1,6 @@
 "use client";
 
-import BrandLogo from "../brand-logo";
+import PageHeader from "@/components/page-header";
 import { motion } from "motion/react";
 
 import {
@@ -19,34 +19,15 @@ export default function RoleSelector({
             variants={staggerContainer}
             className="w-full max-w-xl"
         >
-            <motion.div variants={fadeUp}>
-                <BrandLogo />
-            </motion.div>
-
-            <motion.p
-                variants={fadeUp}
-                className="text-xs font-semibold uppercase tracking-[0.18em] text-green-600"
-            >
-                Acceso
-            </motion.p>
-
-            <motion.h1
-                variants={fadeUp}
-                className="mt-5 text-2xl font-semibold tracking-tight sm:text-3xl"
-            >
-                ¿Cómo querés ingresar?
-            </motion.h1>
-
-            <motion.p
-                variants={fadeUp}
-                className="mt-2 text-muted-foreground"
-            >
-                Elegí el tipo de acceso que querés usar.
-            </motion.p>
+            <PageHeader
+                eyebrow="Acceso"
+                title="¿Cómo querés ingresar?"
+                description="Elegí el tipo de acceso que querés usar."
+            />
 
             <motion.div
                 variants={staggerContainer}
-                className="mt-8 grid gap-3"
+                className="mt-6 grid gap-5"
             >
                 <motion.button
                     variants={fadeUp}
@@ -56,7 +37,7 @@ export default function RoleSelector({
                     onClick={onYouth}
                     className="rounded-2xl border bg-white p-5 text-left transition-colors hover:border-green-300"
                 >
-                    <p className="font-semibold">
+                    <p className="text-lg font-semibold">
                         Soy joven
                     </p>
 
@@ -73,7 +54,7 @@ export default function RoleSelector({
                     onClick={onAdvisor}
                     className="rounded-2xl border bg-white p-5 text-left transition-colors hover:border-green-300"
                 >
-                    <p className="font-semibold">
+                    <p className="text-lg font-semibold">
                         Soy asesor
                     </p>
 
