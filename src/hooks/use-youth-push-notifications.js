@@ -17,6 +17,8 @@ export default function useYouthPushNotifications(youthId) {
             }
 
             try {
+                await navigator.serviceWorker.register("/sw.js");
+
                 const registration = await navigator.serviceWorker.ready;
 
                 const subscription =

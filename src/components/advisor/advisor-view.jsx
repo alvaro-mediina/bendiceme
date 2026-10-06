@@ -82,10 +82,12 @@ export default function AdvisorView({
             try {
                 const user = await getAdvisorUser();
 
+                await navigator.serviceWorker.register("/sw.js");
+
                 const registration =
                     await navigator.serviceWorker.ready;
 
-                const subscription =
+                let subscription =
                     await registration.pushManager.getSubscription();
 
                 const storedUserId =

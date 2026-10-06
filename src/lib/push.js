@@ -25,6 +25,8 @@ export async function subscribeToPush(youthId) {
         throw new Error("No se concedió permiso para notificaciones.");
     }
 
+    await navigator.serviceWorker.register("/sw.js");
+
     const registration = await navigator.serviceWorker.ready;
 
     let subscription = await registration.pushManager.getSubscription();
@@ -77,6 +79,8 @@ export async function subscribeAdvisorToPush(userId) {
     if (permission !== "granted") {
         throw new Error("No se otorgó permiso para las notificaciones.");
     }
+
+    await navigator.serviceWorker.register("/sw.js");
 
     const registration = await navigator.serviceWorker.ready;
 
