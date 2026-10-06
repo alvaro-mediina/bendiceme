@@ -27,6 +27,25 @@ export default function Page() {
     const [checkingAdvisorSession, setCheckingAdvisorSession] = useState(true);
 
     useEffect(() => {
+        if (loadingYouthSession) {
+            return;
+        }
+
+        const youthWasActive =
+            sessionStorage.getItem("bendiceme-youth-active") === "true";
+
+        if (!youthWasActive) {
+            return;
+        }
+
+        if (currentYouth) {
+            setScreen("home");
+        } else {
+            setScreen("youth");
+        }
+    }, [loadingYouthSession, currentYouth]);
+
+    useEffect(() => {
         const restoreAdvisorScreen = async () => {
             const advisorWasActive =
                 sessionStorage.getItem("bendiceme-advisor-active") === "true";
@@ -61,8 +80,13 @@ export default function Page() {
             <PageContainer center>
                 <RoleSelector
                     onYouth={() => {
+                        sessionStorage.setItem(
+                            "bendiceme-youth-active",
+                            "true",
+                        );
+
                         if (currentYouth) {
-                            setScreen(youthStartScreen);
+                            setScreen("home");
                         } else {
                             setScreen("youth");
                         }
@@ -158,7 +182,11 @@ export default function Page() {
         return (
             <PageContainer>
                 <YouthSelector
-                    onBack={() => setScreen("role")}
+                    onBack={() => {
+                        sessionStorage.removeItem("bendiceme-youth-active");
+
+                        setScreen("role");
+                    }}
                     onSelect={(person) => {
                         selectYouth(person);
                         setScreen("home");

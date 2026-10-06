@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 
 import { supabase } from "@/lib/supabase";
+import { notifyYouth } from "@/lib/youth-notifications";
 
 export default function useAdvisorTeam(selectedSundayId) {
     const [team, setTeam] = useState({});
@@ -254,6 +255,26 @@ export default function useAdvisorTeam(selectedSundayId) {
             status: assignment.status === "confirmed" ? "confirmed" : "pending",
         }));
 
+        const youthIdsToNotify = Object.entries(team)
+            .filter(([youthId, assignment]) => {
+                const previous = initialTeam[youthId];
+
+                if (!previous) {
+                    return true;
+                }
+
+                if (previous.role !== assignment.role) {
+                    return true;
+                }
+
+                if (previous.prepares !== assignment.prepares) {
+                    return true;
+                }
+
+                return false;
+            })
+            .map(([youthId]) => Number(youthId));
+
         const { error: saveError } = await supabase
             .from("assignments")
             .upsert(rows, {
@@ -267,6 +288,21 @@ export default function useAdvisorTeam(selectedSundayId) {
 
             setSavingTeam(false);
             return;
+        }
+
+        for (const youthId of youthIdsToNotify) {
+            try {
+                await notifyYouth({
+                    type: "assignment_created",
+                    youthId,
+                    sundayId: selectedSundayId,
+                });
+            } catch (error) {
+                console.error(
+                    `No se pudo notificar al joven ${youthId}:`,
+                    error,
+                );
+            }
         }
 
         setInitialTeam(team);

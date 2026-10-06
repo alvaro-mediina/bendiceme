@@ -17,8 +17,13 @@ function formatLocalDate(date) {
     return `${year}-${month}-${day}`;
 }
 
-function getNextSunday() {
+function getReminderSunday(type) {
     const today = new Date();
+
+    if (type === "sunday") {
+        return formatLocalDate(today);
+    }
+
     const nextSunday = new Date(today);
 
     const daysUntilSunday = (7 - today.getDay()) % 7 || 7;
@@ -29,6 +34,20 @@ function getNextSunday() {
 }
 
 export async function GET(request) {
+    const { searchParams } = new URL(request.url);
+    const type = searchParams.get("type");
+    const allowedTypes = ["saturday", "sunday"];
+
+    if (!allowedTypes.includes(type)) {
+        return NextResponse.json(
+            {
+                error: "Tipo de recordatorio no válido.",
+            },
+            {
+                status: 400,
+            },
+        );
+    }
     const authHeader = request.headers.get("authorization");
 
     if (
@@ -46,11 +65,13 @@ export async function GET(request) {
     }
 
     try {
-        const sundayDate = getNextSunday();
+        const sundayDate = getReminderSunday(type);
+        const logType =
+            type === "sunday" ? "sunday_same_day_reminder" : "sunday_reminder";
 
         const { data: sunday, error: sundayError } = await supabaseAdmin
             .from("sundays")
-            .select("id, date")
+            .select("id, date, enabled, disabled_reason")
             .eq("date", sundayDate)
             .maybeSingle();
 
@@ -71,6 +92,16 @@ export async function GET(request) {
             return NextResponse.json({
                 success: true,
                 message: "No hay domingo registrado.",
+                sent: 0,
+            });
+        }
+
+        if (!sunday.enabled) {
+            return NextResponse.json({
+                success: true,
+                message: sunday.disabled_reason
+                    ? `Domingo no disponible: ${sunday.disabled_reason}`
+                    : "Domingo no disponible.",
                 sent: 0,
             });
         }
@@ -115,7 +146,7 @@ export async function GET(request) {
                 .from("notification_log")
                 .select("id")
                 .eq("assignment_id", assignment.id)
-                .eq("type", "sunday_reminder")
+                .eq("type", logType)
                 .maybeSingle();
 
             if (previousNotification) {
@@ -137,11 +168,21 @@ export async function GET(request) {
             const roleText =
                 assignment.role === "bless" ? "bendecir" : "repartir";
 
-            const preparationText = assignment.prepares ? " y preparar" : "";
+            const preparationText = assignment.prepares
+                ? " y preparar la Santa Cena"
+                : "";
+
+            const isSameDay = type === "sunday";
 
             const payload = JSON.stringify({
-                title: "🌿 BendiceMe",
-                body: `Este domingo te toca ${roleText}${preparationText}.`,
+                title: isSameDay
+                    ? "🙏 Hoy te toca servir"
+                    : "⛪ Mañana te toca servir",
+
+                body: isSameDay
+                    ? `Recordá que hoy te toca ${roleText}${preparationText}.`
+                    : `Mañana te toca ${roleText}${preparationText}.`,
+
                 url: "/",
             });
 
@@ -172,7 +213,7 @@ export async function GET(request) {
             await supabaseAdmin.from("notification_log").insert({
                 youth_id: assignment.youth_id,
                 assignment_id: assignment.id,
-                type: "sunday_reminder",
+                type: logType,
             });
 
             sent++;
