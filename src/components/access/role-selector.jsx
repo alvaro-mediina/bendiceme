@@ -35,8 +35,10 @@ export default function RoleSelector({
                     whileTap={{ scale: 0.98 }}
                     type="button"
                     onClick={onYouth}
+                    onContextMenu={(event) => event.preventDefault()}
                     className="
                             group relative min-h-[120px] overflow-hidden
+                            select-none touch-manipulation
                             rounded-2xl border bg-white p-5 pr-28
                             text-left transition-colors
                             hover:border-green-300"
@@ -52,22 +54,31 @@ export default function RoleSelector({
                     <img
                         src="/images/youth-normal.png"
                         alt=""
+                        draggable={false}
                         className="
+                            pointer-events-none
                             absolute bottom-0 right-2
-                            h-[110px] w-auto
-                            transition-opacity duration-200
+                            h-[100px] w-auto
+                            select-none
                             group-hover:opacity-0
+                            group-active:opacity-0
+                            sm:h-[120px]
                         "
                     />
 
                     <img
                         src="/images/youth-happy.png"
                         alt=""
+                        draggable={false}
                         className="
+                            pointer-events-none
                             absolute bottom-0 right-2
-                            h-[110px] w-auto
-                            opacity-0 transition-opacity duration-200
+                            h-[100px] w-auto
+                            select-none
+                            opacity-0
                             group-hover:opacity-100
+                            group-active:opacity-100
+                            sm:h-[120px]
                         "
                     />
                 </motion.button>
@@ -78,8 +89,10 @@ export default function RoleSelector({
                     whileTap={{ scale: 0.98 }}
                     type="button"
                     onClick={onAdvisor}
+                    onContextMenu={(event) => event.preventDefault()}
                     className="
                             group relative min-h-[120px] overflow-hidden
+                            select-none touch-manipulation
                             rounded-2xl border bg-white p-5 pr-28
                             text-left transition-colors
                             hover:border-green-300"
@@ -95,22 +108,31 @@ export default function RoleSelector({
                     <img
                         src="/images/advisor-normal.png"
                         alt=""
+                        draggable={false}
                         className="
+                            pointer-events-none
                             absolute bottom-0 right-2
-                            h-[110px] w-auto
-                            transition-opacity duration-200
+                            h-[100px] w-auto
+                            select-none
                             group-hover:opacity-0
+                            group-active:opacity-0
+                            sm:h-[120px]
                         "
                     />
 
                     <img
                         src="/images/advisor-happy.png"
                         alt=""
+                        draggable={false}
                         className="
+                            pointer-events-none
                             absolute bottom-0 right-2
-                            h-[110px] w-auto
-                            opacity-0 transition-opacity duration-200
+                            h-[100px] w-auto
+                            select-none
+                            opacity-0
                             group-hover:opacity-100
+                            group-active:opacity-100
+                            sm:h-[120px]
                         "
                     />
                 </motion.button>
