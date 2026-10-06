@@ -35,7 +35,11 @@ export default function RoleSelector({
                     whileTap={{ scale: 0.98 }}
                     type="button"
                     onClick={onYouth}
-                    className="rounded-2xl border bg-white p-5 text-left transition-colors hover:border-green-300"
+                    className="
+                            group relative min-h-[120px] overflow-hidden
+                            rounded-2xl border bg-white p-5 pr-28
+                            text-left transition-colors
+                            hover:border-green-300"
                 >
                     <p className="text-lg font-semibold">
                         Soy joven
@@ -44,6 +48,28 @@ export default function RoleSelector({
                     <p className="mt-1 text-sm text-muted-foreground">
                         Marcá tu disponibilidad y revisá tus turnos.
                     </p>
+                    
+                    <img
+                        src="/images/youth-normal.png"
+                        alt=""
+                        className="
+                            absolute bottom-0 right-2
+                            h-[110px] w-auto
+                            transition-opacity duration-200
+                            group-hover:opacity-0
+                        "
+                    />
+
+                    <img
+                        src="/images/youth-happy.png"
+                        alt=""
+                        className="
+                            absolute bottom-0 right-2
+                            h-[110px] w-auto
+                            opacity-0 transition-opacity duration-200
+                            group-hover:opacity-100
+                        "
+                    />
                 </motion.button>
 
                 <motion.button
@@ -52,8 +78,12 @@ export default function RoleSelector({
                     whileTap={{ scale: 0.98 }}
                     type="button"
                     onClick={onAdvisor}
-                    className="rounded-2xl border bg-white p-5 text-left transition-colors hover:border-green-300"
-                >
+                    className="
+                            group relative min-h-[120px] overflow-hidden
+                            rounded-2xl border bg-white p-5 pr-28
+                            text-left transition-colors
+                            hover:border-green-300"
+                >                
                     <p className="text-lg font-semibold">
                         Soy asesor
                     </p>
@@ -61,6 +91,28 @@ export default function RoleSelector({
                     <p className="mt-1 text-sm text-muted-foreground">
                         Organizá el equipo de la Santa Cena.
                     </p>
+
+                    <img
+                        src="/images/advisor-normal.png"
+                        alt=""
+                        className="
+                            absolute bottom-0 right-2
+                            h-[110px] w-auto
+                            transition-opacity duration-200
+                            group-hover:opacity-0
+                        "
+                    />
+
+                    <img
+                        src="/images/advisor-happy.png"
+                        alt=""
+                        className="
+                            absolute bottom-0 right-2
+                            h-[110px] w-auto
+                            opacity-0 transition-opacity duration-200
+                            group-hover:opacity-100
+                        "
+                    />
                 </motion.button>
             </motion.div>
         </motion.section>
