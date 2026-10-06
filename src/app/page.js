@@ -77,7 +77,7 @@ export default function Page() {
 
     if (screen === "role") {
         return (
-            <PageContainer>
+            <PageContainer center>
                 <RoleSelector
                     onYouth={() => {
                         sessionStorage.setItem(

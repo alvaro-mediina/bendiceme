@@ -30,11 +30,11 @@ export default function AssignmentDeclinedState({
                     <CircleAlert className="size-6" />
                 </div>
 
-                <h1 className="mt-6 text-2xl font-semibold tracking-tight sm:text-3xl">
-                    Entonces NO ESTÁS DISPONIBLE.
+                <h1 className="mt-5 text-2xl font-semibold tracking-tight sm:text-3xl">
+                    Entonces no estás disponible.
                 </h1>
 
-                <p className="mt-3 text-muted-foreground">
+                <p className="mt-2 text-muted-foreground">
                     Avisaste que no vas a poder servir el{" "}
                     <span className="font-medium text-foreground">
                         {formattedDate}
