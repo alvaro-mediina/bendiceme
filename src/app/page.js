@@ -11,6 +11,7 @@ import useCurrentYouth from "@/hooks/use-current-youth";
 import PageContainer from "@/components/layout/page-container";
 import useCurrentProfile from "@/hooks/use-current-profile";
 import YouthLogin from "@/components/youth/youth-login";
+import AdvisorViewSkeleton from "@/components/advisor/advisor-view-skeleton";
 import { supabase } from "@/lib/supabase";
 
 export default function Page() {
@@ -257,10 +258,28 @@ export default function Page() {
     }
 
     if (screen === "advisor") {
+        if (loadingProfile) {
+            return (
+                <PageContainer>
+                    <AdvisorViewSkeleton />
+                </PageContainer>
+            );
+        }
+
+        if (!profile?.ward_id) {
+            return (
+                <PageContainer center>
+                    <p className="text-sm text-red-600">
+                        No se pudo cargar el barrio del asesor.
+                    </p>
+                </PageContainer>
+            );
+        }
+
         return (
             <PageContainer>
                 <AdvisorView
-                    wardId={profile?.ward_id}
+                    wardId={profile.ward_id}
                     onBack={() => setScreen("role")}
                     onLogout={async () => {
                         const { error } = await supabase.auth.signOut({

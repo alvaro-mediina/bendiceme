@@ -39,7 +39,7 @@ export default function useAdvisorTeam(wardId, selectedSundayId) {
                 status
             `,
                 )
-                .eq("ward:id", wardId)
+                .eq("ward_id", wardId)
                 .eq("sunday_id", selectedSundayId)
                 .in("status", ["pending", "confirmed"]);
 

@@ -18,7 +18,7 @@ export default function YouthHome({
     onChangeYouth,
     logoutLoading,
 }) {
-        const {
+    const {
         selected,
         loaded,
         saving,
@@ -40,7 +40,8 @@ export default function YouthHome({
     } = useYouthPushNotifications(
         currentYouth.id
     );
-    
+    const interactionLocked = saving || logoutLoading;
+
     const handleSave = async () => {
         const success =
             await saveAvailability();
@@ -84,10 +85,12 @@ export default function YouthHome({
                         <motion.button
                             type="button"
                             onClick={onChangeYouth}
-                            disabled={logoutLoading}
-                            whileTap={{
-                                scale: 0.96,
-                            }}
+                            disabled={interactionLocked}
+                            whileTap={
+                                interactionLocked
+                                    ? undefined
+                                    : { scale: 0.96 }
+                            }
                             className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 hover:text-red-700 disabled:opacity-60"                        
                         >   
 

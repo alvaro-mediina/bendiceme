@@ -80,6 +80,16 @@ export default function useCurrentProfile() {
             }
         };
 
+        const {
+            data: { subscription },
+        } = supabase.auth.onAuthStateChange(() => {
+            loadProfile();
+        });
+
+        return () => {
+            subscription.unsubscribe();
+        };
+
         loadProfile();
     }, []);
 
