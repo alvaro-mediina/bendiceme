@@ -37,14 +37,6 @@ export default function YouthSelector({ onSelect, onBack }) {
         loadYouth();
     }, []);
 
-    const handleSelect = (person) => {
-        localStorage.setItem(
-            "bendiceme-current-youth-id",
-            person.id
-        );
-
-        onSelect(person);
-    };
 
     const filteredYouth = useMemo(() => {
         return [...youth]

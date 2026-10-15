@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import YouthSelector from "@/components/youth/youth-selector";
 import YouthHome from "@/components/youth/youth-home";
 import AvailabilitySaved from "@/components/youth/availability-saved";
 import YouthAssignments from "@/components/youth/youth-assignments";
@@ -10,7 +9,9 @@ import RoleSelector from "@/components/access/role-selector";
 import AdvisorLogin from "@/components/advisor/advisor-login";
 import useCurrentYouth from "@/hooks/use-current-youth";
 import PageContainer from "@/components/layout/page-container";
-import MaintenanceScreen from "@/components/maintenance-screen";
+import useCurrentProfile from "@/hooks/use-current-profile";
+import YouthLogin from "@/components/youth/youth-login";
+import AdvisorViewSkeleton from "@/components/advisor/advisor-view-skeleton";
 import { supabase } from "@/lib/supabase";
 
 export default function Page() {
@@ -21,30 +22,27 @@ export default function Page() {
         currentYouth,
         youthStartScreen,
         loadingYouthSession,
-        selectYouth,
+        refreshCurrentYouth,
         clearYouth,
     } = useCurrentYouth();
     const [advisorLoading, setAdvisorLoading] = useState(false);
     const [checkingAdvisorSession, setCheckingAdvisorSession] = useState(true);
+    const [youthEmail, setYouthEmail] = useState("");
+    const [youthPassword, setYouthPassword] = useState("");
+    const [youthLoginError, setYouthLoginError] = useState(null);
+    const [youthLoginLoading, setYouthLoginLoading] = useState(false);
+    const [youthLogoutLoading, setYouthLogoutLoading] = useState(false);
+    const { profile, loadingProfile, profileError } = useCurrentProfile();
 
     useEffect(() => {
         if (loadingYouthSession) {
             return;
         }
 
-        const youthWasActive =
-            sessionStorage.getItem("bendiceme-youth-active") === "true";
-
-        if (!youthWasActive) {
-            return;
-        }
-
         if (currentYouth) {
-            setScreen("home");
-        } else {
-            setScreen("youth");
+            setScreen(youthStartScreen === "saved" ? "saved" : "home");
         }
-    }, [loadingYouthSession, currentYouth]);
+    }, [loadingYouthSession, currentYouth, youthStartScreen]);
 
     useEffect(() => {
         const restoreAdvisorScreen = async () => {
@@ -80,21 +78,115 @@ export default function Page() {
         return null;
     }
 
+    const handleYouthLogin = async (event) => {
+        event.preventDefault();
+
+        setYouthLoginLoading(true);
+        setYouthLoginError(null);
+
+        const { data: authData, error: authError } =
+            await supabase.auth.signInWithPassword({
+                email: youthEmail,
+                password: youthPassword,
+            });
+
+        if (authError) {
+            console.error("Error login joven:", authError);
+
+            setYouthLoginError("El correo o la contraseña no son correctos.");
+
+            setYouthLoginLoading(false);
+            return;
+        }
+
+        const user = authData.user;
+
+        const { data: profileData, error: profileError } = await supabase
+            .from("profiles")
+            .select(
+                `
+            user_id,
+            role,
+            ward_id
+        `,
+            )
+            .eq("user_id", user.id)
+            .single();
+
+        if (profileError || !profileData) {
+            console.error("Error cargando perfil del joven:", profileError);
+
+            await supabase.auth.signOut();
+
+            setYouthLoginError(
+                "No se encontró un perfil asociado a esta cuenta.",
+            );
+
+            setYouthLoginLoading(false);
+            return;
+        }
+
+        if (profileData.role !== "youth") {
+            await supabase.auth.signOut();
+
+            setYouthLoginError("Esta cuenta no corresponde a un joven.");
+
+            setYouthLoginLoading(false);
+            return;
+        }
+
+        const { data: youthData, error: youthError } = await supabase
+            .from("youth")
+            .select("*")
+            .eq("user_id", user.id)
+            .eq("ward_id", profileData.ward_id)
+            .single();
+
+        if (youthError || !youthData) {
+            console.error("Error cargando joven:", youthError);
+
+            await supabase.auth.signOut();
+
+            setYouthLoginError(
+                "Esta cuenta todavía no está vinculada a un joven.",
+            );
+
+            setYouthLoginLoading(false);
+            return;
+        }
+
+        const restoredYouth = await refreshCurrentYouth();
+
+        if (!restoredYouth) {
+            await supabase.auth.signOut({
+                scope: "local",
+            });
+
+            setYouthLoginError("No se pudo cargar la cuenta del joven.");
+
+            setYouthLoginLoading(false);
+            return;
+        }
+
+        setYouthEmail("");
+        setYouthPassword("");
+
+        setYouthLoginLoading(false);
+
+        setScreen(restoredYouth.startScreen);
+    };
+
     if (screen === "role") {
         return (
             <PageContainer center>
                 <RoleSelector
                     onYouth={() => {
-                        sessionStorage.setItem(
-                            "bendiceme-youth-active",
-                            "true",
-                        );
+                        setYouthEmail("");
+                        setYouthPassword("");
+                        setYouthLoginError(null);
+                        setYouthLogoutLoading(false);
 
-                        if (currentYouth) {
-                            setScreen("home");
-                        } else {
-                            setScreen("youth");
-                        }
+                        setScreen("youth-login");
                     }}
                     onAdvisor={async () => {
                         setAdvisorError(null);
@@ -170,12 +262,43 @@ export default function Page() {
     }
 
     if (screen === "advisor") {
+        if (loadingProfile) {
+            return (
+                <PageContainer>
+                    <AdvisorViewSkeleton />
+                </PageContainer>
+            );
+        }
+
+        if (!profile?.ward_id) {
+            return (
+                <PageContainer center>
+                    <p className="text-sm text-red-600">
+                        No se pudo cargar el barrio del asesor.
+                    </p>
+                </PageContainer>
+            );
+        }
+
         return (
             <PageContainer>
                 <AdvisorView
+                    wardId={profile.ward_id}
                     onBack={() => setScreen("role")}
                     onLogout={async () => {
-                        await supabase.auth.signOut();
+                        const { error } = await supabase.auth.signOut({
+                            scope: "local",
+                        });
+
+                        if (error) {
+                            console.error(
+                                "Error cerrando sesión del asesor:",
+                                error,
+                            );
+                        }
+
+                        sessionStorage.removeItem("bendiceme-advisor-active");
+
                         setScreen("role");
                     }}
                 />
@@ -183,19 +306,23 @@ export default function Page() {
         );
     }
 
-    if (screen === "youth" && !currentYouth) {
+    if (screen === "youth-login") {
         return (
-            <PageContainer>
-                <YouthSelector
+            <PageContainer center>
+                <YouthLogin
+                    email={youthEmail}
+                    password={youthPassword}
+                    error={youthLoginError}
+                    loading={youthLoginLoading}
+                    onEmailChange={setYouthEmail}
+                    onPasswordChange={setYouthPassword}
                     onBack={() => {
-                        sessionStorage.removeItem("bendiceme-youth-active");
-
+                        setYouthEmail("");
+                        setYouthPassword("");
+                        setYouthLoginError(null);
                         setScreen("role");
                     }}
-                    onSelect={(person) => {
-                        selectYouth(person);
-                        setScreen("home");
-                    }}
+                    onSubmit={handleYouthLogin}
                 />
             </PageContainer>
         );
@@ -230,10 +357,30 @@ export default function Page() {
                 currentYouth={currentYouth}
                 onSave={() => setScreen("saved")}
                 onViewAssignments={() => setScreen("assignments")}
-                onChangeYouth={() => {
+                onChangeYouth={async () => {
+                    setYouthLogoutLoading(true);
+
+                    const { error } = await supabase.auth.signOut({
+                        scope: "local",
+                    });
+
+                    if (error) {
+                        console.error(
+                            "Error cerrando sesión del joven:",
+                            error,
+                        );
+
+                        setYouthLogoutLoading(false);
+                        return;
+                    }
+
                     clearYouth();
-                    setScreen("youth");
+
+                    setYouthLogoutLoading(false);
+
+                    setScreen("role");
                 }}
+                logoutLoading={youthLogoutLoading}
             />
         </PageContainer>
     );

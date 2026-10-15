@@ -6,7 +6,7 @@ import { staggerContainer } from "@/lib/animations";
 import useYouthAvailability from "@/hooks/use-youth-availability";
 import useYouthPushNotifications from "@/hooks/use-youth-push-notifications";
 import PageHeader from "@/components/page-header";
-import { Bell, UserRoundCog } from "lucide-react";
+import { Bell, LogOut } from "lucide-react";
 import YouthNotificationCard from "./youth-notification-card";
 import YouthAvailabilityList from "./youth-availability-list";
 import YouthHomeActions from "./youth-home-actions";
@@ -16,8 +16,9 @@ export default function YouthHome({
     onSave,
     onViewAssignments,
     onChangeYouth,
+    logoutLoading,
 }) {
-        const {
+    const {
         selected,
         loaded,
         saving,
@@ -39,7 +40,8 @@ export default function YouthHome({
     } = useYouthPushNotifications(
         currentYouth.id
     );
-    
+    const interactionLocked = saving || logoutLoading;
+
     const handleSave = async () => {
         const success =
             await saveAvailability();
@@ -79,22 +81,44 @@ export default function YouthHome({
                             </button>
                         )}
 
-                        <button
+
+                        <motion.button
                             type="button"
                             onClick={onChangeYouth}
-                            disabled={saving}
-                            className="flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-green-50 hover:text-green-700 disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                            <UserRoundCog className="size-4 shrink-0" />
+                            disabled={interactionLocked}
+                            whileTap={
+                                interactionLocked
+                                    ? undefined
+                                    : { scale: 0.96 }
+                            }
+                            className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 hover:text-red-700 disabled:opacity-60"                        
+                        >   
 
-                            <span className="hidden sm:inline">
-                                Cambiar joven
-                            </span>
+                            <LogOut className="size-4 shrink-0" />
+                            
+                            {logoutLoading ? (
+                                <>
+                                    <span className="sm:hidden">
+                                        Cerrando...
+                                    </span>
 
-                            <span className="sm:hidden">
-                                Cambiar
-                            </span>
-                        </button>
+                                    <span className="hidden sm:inline">
+                                        Cerrando sesión...
+                                    </span>
+                                </>
+                            ) : (
+                                <>
+                                    <span className="sm:hidden">
+                                        Cerrar
+                                    </span>
+
+                                    <span className="hidden sm:inline">
+                                        Cerrar sesión
+                                    </span>
+                                </>
+                            )}
+                        </motion.button>
+
                     </div>
                 }
             />

@@ -1,10 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { supabase } from "@/lib/supabase";
-
-const STORAGE_KEY = "bendiceme-current-youth-id";
 
 export default function useCurrentYouth() {
     const [currentYouth, setCurrentYouth] = useState(null);
@@ -13,59 +11,79 @@ export default function useCurrentYouth() {
 
     const [loadingYouthSession, setLoadingYouthSession] = useState(true);
 
-    useEffect(() => {
-        const loadSavedYouth = async () => {
-            const savedYouthId = localStorage.getItem(STORAGE_KEY);
+    const refreshCurrentYouth = useCallback(async () => {
+        setLoadingYouthSession(true);
 
-            if (!savedYouthId) {
-                setLoadingYouthSession(false);
-                return;
+        try {
+            const {
+                data: { session },
+                error: sessionError,
+            } = await supabase.auth.getSession();
+
+            if (sessionError) {
+                throw sessionError;
+            }
+
+            if (!session) {
+                setCurrentYouth(null);
+                setYouthStartScreen("home");
+
+                return null;
+            }
+
+            const user = session.user;
+
+            const { data: profile, error: profileError } = await supabase
+                .from("profiles")
+                .select("role, ward_id")
+                .eq("user_id", user.id)
+                .single();
+
+            if (profileError || !profile || profile.role !== "youth") {
+                setCurrentYouth(null);
+                setYouthStartScreen("home");
+
+                return null;
             }
 
             const { data: youthData, error: youthError } = await supabase
                 .from("youth")
                 .select("*")
-                .eq("id", savedYouthId)
+                .eq("user_id", user.id)
+                .eq("ward_id", profile.ward_id)
                 .single();
 
             if (youthError || !youthData) {
-                localStorage.removeItem(STORAGE_KEY);
-                setLoadingYouthSession(false);
-                return;
+                setCurrentYouth(null);
+                setYouthStartScreen("home");
+
+                return null;
             }
 
             setCurrentYouth(youthData);
+            setYouthStartScreen("home");
 
-            const { data: availabilityData, error: availabilityError } =
-                await supabase
-                    .from("availability")
-                    .select("id")
-                    .eq("youth_id", youthData.id)
-                    .eq("available", true)
-                    .limit(1);
+            return {
+                youth: youthData,
+                startScreen: "home",
+            };
+        } catch (error) {
+            console.error("Error restaurando sesión del joven:", error);
 
-            if (!availabilityError && availabilityData?.length > 0) {
-                setYouthStartScreen("saved");
-            } else {
-                setYouthStartScreen("home");
-            }
+            setCurrentYouth(null);
+            setYouthStartScreen("home");
 
+            return null;
+        } finally {
             setLoadingYouthSession(false);
-        };
-
-        loadSavedYouth();
+        }
     }, []);
 
-    const selectYouth = (person) => {
-        localStorage.setItem(STORAGE_KEY, person.id);
-
-        setCurrentYouth(person);
-        setYouthStartScreen("home");
-    };
+    useEffect(() => {
+        refreshCurrentYouth();
+    }, [refreshCurrentYouth]);
 
     const clearYouth = () => {
-        localStorage.removeItem(STORAGE_KEY);
-
         setCurrentYouth(null);
         setYouthStartScreen("home");
     };
@@ -74,8 +92,7 @@ export default function useCurrentYouth() {
         currentYouth,
         youthStartScreen,
         loadingYouthSession,
-
-        selectYouth,
+        refreshCurrentYouth,
         clearYouth,
         setYouthStartScreen,
     };
