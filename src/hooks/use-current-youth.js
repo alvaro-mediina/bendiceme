@@ -6,7 +6,7 @@ import { supabase } from "@/lib/supabase";
 
 const STORAGE_KEY = "bendiceme-current-youth-id";
 
-export default function useCurrentYouth() {
+export default function useCurrentYouth(wardId) {
     const [currentYouth, setCurrentYouth] = useState(null);
 
     const [youthStartScreen, setYouthStartScreen] = useState("home");
@@ -25,6 +25,7 @@ export default function useCurrentYouth() {
             const { data: youthData, error: youthError } = await supabase
                 .from("youth")
                 .select("*")
+                .eq("ward_id", wardId)
                 .eq("id", savedYouthId)
                 .single();
 
@@ -40,6 +41,7 @@ export default function useCurrentYouth() {
                 await supabase
                     .from("availability")
                     .select("id")
+                    .eq("ward_id", wardId)
                     .eq("youth_id", youthData.id)
                     .eq("available", true)
                     .limit(1);
@@ -54,7 +56,7 @@ export default function useCurrentYouth() {
         };
 
         loadSavedYouth();
-    }, []);
+    }, [wardId]);
 
     const selectYouth = (person) => {
         localStorage.setItem(STORAGE_KEY, person.id);
