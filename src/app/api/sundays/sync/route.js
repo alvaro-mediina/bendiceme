@@ -3,7 +3,7 @@ import { supabaseAdmin } from "@/lib/supabase-admin";
 
 export async function POST(request) {
     try {
-        const { dates } = await request.json();
+        const { dates, wardId } = await request.json();
 
         if (!Array.isArray(dates) || dates.length === 0) {
             return NextResponse.json(
@@ -16,7 +16,19 @@ export async function POST(request) {
             );
         }
 
+        if (!wardId) {
+            return NextResponse.json(
+                {
+                    error: "No se recibió el barrio.",
+                },
+                {
+                    status: 400,
+                },
+            );
+        }
+
         const rows = dates.map((date) => ({
+            ward_id: wardId,
             date,
             active: true,
         }));
@@ -24,9 +36,9 @@ export async function POST(request) {
         const { data, error } = await supabaseAdmin
             .from("sundays")
             .upsert(rows, {
-                onConflict: "date",
+                onConflict: "ward_id,date",
             })
-            .select("id, date, active, enabled, disabled_reason");
+            .select("id, ward_id, date, active, enabled, disabled_reason");
 
         if (error) {
             throw error;

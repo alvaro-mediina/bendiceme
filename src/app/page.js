@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import YouthSelector from "@/components/youth/youth-selector";
 import YouthHome from "@/components/youth/youth-home";
 import AvailabilitySaved from "@/components/youth/availability-saved";
 import YouthAssignments from "@/components/youth/youth-assignments";
@@ -11,6 +10,7 @@ import AdvisorLogin from "@/components/advisor/advisor-login";
 import useCurrentYouth from "@/hooks/use-current-youth";
 import PageContainer from "@/components/layout/page-container";
 import useCurrentProfile from "@/hooks/use-current-profile";
+import YouthLogin from "@/components/youth/youth-login";
 import { supabase } from "@/lib/supabase";
 
 export default function Page() {
@@ -26,6 +26,10 @@ export default function Page() {
     } = useCurrentYouth();
     const [advisorLoading, setAdvisorLoading] = useState(false);
     const [checkingAdvisorSession, setCheckingAdvisorSession] = useState(true);
+    const [youthEmail, setYouthEmail] = useState("");
+    const [youthPassword, setYouthPassword] = useState("");
+    const [youthLoginError, setYouthLoginError] = useState(null);
+    const [youthLoginLoading, setYouthLoginLoading] = useState(false);
 
     const { profile, loadingProfile, profileError } = useCurrentProfile();
 
@@ -41,12 +45,8 @@ export default function Page() {
             return;
         }
 
-        if (currentYouth) {
-            setScreen("home");
-        } else {
-            setScreen("youth");
-        }
-    }, [loadingYouthSession, currentYouth]);
+        setScreen("youth-login");
+    }, [loadingYouthSession]);
 
     useEffect(() => {
         const restoreAdvisorScreen = async () => {
@@ -78,21 +78,105 @@ export default function Page() {
         return null;
     }
 
+    const handleYouthLogin = async (event) => {
+        event.preventDefault();
+
+        setYouthLoginLoading(true);
+        setYouthLoginError(null);
+
+        const { data: authData, error: authError } =
+            await supabase.auth.signInWithPassword({
+                email: youthEmail,
+                password: youthPassword,
+            });
+
+        if (authError) {
+            console.error("Error login joven:", authError);
+
+            setYouthLoginError("El correo o la contraseña no son correctos.");
+
+            setYouthLoginLoading(false);
+            return;
+        }
+
+        const user = authData.user;
+
+        const { data: profileData, error: profileError } = await supabase
+            .from("profiles")
+            .select(
+                `
+            user_id,
+            role,
+            ward_id
+        `,
+            )
+            .eq("user_id", user.id)
+            .single();
+
+        if (profileError || !profileData) {
+            console.error("Error cargando perfil del joven:", profileError);
+
+            await supabase.auth.signOut();
+
+            setYouthLoginError(
+                "No se encontró un perfil asociado a esta cuenta.",
+            );
+
+            setYouthLoginLoading(false);
+            return;
+        }
+
+        if (profileData.role !== "youth") {
+            await supabase.auth.signOut();
+
+            setYouthLoginError("Esta cuenta no corresponde a un joven.");
+
+            setYouthLoginLoading(false);
+            return;
+        }
+
+        const { data: youthData, error: youthError } = await supabase
+            .from("youth")
+            .select("*")
+            .eq("user_id", user.id)
+            .eq("ward_id", profileData.ward_id)
+            .single();
+
+        if (youthError || !youthData) {
+            console.error("Error cargando joven:", youthError);
+
+            await supabase.auth.signOut();
+
+            setYouthLoginError(
+                "Esta cuenta todavía no está vinculada a un joven.",
+            );
+
+            setYouthLoginLoading(false);
+            return;
+        }
+
+        selectYouth(youthData);
+
+        sessionStorage.setItem("bendiceme-youth-active", "true");
+
+        setYouthEmail("");
+        setYouthPassword("");
+
+        setYouthLoginLoading(false);
+
+        setScreen(youthStartScreen === "saved" ? "saved" : "home");
+    };
+
     if (screen === "role") {
         return (
             <PageContainer center>
                 <RoleSelector
                     onYouth={() => {
-                        sessionStorage.setItem(
-                            "bendiceme-youth-active",
-                            "true",
-                        );
+                        setYouthEmail("");
+                        setYouthPassword("");
+                        setYouthLoginError(null);
 
-                        if (currentYouth) {
-                            setScreen("home");
-                        } else {
-                            setScreen("youth");
-                        }
+                        setScreen("youth-login");
                     }}
                     onAdvisor={async () => {
                         setAdvisorError(null);
@@ -182,19 +266,26 @@ export default function Page() {
         );
     }
 
-    if (screen === "youth" && !currentYouth) {
+    if (screen === "youth-login") {
         return (
-            <PageContainer>
-                <YouthSelector
+            <PageContainer center>
+                <YouthLogin
+                    email={youthEmail}
+                    password={youthPassword}
+                    error={youthLoginError}
+                    loading={youthLoginLoading}
+                    onEmailChange={setYouthEmail}
+                    onPasswordChange={setYouthPassword}
                     onBack={() => {
+                        setYouthEmail("");
+                        setYouthPassword("");
+                        setYouthLoginError(null);
+
                         sessionStorage.removeItem("bendiceme-youth-active");
 
                         setScreen("role");
                     }}
-                    onSelect={(person) => {
-                        selectYouth(person);
-                        setScreen("home");
-                    }}
+                    onSubmit={handleYouthLogin}
                 />
             </PageContainer>
         );
