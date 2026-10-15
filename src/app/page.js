@@ -38,15 +38,10 @@ export default function Page() {
             return;
         }
 
-        const youthWasActive =
-            sessionStorage.getItem("bendiceme-youth-active") === "true";
-
-        if (!youthWasActive) {
-            return;
+        if (currentYouth) {
+            setScreen(youthStartScreen === "saved" ? "saved" : "home");
         }
-
-        setScreen("youth-login");
-    }, [loadingYouthSession]);
+    }, [loadingYouthSession, currentYouth, youthStartScreen]);
 
     useEffect(() => {
         const restoreAdvisorScreen = async () => {
@@ -258,7 +253,19 @@ export default function Page() {
                     wardId={profile?.ward_id}
                     onBack={() => setScreen("role")}
                     onLogout={async () => {
-                        await supabase.auth.signOut();
+                        const { error } = await supabase.auth.signOut({
+                            scope: "local",
+                        });
+
+                        if (error) {
+                            console.error(
+                                "Error cerrando sesión del asesor:",
+                                error,
+                            );
+                        }
+
+                        sessionStorage.removeItem("bendiceme-advisor-active");
+
                         setScreen("role");
                     }}
                 />
@@ -320,9 +327,23 @@ export default function Page() {
                 currentYouth={currentYouth}
                 onSave={() => setScreen("saved")}
                 onViewAssignments={() => setScreen("assignments")}
-                onChangeYouth={() => {
+                onChangeYouth={async () => {
+                    const { error } = await supabase.auth.signOut({
+                        scope: "local",
+                    });
+
+                    if (error) {
+                        console.error(
+                            "Error cerrando sesión del joven:",
+                            error,
+                        );
+                    }
+
                     clearYouth();
-                    setScreen("youth");
+
+                    sessionStorage.removeItem("bendiceme-youth-active");
+
+                    setScreen("role");
                 }}
             />
         </PageContainer>

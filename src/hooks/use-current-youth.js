@@ -1,23 +1,38 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
 import { supabase } from "@/lib/supabase";
 
-const STORAGE_KEY = "bendiceme-current-youth-id";
-
-export default function useCurrentYouth(wardId) {
+export default function useCurrentYouth() {
     const [currentYouth, setCurrentYouth] = useState(null);
-
     const [youthStartScreen, setYouthStartScreen] = useState("home");
-
     const [loadingYouthSession, setLoadingYouthSession] = useState(true);
 
     useEffect(() => {
-        const loadSavedYouth = async () => {
-            const savedYouthId = localStorage.getItem(STORAGE_KEY);
+        const loadCurrentYouth = async () => {
+            setLoadingYouthSession(true);
 
-            if (!savedYouthId) {
+            const {
+                data: { session },
+                error: sessionError,
+            } = await supabase.auth.getSession();
+
+            if (sessionError || !session) {
+                setCurrentYouth(null);
+                setLoadingYouthSession(false);
+                return;
+            }
+
+            const user = session.user;
+
+            const { data: profile, error: profileError } = await supabase
+                .from("profiles")
+                .select("role, ward_id")
+                .eq("user_id", user.id)
+                .single();
+
+            if (profileError || !profile || profile.role !== "youth") {
+                setCurrentYouth(null);
                 setLoadingYouthSession(false);
                 return;
             }
@@ -25,12 +40,12 @@ export default function useCurrentYouth(wardId) {
             const { data: youthData, error: youthError } = await supabase
                 .from("youth")
                 .select("*")
-                .eq("ward_id", wardId)
-                .eq("id", savedYouthId)
+                .eq("user_id", user.id)
+                .eq("ward_id", profile.ward_id)
                 .single();
 
             if (youthError || !youthData) {
-                localStorage.removeItem(STORAGE_KEY);
+                setCurrentYouth(null);
                 setLoadingYouthSession(false);
                 return;
             }
@@ -41,7 +56,7 @@ export default function useCurrentYouth(wardId) {
                 await supabase
                     .from("availability")
                     .select("id")
-                    .eq("ward_id", wardId)
+                    .eq("ward_id", profile.ward_id)
                     .eq("youth_id", youthData.id)
                     .eq("available", true)
                     .limit(1);
@@ -55,19 +70,15 @@ export default function useCurrentYouth(wardId) {
             setLoadingYouthSession(false);
         };
 
-        loadSavedYouth();
-    }, [wardId]);
+        loadCurrentYouth();
+    }, []);
 
     const selectYouth = (person) => {
-        localStorage.setItem(STORAGE_KEY, person.id);
-
         setCurrentYouth(person);
         setYouthStartScreen("home");
     };
 
     const clearYouth = () => {
-        localStorage.removeItem(STORAGE_KEY);
-
         setCurrentYouth(null);
         setYouthStartScreen("home");
     };
@@ -76,7 +87,6 @@ export default function useCurrentYouth(wardId) {
         currentYouth,
         youthStartScreen,
         loadingYouthSession,
-
         selectYouth,
         clearYouth,
         setYouthStartScreen,

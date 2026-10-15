@@ -88,11 +88,11 @@ export default function YouthHome({
                             <UserRoundCog className="size-4 shrink-0" />
 
                             <span className="hidden sm:inline">
-                                Cambiar joven
+                                Cerrar sesión
                             </span>
 
                             <span className="sm:hidden">
-                                Cambiar
+                                Cerrar
                             </span>
                         </button>
                     </div>
