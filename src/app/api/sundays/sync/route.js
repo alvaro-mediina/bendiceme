@@ -3,7 +3,7 @@ import { supabaseAdmin } from "@/lib/supabase-admin";
 
 export async function POST(request) {
     try {
-        const { dates, wardId } = await request.json();
+        const { dates } = await request.json();
 
         if (!Array.isArray(dates) || dates.length === 0) {
             return NextResponse.json(
@@ -16,16 +16,55 @@ export async function POST(request) {
             );
         }
 
-        if (!wardId) {
+        const authHeader = request.headers.get("authorization");
+
+        if (!authHeader || !authHeader.startsWith("Bearer ")) {
             return NextResponse.json(
                 {
-                    error: "No se recibió el barrio.",
+                    error: "No autorizado.",
                 },
                 {
-                    status: 400,
+                    status: 401,
                 },
             );
         }
+
+        const accessToken = authHeader.replace("Bearer ", "");
+
+        const {
+            data: { user },
+            error: userError,
+        } = await supabaseAdmin.auth.getUser(accessToken);
+
+        if (userError || !user) {
+            return NextResponse.json(
+                {
+                    error: "Sesión inválida.",
+                },
+                {
+                    status: 401,
+                },
+            );
+        }
+
+        const { data: profile, error: profileError } = await supabaseAdmin
+            .from("profiles")
+            .select("ward_id")
+            .eq("user_id", user.id)
+            .single();
+
+        if (profileError || !profile?.ward_id) {
+            return NextResponse.json(
+                {
+                    error: "No se encontró el barrio del usuario.",
+                },
+                {
+                    status: 403,
+                },
+            );
+        }
+
+        const wardId = profile.ward_id;
 
         const rows = dates.map((date) => ({
             ward_id: wardId,

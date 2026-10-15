@@ -90,17 +90,24 @@ export default function useYouthAvailability(currentYouth) {
             setErrorMessage(null);
 
             try {
+                const {
+                    data: { session },
+                } = await supabase.auth.getSession();
+
+                if (!session?.access_token) {
+                    throw new Error("No hay una sesión válida.");
+                }
+
                 const response = await fetch("/api/sundays/sync", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
+                        Authorization: `Bearer ${session.access_token}`,
                     },
                     body: JSON.stringify({
                         dates: visibleSundayDates,
-                        wardId: currentYouth.ward_id,
                     }),
                 });
-
                 const data = await response.json();
 
                 if (!response.ok) {

@@ -21,7 +21,7 @@ export default function Page() {
         currentYouth,
         youthStartScreen,
         loadingYouthSession,
-        selectYouth,
+        refreshCurrentYouth,
         clearYouth,
     } = useCurrentYouth();
     const [advisorLoading, setAdvisorLoading] = useState(false);
@@ -30,7 +30,7 @@ export default function Page() {
     const [youthPassword, setYouthPassword] = useState("");
     const [youthLoginError, setYouthLoginError] = useState(null);
     const [youthLoginLoading, setYouthLoginLoading] = useState(false);
-
+    const [youthLogoutLoading, setYouthLogoutLoading] = useState(false);
     const { profile, loadingProfile, profileError } = useCurrentProfile();
 
     useEffect(() => {
@@ -150,16 +150,25 @@ export default function Page() {
             return;
         }
 
-        selectYouth(youthData);
+        const restoredYouth = await refreshCurrentYouth();
 
-        sessionStorage.setItem("bendiceme-youth-active", "true");
+        if (!restoredYouth) {
+            await supabase.auth.signOut({
+                scope: "local",
+            });
+
+            setYouthLoginError("No se pudo cargar la cuenta del joven.");
+
+            setYouthLoginLoading(false);
+            return;
+        }
 
         setYouthEmail("");
         setYouthPassword("");
 
         setYouthLoginLoading(false);
 
-        setScreen(youthStartScreen === "saved" ? "saved" : "home");
+        setScreen(restoredYouth.startScreen);
     };
 
     if (screen === "role") {
@@ -170,6 +179,7 @@ export default function Page() {
                         setYouthEmail("");
                         setYouthPassword("");
                         setYouthLoginError(null);
+                        setYouthLogoutLoading(false);
 
                         setScreen("youth-login");
                     }}
@@ -287,9 +297,6 @@ export default function Page() {
                         setYouthEmail("");
                         setYouthPassword("");
                         setYouthLoginError(null);
-
-                        sessionStorage.removeItem("bendiceme-youth-active");
-
                         setScreen("role");
                     }}
                     onSubmit={handleYouthLogin}
@@ -328,6 +335,8 @@ export default function Page() {
                 onSave={() => setScreen("saved")}
                 onViewAssignments={() => setScreen("assignments")}
                 onChangeYouth={async () => {
+                    setYouthLogoutLoading(true);
+
                     const { error } = await supabase.auth.signOut({
                         scope: "local",
                     });
@@ -337,14 +346,18 @@ export default function Page() {
                             "Error cerrando sesión del joven:",
                             error,
                         );
+
+                        setYouthLogoutLoading(false);
+                        return;
                     }
 
                     clearYouth();
 
-                    sessionStorage.removeItem("bendiceme-youth-active");
+                    setYouthLogoutLoading(false);
 
                     setScreen("role");
                 }}
+                logoutLoading={youthLogoutLoading}
             />
         </PageContainer>
     );
