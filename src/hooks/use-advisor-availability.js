@@ -6,7 +6,7 @@ import { ensureAvailableSundays, getVisibleSundays } from "@/lib/sundays";
 
 import { supabase } from "@/lib/supabase";
 
-export default function useAdvisorAvailability() {
+export default function useAdvisorAvailability(wardId) {
     const [sundays, setSundays] = useState([]);
     const [selectedSundayId, setSelectedSundayId] = useState(null);
 
@@ -19,11 +19,18 @@ export default function useAdvisorAvailability() {
     const [availabilityError, setAvailabilityError] = useState(null);
 
     const loadSundays = useCallback(async () => {
+        if (!wardId) {
+            setSundays([]);
+            setSelectedSundayId(null);
+            setLoadingSundays(false);
+            return;
+        }
+
         setLoadingSundays(true);
         setAvailabilityError(null);
 
         try {
-            await ensureAvailableSundays();
+            await ensureAvailableSundays(wardId);
 
             const { dates } = getVisibleSundays();
 
@@ -36,6 +43,7 @@ export default function useAdvisorAvailability() {
             const { data, error } = await supabase
                 .from("sundays")
                 .select("id, date, enabled, disabled_reason")
+                .eq("ward_id", wardId)
                 .eq("active", true)
                 .in("date", dates)
                 .order("date", {
@@ -62,10 +70,15 @@ export default function useAdvisorAvailability() {
         } finally {
             setLoadingSundays(false);
         }
-    }, []);
+    }, [wardId]);
 
     const loadAvailableYouth = useCallback(
         async ({ showLoading = true } = {}) => {
+            if (!wardId || !selectedSundayId) {
+                setAvailableYouth([]);
+                setLoadingYouth(false);
+                return;
+            }
             if (!selectedSundayId) {
                 setAvailableYouth([]);
                 setLoadingYouth(false);
@@ -91,6 +104,7 @@ export default function useAdvisorAvailability() {
                             )
                         `,
                 )
+                .eq("ward_id", wardId)
                 .eq("sunday_id", selectedSundayId)
                 .eq("available", true);
 
@@ -114,7 +128,7 @@ export default function useAdvisorAvailability() {
 
             setLoadingYouth(false);
         },
-        [selectedSundayId],
+        [wardId, selectedSundayId],
     );
 
     useEffect(() => {

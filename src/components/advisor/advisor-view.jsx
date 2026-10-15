@@ -27,6 +27,7 @@ import {
 import { supabase } from "@/lib/supabase";
 
 export default function AdvisorView({
+    wardId,
     onBack,
     onLogout,
 }) {
@@ -38,7 +39,7 @@ export default function AdvisorView({
         loadingSundays,
         loadingYouth,
         availabilityError,
-    } = useAdvisorAvailability();
+    } = useAdvisorAvailability(wardId);
 
     const {
         team,
@@ -54,7 +55,7 @@ export default function AdvisorView({
         selectRole,
         togglePrepares,
         saveTeam,
-    } = useAdvisorTeam(selectedSundayId);
+    } = useAdvisorTeam(wardId, selectedSundayId);
 
     const [mobileSummaryOpen, setMobileSummaryOpen] =
         useState(false);

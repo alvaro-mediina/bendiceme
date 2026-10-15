@@ -10,6 +10,7 @@ import RoleSelector from "@/components/access/role-selector";
 import AdvisorLogin from "@/components/advisor/advisor-login";
 import useCurrentYouth from "@/hooks/use-current-youth";
 import PageContainer from "@/components/layout/page-container";
+import useCurrentProfile from "@/hooks/use-current-profile";
 import { supabase } from "@/lib/supabase";
 
 export default function Page() {
@@ -25,6 +26,8 @@ export default function Page() {
     } = useCurrentYouth();
     const [advisorLoading, setAdvisorLoading] = useState(false);
     const [checkingAdvisorSession, setCheckingAdvisorSession] = useState(true);
+
+    const { profile, loadingProfile, profileError } = useCurrentProfile();
 
     useEffect(() => {
         if (loadingYouthSession) {
@@ -168,6 +171,7 @@ export default function Page() {
         return (
             <PageContainer>
                 <AdvisorView
+                    wardId={profile?.ward_id}
                     onBack={() => setScreen("role")}
                     onLogout={async () => {
                         await supabase.auth.signOut();

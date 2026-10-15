@@ -5,7 +5,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { notifyYouth } from "@/lib/youth-notifications";
 
-export default function useAdvisorTeam(selectedSundayId) {
+export default function useAdvisorTeam(wardId, selectedSundayId) {
     const [team, setTeam] = useState({});
     const [initialTeam, setInitialTeam] = useState({});
     const [savingTeam, setSavingTeam] = useState(false);
@@ -16,7 +16,7 @@ export default function useAdvisorTeam(selectedSundayId) {
 
     const loadTeam = useCallback(
         async ({ showLoading = true } = {}) => {
-            if (!selectedSundayId) {
+            if (!wardId || !selectedSundayId) {
                 setTeam({});
                 setInitialTeam({});
                 setLoadingTeam(false);
@@ -39,6 +39,7 @@ export default function useAdvisorTeam(selectedSundayId) {
                 status
             `,
                 )
+                .eq("ward:id", wardId)
                 .eq("sunday_id", selectedSundayId)
                 .in("status", ["pending", "confirmed"]);
 
@@ -65,7 +66,7 @@ export default function useAdvisorTeam(selectedSundayId) {
             setInitialTeam(savedTeam);
             setLoadingTeam(false);
         },
-        [selectedSundayId],
+        [wardId, selectedSundayId],
     );
 
     useEffect(() => {
@@ -193,7 +194,7 @@ export default function useAdvisorTeam(selectedSundayId) {
     const hasTeamChanges = JSON.stringify(team) !== JSON.stringify(initialTeam);
 
     const saveTeam = async () => {
-        if (!selectedSundayId || !hasTeamChanges) {
+        if (!wardId || !selectedSundayId || !hasTeamChanges) {
             return;
         }
 
@@ -204,6 +205,7 @@ export default function useAdvisorTeam(selectedSundayId) {
         const { data: existingAssignments, error: loadError } = await supabase
             .from("assignments")
             .select("youth_id, status")
+            .eq("ward_id", wardId)
             .eq("sunday_id", selectedSundayId)
             .in("status", ["pending", "confirmed"]);
 
@@ -230,6 +232,7 @@ export default function useAdvisorTeam(selectedSundayId) {
                 .update({
                     status: "declined",
                 })
+                .eq("ward_id", wardId)
                 .eq("sunday_id", selectedSundayId)
                 .in("youth_id", removedYouthIds)
                 .in("status", ["pending", "confirmed"]);
@@ -250,6 +253,7 @@ export default function useAdvisorTeam(selectedSundayId) {
         const rows = Object.entries(team).map(([youthId, assignment]) => ({
             youth_id: Number(youthId),
             sunday_id: selectedSundayId,
+            ward_id: wardId,
             role: assignment.role,
             prepares: assignment.prepares,
             status: assignment.status === "confirmed" ? "confirmed" : "pending",
@@ -278,7 +282,7 @@ export default function useAdvisorTeam(selectedSundayId) {
         const { error: saveError } = await supabase
             .from("assignments")
             .upsert(rows, {
-                onConflict: "youth_id,sunday_id",
+                onConflict: "ward_id,youth_id,sunday_id",
             });
 
         if (saveError) {
