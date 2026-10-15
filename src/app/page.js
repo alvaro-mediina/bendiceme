@@ -10,6 +10,7 @@ import RoleSelector from "@/components/access/role-selector";
 import AdvisorLogin from "@/components/advisor/advisor-login";
 import useCurrentYouth from "@/hooks/use-current-youth";
 import PageContainer from "@/components/layout/page-container";
+import MaintenanceScreen from "@/components/maintenance-screen";
 import { supabase } from "@/lib/supabase";
 
 export default function Page() {
@@ -70,6 +71,10 @@ export default function Page() {
 
         restoreAdvisorScreen();
     }, []);
+
+    if (process.env.NEXT_PUBLIC_MAINTENANCE_MODE === "true") {
+        return <MaintenanceScreen />;
+    }
 
     if (loadingYouthSession || checkingAdvisorSession) {
         return null;
