@@ -188,16 +188,9 @@ export default function AdvisorSacrament({ wardId, onBack, onLogout,}) {
                         )}
                     </div>
 
-                <div
-                    className="
-                        mt-6
-                        lg:grid
-                        lg:grid-cols-[minmax(0,1fr)_300px]
-                        lg:gap-6
-                    "
-                >
+                <div className="mt-6">
                     {/* LISTA */}
-                    <div className="flex h-full min-h-0 flex-col">
+                    <div className="flex w-full flex-col">
                         <motion.div
                             variants={fadeUp}
                             className="shrink-0"
