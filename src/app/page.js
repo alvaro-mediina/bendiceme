@@ -70,10 +70,6 @@ export default function Page() {
         restoreAdvisorScreen();
     }, []);
 
-    if (process.env.NEXT_PUBLIC_MAINTENANCE_MODE === "true") {
-        return <MaintenanceScreen />;
-    }
-
     if (loadingYouthSession || checkingAdvisorSession) {
         return null;
     }
