@@ -33,11 +33,16 @@ export default function useAdvisorTeam(wardId, selectedSundayId) {
                 .from("assignments")
                 .select(
                     `
-                youth_id,
-                role,
-                prepares,
-                status
-            `,
+                    youth_id,
+                    role,
+                    prepares,
+                    status,
+                    youth:youth (
+                        id,
+                        name,
+                        office
+                    )
+                `,
                 )
                 .eq("ward_id", wardId)
                 .eq("sunday_id", selectedSundayId)
@@ -59,6 +64,7 @@ export default function useAdvisorTeam(wardId, selectedSundayId) {
                     role: assignment.role,
                     prepares: assignment.prepares,
                     status: assignment.status,
+                    youth: assignment.youth,
                 };
             });
 
