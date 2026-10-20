@@ -238,36 +238,36 @@ export default function AdvisorSacrament({ wardId, onBack, onLogout,}) {
 
             {/* GUARDAR EQUIPO */}
             <div className="mt-6 flex flex-col gap-2">
-                
-                { hasTeamChanges && (
+                {hasTeamChanges && (
                     <Button
-                    type="button"
-                    variant="outline"
-                    className="h-12 w-full rounded-xl bg-yellow-600 text-base font-semibold text-white hover:bg-yellow-700"
-                    disabled={savingTeam}
-                    
-                    onClick={discardChanges}
+                        type="button"
+                        variant="outline"
+                        className="h-12 w-full rounded-xl bg-yellow-600 text-base font-semibold text-white hover:bg-yellow-700"
+                        disabled={savingTeam}
+                        onClick={discardChanges}
                     >
                         Descartar cambios
                     </Button>
-                )
-                }
-                
-                <Button
-                    className="h-12 w-full rounded-2xl bg-green-600 text-base font-semibold text-white hover:bg-green-700"
-                    disabled={
-                        savingTeam ||
-                        !hasTeamChanges ||
-                        teamLoading
-                    }
-                    onClick={saveTeam}
-                >
-                    {savingTeam
-                        ? "Guardando..."
-                        : hasTeamChanges
-                        ? "Guardar cambios"
-                        : "Equipo guardado"}
-                </Button>
+                )}
+
+                {hasTeamChanges ? (
+                    <Button
+                        className="h-12 w-full rounded-2xl bg-green-600 text-base font-semibold text-white hover:bg-green-700"
+                        disabled={
+                            savingTeam ||
+                            teamLoading
+                        }
+                        onClick={saveTeam}
+                    >
+                        {savingTeam
+                            ? "Guardando..."
+                            : "Guardar cambios"}
+                    </Button>
+                ) : (
+                    <div className="flex h-12 w-full items-center justify-center rounded-2xl border border-green-200 bg-green-50 text-base font-semibold text-green-700">
+                        Equipo actualizado
+                    </div>
+                )}
 
                 {saveMessage && (
                     <motion.p
@@ -285,6 +285,7 @@ export default function AdvisorSacrament({ wardId, onBack, onLogout,}) {
                     </motion.p>
                 )}
             </div>
+            
         </motion.section>
     )
 }
