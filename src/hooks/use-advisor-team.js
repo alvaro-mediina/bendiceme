@@ -225,7 +225,28 @@ export default function useAdvisorTeam(wardId, selectedSundayId) {
     const teamIsValid =
         blessCount === 2 && passCount === 3 && prepareCount >= 2;
 
-    const hasTeamChanges = JSON.stringify(team) !== JSON.stringify(initialTeam);
+    const hasTeamChanges = (() => {
+        const currentIds = Object.keys(team);
+        const initialIds = Object.keys(initialTeam);
+
+        if (currentIds.length !== initialIds.length) {
+            return true;
+        }
+
+        return currentIds.some((youthId) => {
+            const currentAssignment = team[youthId];
+            const initialAssignment = initialTeam[youthId];
+
+            if (!initialAssignment) {
+                return true;
+            }
+
+            return (
+                currentAssignment.role !== initialAssignment.role ||
+                currentAssignment.prepares !== initialAssignment.prepares
+            );
+        });
+    })();
 
     const saveTeam = async () => {
         if (!wardId || !selectedSundayId || !hasTeamChanges) {
