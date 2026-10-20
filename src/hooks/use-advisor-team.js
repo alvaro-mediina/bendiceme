@@ -151,7 +151,7 @@ export default function useAdvisorTeam(wardId, selectedSundayId) {
                 [youthId]: {
                     role,
                     prepares: currentAssignment?.prepares ?? false,
-                    status: "pending",
+                    status: "draft",
                 },
             };
         });
@@ -172,7 +172,7 @@ export default function useAdvisorTeam(wardId, selectedSundayId) {
                 [youthId]: {
                     ...assignment,
                     prepares: !assignment.prepares,
-                    status: "pending",
+                    status: "draft",
                 },
             };
         });
@@ -315,7 +315,21 @@ export default function useAdvisorTeam(wardId, selectedSundayId) {
             }
         }
 
-        setInitialTeam(team);
+        const savedTeam = Object.fromEntries(
+            Object.entries(team).map(([youthId, assignment]) => [
+                youthId,
+                {
+                    ...assignment,
+                    status:
+                        assignment.status === "confirmed"
+                            ? "confirmed"
+                            : "pending",
+                },
+            ]),
+        );
+
+        setTeam(savedTeam);
+        setInitialTeam(savedTeam);
 
         setSaveMessage("Equipo guardado correctamente.");
 

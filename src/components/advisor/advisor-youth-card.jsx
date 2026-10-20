@@ -17,8 +17,9 @@ export default function AdvisorYouthCard({
     passFull,
     onSelectRole,
     onTogglePrepares,
+    expanded,
+    onToggleExpanded,
 }) {
-    const [expanded, setExpanded] = useState(false);
 
     const isBlessing =
         assignment?.role === "bless";
@@ -57,20 +58,18 @@ export default function AdvisorYouthCard({
                 overflow-hidden rounded-2xl border
                 transition-colors
                 ${
-                    assignment
+                    assignment?.status === "confirmed"
                         ? "border-green-200 bg-green-50/30"
-                        : "bg-white"
+                        : assignment?.status === "pending"
+                        ? "border-amber-200 bg-amber-50/30"
+                        : "border-border bg-white"
                 }
             `}
         >
             {/* CABECERA */}
             <button
                 type="button"
-                onClick={() =>
-                    setExpanded(
-                        (current) => !current
-                    )
-                }
+                onClick={onToggleExpanded}
                 className="flex w-full items-center justify-between gap-4 p-4 text-left"
             >
                 <div className="min-w-0">
@@ -89,8 +88,10 @@ export default function AdvisorYouthCard({
                     <div className="text-right">
                         <p
                             className={`text-sm font-semibold ${
-                                assignment
+                                assignment?.status === "confirmed"
                                     ? "text-green-700"
+                                    : assignment?.status === "pending"
+                                    ? "text-amber-700"
                                     : "text-muted-foreground"
                             }`}
                         >
@@ -134,20 +135,6 @@ export default function AdvisorYouthCard({
                                 <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
                                     Asignación
                                 </p>
-
-                                {assignment && (
-                                    <span
-                                        className={`text-xs font-medium ${
-                                            isConfirmed
-                                                ? "text-green-700"
-                                                : "text-amber-700"
-                                        }`}
-                                    >
-                                        {isConfirmed
-                                            ? "Confirmado"
-                                            : "Pendiente"}
-                                    </span>
-                                )}
                             </div>
 
                             <div className="mt-3 grid grid-cols-2 gap-2">
