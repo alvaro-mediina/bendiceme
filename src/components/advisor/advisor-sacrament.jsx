@@ -47,6 +47,7 @@ export default function AdvisorSacrament({ wardId, onBack, onLogout,}) {
         selectRole,
         togglePrepares,
         saveTeam,
+        discardChanges,
     } = useAdvisorTeam(wardId, selectedSundayId,);
 
 
@@ -236,7 +237,22 @@ export default function AdvisorSacrament({ wardId, onBack, onLogout,}) {
             </div>
 
             {/* GUARDAR EQUIPO */}
-            <div className="mt-6">
+            <div className="mt-6 flex flex-col gap-2">
+                
+                { hasTeamChanges && (
+                    <Button
+                    type="button"
+                    variant="outline"
+                    className="h-12 w-full rounded-xl bg-yellow-600 text-base font-semibold text-white hover:bg-yellow-700"
+                    disabled={savingTeam}
+                    
+                    onClick={discardChanges}
+                    >
+                        Descartar cambios
+                    </Button>
+                )
+                }
+                
                 <Button
                     className="h-12 w-full rounded-2xl bg-green-600 text-base font-semibold text-white hover:bg-green-700"
                     disabled={

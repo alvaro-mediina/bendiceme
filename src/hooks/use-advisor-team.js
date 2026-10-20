@@ -202,6 +202,12 @@ export default function useAdvisorTeam(wardId, selectedSundayId) {
         setSaveMessage(null);
     };
 
+    const discardChanges = () => {
+        setTeam(initialTeam);
+        setSaveMessage(null);
+        setTeamError(null);
+    };
+
     const teamMembers = Object.values(team);
 
     const blessCount = teamMembers.filter(
@@ -389,5 +395,6 @@ export default function useAdvisorTeam(wardId, selectedSundayId) {
         selectRole,
         togglePrepares,
         saveTeam,
+        discardChanges,
     };
 }
