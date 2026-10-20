@@ -24,7 +24,7 @@ export default function YouthSelectorSkeleton() {
 
                     <div className="flex-1">
                         <div className="h-5 w-36 rounded-md bg-gray-300" />
-                        <div className="mt-2 h-6 w-20 rounded-full bg-gray-300" />
+                        <div className="mt-2 h-4 w-20 rounded-full bg-gray-300" />
                     </div>
 
                     <div className="my-auto size-5 rounded-md bg-muted" />
