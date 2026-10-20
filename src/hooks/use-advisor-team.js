@@ -125,14 +125,49 @@ export default function useAdvisorTeam(wardId, selectedSundayId) {
         setTeam((current) => {
             const currentAssignment = current[youthId];
 
-            if (currentAssignment?.role === role) {
-                const next = { ...current };
-                delete next[youthId];
+            // PRIMERO: si estaba marcado para eliminar,
+            // restauramos la asignación original.
+            if (currentAssignment?.status === "removed") {
+                const initialAssignment = initialTeam[youthId];
 
-                return next;
+                if (!initialAssignment) {
+                    return current;
+                }
+
+                return {
+                    ...current,
+                    [youthId]: {
+                        ...initialAssignment,
+                    },
+                };
             }
 
-            const assignments = Object.values(current);
+            if (currentAssignment?.role === role) {
+                const initialAssignment = initialTeam[youthId];
+
+                // Si todavía no existía en la base,
+                // simplemente descartamos el draft.
+                if (!initialAssignment) {
+                    const next = { ...current };
+                    delete next[youthId];
+
+                    return next;
+                }
+
+                // Si ya estaba guardado, marcamos
+                // la eliminación como cambio local.
+                return {
+                    ...current,
+                    [youthId]: {
+                        ...currentAssignment,
+                        status: "removed",
+                    },
+                };
+            }
+
+            const assignments = Object.values(current).filter(
+                (assignment) => assignment.status !== "removed",
+            );
 
             const currentBlessCount = assignments.filter(
                 (assignment) => assignment.role === "bless",
@@ -238,6 +273,10 @@ export default function useAdvisorTeam(wardId, selectedSundayId) {
             const initialAssignment = initialTeam[youthId];
 
             if (!initialAssignment) {
+                return true;
+            }
+
+            if (currentAssignment.status === "removed") {
                 return true;
             }
 

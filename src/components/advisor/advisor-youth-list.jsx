@@ -29,9 +29,10 @@ export default function AdvisorYouthList({
         (person) => !team[person.id]
     );
 
-    const draftYouth = availableYouth.filter(
+    const changedYouth = availableYouth.filter(
         (person) =>
-            team[person.id]?.status === "draft"
+            team[person.id]?.status === "draft" ||
+            team[person.id]?.status === "removed"
     );
 
     if (loadingYouth) {
@@ -101,7 +102,7 @@ export default function AdvisorYouthList({
     return (
         <div className="mt-6 space-y-7">
 
-            {draftYouth.length > 0 && (
+            {changedYouth.length > 0 && (
                 <section>
                     <div className="mb-3 flex items-center gap-2">
                         <span className="size-2 rounded-full bg-slate-400" />
@@ -111,12 +112,12 @@ export default function AdvisorYouthList({
                         </p>
 
                         <span className="text-xs font-medium text-slate-500">
-                            {draftYouth.length}
+                            {changedYouth.length}
                         </span>
                     </div>
 
                     <div className="flex flex-col gap-3">
-                        {draftYouth.map((person) =>
+                        {changedYouth.map((person) =>
                             renderYouthCard(person)
                         )}
                     </div>
