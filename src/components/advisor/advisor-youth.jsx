@@ -20,6 +20,9 @@ export default function AdvisorYouth({ wardId }) {
     const [loadingYouth, setLoadingYouth] = useState(true);
     const [youthError, setYouthError] = useState(null);
     const [selectedYouth, setSelectedYouth] = useState(null);
+    const [editingYouth, setEditingYouth] = useState(false);
+    const [editName, setEditName] = useState("");
+    const [editOffice, setEditOffice] = useState("teacher");    
 
     useEffect(() => {
         if (!wardId) {
@@ -238,107 +241,225 @@ export default function AdvisorYouth({ wardId }) {
                     <>
                         <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-muted" />
 
-                        <div className="flex flex-col items-center text-center">
-                            <div
-                                className="
-                                    grid size-16 place-items-center
-                                    rounded-full
-                                    bg-green-100
-                                    text-lg font-bold
-                                    text-green-700
-                                "
-                            >
-                                {selectedYouth.name
-                                    .split(" ")
-                                    .map((part) => part[0])
-                                    .slice(0, 2)
-                                    .join("")}
-                            </div>
+                        {editingYouth ? (
+                            <>
+                                <div>
+                                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-green-600">
+                                        Editar joven
+                                    </p>
 
-                            <h2 className="mt-4 text-2xl font-bold tracking-tight">
-                                {selectedYouth.name}
-                            </h2>
-
-                            <p className="mt-1 text-sm text-muted-foreground">
-                                {selectedYouth.office === "priest"
-                                    ? "Presbítero"
-                                    : "Maestro"}
-                            </p>
-
-                            <span
-                                className="
-                                    mt-3 inline-flex items-center
-                                    rounded-full
-                                    bg-green-100
-                                    px-3 py-1
-                                    text-xs font-semibold
-                                    text-green-700
-                                "
-                            >
-                                Activo
-                            </span>
-                        </div>
-
-                        <div className="mt-7">
-                            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                                Datos
-                            </p>
-
-                            <div className="mt-3 overflow-hidden rounded-2xl border bg-background">
-                                <div className="flex items-center justify-between gap-4 border-b px-4 py-3.5">
-                                    <span className="text-sm text-muted-foreground">
-                                        Nombre
-                                    </span>
-
-                                    <span className="text-right text-sm font-medium">
+                                    <h2 className="mt-2 text-2xl font-bold tracking-tight">
                                         {selectedYouth.name}
-                                    </span>
+                                    </h2>
                                 </div>
 
-                                <div className="flex items-center justify-between gap-4 px-4 py-3.5">
-                                    <span className="text-sm text-muted-foreground">
-                                        Oficio
-                                    </span>
+                                <div className="mt-6 space-y-5">
+                                    <div>
+                                        <label className="text-sm font-medium">
+                                            Nombre
+                                        </label>
 
-                                    <span className="text-right text-sm font-medium">
-                                        {selectedYouth.office === "priest"
+                                        <input
+                                            type="text"
+                                            value={editName}
+                                            onChange={(event) =>
+                                                setEditName(
+                                                    event.target.value
+                                                )
+                                            }
+                                            className="
+                                                mt-2 h-12 w-full
+                                                rounded-2xl border
+                                                bg-background px-4
+                                                text-sm outline-none
+                                                transition-colors
+                                                focus:border-green-300
+                                            "
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="text-sm font-medium">
+                                            Oficio
+                                        </label>
+
+                                        <div className="mt-2 grid grid-cols-2 gap-2">
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    setEditOffice("teacher")
+                                                }
+                                                className={`
+                                                    h-12 rounded-2xl border
+                                                    text-sm font-semibold
+                                                    transition-colors
+                                                    ${
+                                                        editOffice === "teacher"
+                                                            ? "border-green-600 bg-green-600 text-white"
+                                                            : "bg-background hover:border-green-300 hover:bg-green-50/50"
+                                                    }
+                                                `}
+                                            >
+                                                Maestro
+                                            </button>
+
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    setEditOffice("priest")
+                                                }
+                                                className={`
+                                                    h-12 rounded-2xl border
+                                                    text-sm font-semibold
+                                                    transition-colors
+                                                    ${
+                                                        editOffice === "priest"
+                                                            ? "border-green-600 bg-green-600 text-white"
+                                                            : "bg-background hover:border-green-300 hover:bg-green-50/50"
+                                                    }
+                                                `}
+                                            >
+                                                Presbítero
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="mt-7 flex gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            setEditingYouth(false)
+                                        }
+                                        className="
+                                            h-12 flex-1
+                                            rounded-2xl border
+                                            bg-background
+                                            text-sm font-semibold
+                                            transition-colors
+                                            hover:bg-muted/50
+                                        "
+                                    >
+                                        Cancelar
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        className="
+                                            h-12 flex-1
+                                            rounded-2xl
+                                            bg-green-600
+                                            text-sm font-semibold
+                                            text-white
+                                            transition-colors
+                                            hover:bg-green-700
+                                        "
+                                    >
+                                        Guardar cambios
+                                    </button>
+                                </div>
+                            </>
+                        ) : (
+                            <>
+                                <div className="flex flex-col items-center text-center">
+                                    <div className="grid size-16 place-items-center rounded-full bg-green-100 text-lg font-bold text-green-700">
+                                        {selectedYouth.name
+                                            .split(" ")
+                                            .map((part) => part[0])
+                                            .slice(0, 2)
+                                            .join("")}
+                                    </div>
+
+                                    <h2 className="mt-4 text-2xl font-bold tracking-tight">
+                                        {selectedYouth.name}
+                                    </h2>
+
+                                    <p className="mt-1 text-sm text-muted-foreground">
+                                        {selectedYouth.office ===
+                                        "priest"
                                             ? "Presbítero"
                                             : "Maestro"}
+                                    </p>
+
+                                    <span className="mt-3 inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
+                                        Activo
                                     </span>
                                 </div>
-                            </div>
-                        </div>
 
-                        <div className="mt-7 space-y-3">
-                            <button
-                                type="button"
-                                className="
-                                    h-12 w-full rounded-2xl
-                                    bg-green-600
-                                    text-sm font-semibold
-                                    text-white
-                                    transition-colors
-                                    hover:bg-green-700
-                                "
-                            >
-                                Editar joven
-                            </button>
+                                <div className="mt-7">
+                                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                                        Datos
+                                    </p>
 
-                            <button
-                                type="button"
-                                className="
-                                    h-12 w-full rounded-2xl
-                                    border border-red-200
-                                    bg-red-50
-                                    text-sm font-semibold
-                                    text-red-700
-                                    transition-colors
-                                    hover:bg-red-100
-                                "
-                            >
-                                Desactivar joven
-                            </button>
-                        </div>
+                                    <div className="mt-3 overflow-hidden rounded-2xl border bg-background">
+                                        <div className="flex items-center justify-between gap-4 border-b px-4 py-3.5">
+                                            <span className="text-sm text-muted-foreground">
+                                                Nombre
+                                            </span>
+
+                                            <span className="text-right text-sm font-medium">
+                                                {selectedYouth.name}
+                                            </span>
+                                        </div>
+
+                                        <div className="flex items-center justify-between gap-4 px-4 py-3.5">
+                                            <span className="text-sm text-muted-foreground">
+                                                Oficio
+                                            </span>
+
+                                            <span className="text-right text-sm font-medium">
+                                                {selectedYouth.office ===
+                                                "priest"
+                                                    ? "Presbítero"
+                                                    : "Maestro"}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="mt-7 space-y-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setEditName(
+                                                selectedYouth.name
+                                            );
+
+                                            setEditOffice(
+                                                selectedYouth.office
+                                            );
+
+                                            setEditingYouth(true);
+                                        }}
+                                        className="
+                                            h-12 w-full rounded-2xl
+                                            bg-green-600
+                                            text-sm font-semibold
+                                            text-white
+                                            transition-colors
+                                            hover:bg-green-700
+                                        "
+                                    >
+                                        Editar joven
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        className="
+                                            h-12 w-full rounded-2xl
+                                            border border-red-200
+                                            bg-red-50
+                                            text-sm font-semibold
+                                            text-red-700
+                                            transition-colors
+                                            hover:bg-red-100
+                                        "
+                                    >
+                                        Desactivar joven
+                                    </button>
+                                </div>
+                            </>
+                        )}
                     </>
                 )}
             </SheetContent>

@@ -5,7 +5,6 @@ import { useState, useEffect } from "react";
 import AdvisorHome from "./advisor-home";
 import AdvisorSacrament from "./advisor-sacrament";
 import AdvisorYouth from "./advisor-youth";
-import AdvisorMore from "./advisor-more";
 import AdvisorBottomNav from "./advisor-bottom-nav";
 
 export default function AdvisorView({
