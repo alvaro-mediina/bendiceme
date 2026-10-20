@@ -33,9 +33,6 @@ export default function AdvisorYouthCard({
     const canBless =
         person.office === "priest";
 
-    const isConfirmed =
-        assignment?.status === "confirmed";
-
     const roleLabel = isBlessing
         ? "Bendice"
         : isPassing
@@ -62,7 +59,9 @@ export default function AdvisorYouthCard({
                         ? "border-green-200 bg-green-50/30"
                         : assignment?.status === "pending"
                         ? "border-amber-200 bg-amber-50/30"
-                        : "border-border bg-white"
+                        : assignment?.status === "draft"
+                            ? "border-slate-200 bg-slate-50/70"
+                            : "border-border bg-white"
                 }
             `}
         >
@@ -92,7 +91,9 @@ export default function AdvisorYouthCard({
                                     ? "text-green-700"
                                     : assignment?.status === "pending"
                                     ? "text-amber-700"
-                                    : "text-muted-foreground"
+                                    : assignment?.status === "draft"
+                                        ? "text-slate-700"
+                                        : "text-muted-foreground"
                             }`}
                         >
                             {roleLabel}

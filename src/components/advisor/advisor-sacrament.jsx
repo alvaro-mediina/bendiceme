@@ -94,6 +94,40 @@ export default function AdvisorSacrament({ wardId, onBack, onLogout,}) {
 
     const teamLoading = loadingTeam || loadingYouth;
 
+    const confirmedTeam =
+    Object.fromEntries(
+        Object.entries(team).filter(
+            ([, assignment]) =>
+                assignment.status === "confirmed"
+        )
+    );
+
+    const confirmedAssignments =
+        Object.values(confirmedTeam);
+
+    const confirmedBlessCount =
+        confirmedAssignments.filter(
+            (assignment) =>
+                assignment.role === "bless"
+        ).length;
+
+    const confirmedPassCount =
+        confirmedAssignments.filter(
+            (assignment) =>
+                assignment.role === "pass"
+        ).length;
+
+    const confirmedPrepareCount =
+        confirmedAssignments.filter(
+            (assignment) =>
+                assignment.prepares
+        ).length;
+
+    const confirmedTeamIsComplete =
+        confirmedBlessCount === 2 &&
+        confirmedPassCount === 3 &&
+        confirmedPrepareCount >= 2;
+
 
     const TeamSkeleton = () => (
         <div className="rounded-2xl border bg-white p-4 sm:p-5">
@@ -166,40 +200,29 @@ export default function AdvisorSacrament({ wardId, onBack, onLogout,}) {
                             className="shrink-0"
                         >
                             <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                                Resumen del equipo
+                                Equipo confirmado
                             </h2>
                         </motion.div>
 
                         {teamLoading ? (
-                            <TeamSkeleton />
-                        ) : (
-                             <motion.div
-                                    variants={fadeUp}
-                                    className="shrink-0 mt-4"
-                            >
+                                <TeamSkeleton />
+                            ) : (
+                                <motion.div
+                                        variants={fadeUp}
+                                        className="shrink-0 mt-4"
+                                >
                                 <AdvisorTeamSummary
-                                    team={team}
-                                    blessCount={blessCount}
-                                    passCount={passCount}
-                                    prepareCount={prepareCount}
-                                    teamIsValid={teamIsValid}
+                                    team={confirmedTeam}
+                                    blessCount={confirmedBlessCount}
+                                    passCount={confirmedPassCount}
+                                    prepareCount={confirmedPrepareCount}
+                                    teamIsValid={confirmedTeamIsComplete}
                                 />
                             </motion.div>
                         )}
                     </div>
 
-                <div className="mt-6">
-                    {/* LISTA */}
                     <div className="flex w-full flex-col">
-                        <motion.div
-                            variants={fadeUp}
-                            className="shrink-0"
-                        >
-                            <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                                Jóvenes disponibles
-                            </h2>
-                        </motion.div>
-
                         <AdvisorYouthList
                             availableYouth={availableYouth}
                             team={team}
@@ -210,9 +233,6 @@ export default function AdvisorSacrament({ wardId, onBack, onLogout,}) {
                             onTogglePrepares={togglePrepares}
                         />
                     </div>
-
-
-                </div>
             </div>
 
             {/* GUARDAR EQUIPO */}
