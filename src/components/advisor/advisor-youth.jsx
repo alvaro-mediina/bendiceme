@@ -225,67 +225,91 @@ export default function AdvisorYouth({ wardId }) {
                 className="
                     rounded-t-[28px]
                     px-5 pb-8 pt-3
+
+                    lg:data-[side=bottom]:left-1/2
+                    lg:data-[side=bottom]:right-auto
+                    lg:data-[side=bottom]:w-[520px]
+                    lg:data-[side=bottom]:max-w-[calc(100vw-2rem)]
+                    lg:data-[side=bottom]:-translate-x-1/2
+
                 "
             >
                 {selectedYouth && (
                     <>
-                        <div className="mx-auto mb-5 h-1.5 w-12 rounded-full bg-muted" />
+                        <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-muted" />
 
-                        <SheetHeader className="text-left">
-                            <SheetTitle className="text-2xl font-bold tracking-tight">
+                        <div className="flex flex-col items-center text-center">
+                            <div
+                                className="
+                                    grid size-16 place-items-center
+                                    rounded-full
+                                    bg-green-100
+                                    text-lg font-bold
+                                    text-green-700
+                                "
+                            >
+                                {selectedYouth.name
+                                    .split(" ")
+                                    .map((part) => part[0])
+                                    .slice(0, 2)
+                                    .join("")}
+                            </div>
+
+                            <h2 className="mt-4 text-2xl font-bold tracking-tight">
                                 {selectedYouth.name}
-                            </SheetTitle>
+                            </h2>
 
-                            <SheetDescription>
-                                {selectedYouth.office ===
-                                "priest"
+                            <p className="mt-1 text-sm text-muted-foreground">
+                                {selectedYouth.office === "priest"
                                     ? "Presbítero"
                                     : "Maestro"}
-                            </SheetDescription>
-                        </SheetHeader>
+                            </p>
 
-                        <div className="mt-6">
+                            <span
+                                className="
+                                    mt-3 inline-flex items-center
+                                    rounded-full
+                                    bg-green-100
+                                    px-3 py-1
+                                    text-xs font-semibold
+                                    text-green-700
+                                "
+                            >
+                                Activo
+                            </span>
+                        </div>
+
+                        <div className="mt-7">
                             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
                                 Datos
                             </p>
 
-                            <div className="mt-3 overflow-hidden rounded-2xl border bg-white">
-                                <div className="flex items-center justify-between border-b px-4 py-3">
+                            <div className="mt-3 overflow-hidden rounded-2xl border bg-background">
+                                <div className="flex items-center justify-between gap-4 border-b px-4 py-3.5">
                                     <span className="text-sm text-muted-foreground">
                                         Nombre
                                     </span>
 
-                                    <span className="text-sm font-medium">
+                                    <span className="text-right text-sm font-medium">
                                         {selectedYouth.name}
                                     </span>
                                 </div>
 
-                                <div className="flex items-center justify-between border-b px-4 py-3">
+                                <div className="flex items-center justify-between gap-4 px-4 py-3.5">
                                     <span className="text-sm text-muted-foreground">
                                         Oficio
                                     </span>
 
-                                    <span className="text-sm font-medium">
-                                        {selectedYouth.office ===
-                                        "priest"
+                                    <span className="text-right text-sm font-medium">
+                                        {selectedYouth.office === "priest"
                                             ? "Presbítero"
                                             : "Maestro"}
-                                    </span>
-                                </div>
-
-                                <div className="flex items-center justify-between px-4 py-3">
-                                    <span className="text-sm text-muted-foreground">
-                                        Estado
-                                    </span>
-
-                                    <span className="text-sm font-semibold text-green-700">
-                                        Activo
                                     </span>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="mt-6 space-y-3">
+                        <div className="mt-7 space-y-3">
                             <button
                                 type="button"
                                 className="
