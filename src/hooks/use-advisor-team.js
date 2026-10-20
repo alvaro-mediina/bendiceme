@@ -107,6 +107,20 @@ export default function useAdvisorTeam(wardId, selectedSundayId) {
         loadTeam();
     }, [loadTeam]);
 
+    const getAssignmentStatus = (youthId, nextAssignment) => {
+        const initialAssignment = initialTeam[youthId];
+
+        if (!initialAssignment) {
+            return "draft";
+        }
+
+        const isSameAsInitial =
+            initialAssignment.role === nextAssignment.role &&
+            initialAssignment.prepares === nextAssignment.prepares;
+
+        return isSameAsInitial ? initialAssignment.status : "draft";
+    };
+
     const selectRole = (youthId, role) => {
         setTeam((current) => {
             const currentAssignment = current[youthId];
@@ -146,12 +160,16 @@ export default function useAdvisorTeam(wardId, selectedSundayId) {
                 return current;
             }
 
+            const nextAssignment = {
+                role,
+                prepares: currentAssignment?.prepares ?? false,
+            };
+
             return {
                 ...current,
                 [youthId]: {
-                    role,
-                    prepares: currentAssignment?.prepares ?? false,
-                    status: "draft",
+                    ...nextAssignment,
+                    status: getAssignmentStatus(youthId, nextAssignment),
                 },
             };
         });
@@ -167,12 +185,16 @@ export default function useAdvisorTeam(wardId, selectedSundayId) {
                 return current;
             }
 
+            const nextAssignment = {
+                ...assignment,
+                prepares: !assignment.prepares,
+            };
+
             return {
                 ...current,
                 [youthId]: {
-                    ...assignment,
-                    prepares: !assignment.prepares,
-                    status: "draft",
+                    ...nextAssignment,
+                    status: getAssignmentStatus(youthId, nextAssignment),
                 },
             };
         });
