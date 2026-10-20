@@ -57,14 +57,14 @@ export default function AdvisorSundaySelector({
                         whileTap={{ scale: 0.97 }}
                         onClick={handleClick}
                         className={`
-                            shrink-0 rounded-2xl border px-4 py-3
-                            text-left transition-colors
+                            shrink-0 rounded-2xl border
+                            px-4 py-3
+                            text-sm font-semibold
+                            transition-all
                             ${
-                                disabled
-                                    ? "border-amber-200 bg-amber-50"
-                                    : selected
-                                    ? "border-green-500 bg-green-50"
-                                    : "bg-white hover:border-green-300 hover:bg-green-50"
+                                selected
+                                    ? "border-green-600 bg-green-50 text-green-700 shadow-sm"
+                                    : "bg-white text-foreground hover:border-green-300"
                             }
                         `}
                     >

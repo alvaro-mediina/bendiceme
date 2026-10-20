@@ -258,7 +258,7 @@ export default function Page() {
     }
 
     if (screen === "advisor") {
-        if (loadingProfile) {
+        if (loadingProfile && !profile) {
             return (
                 <PageContainer>
                     <AdvisorViewSkeleton />
@@ -267,6 +267,13 @@ export default function Page() {
         }
 
         if (!profile?.ward_id) {
+            if (loadingProfile && !profile) {
+                return (
+                    <PageContainer>
+                        <AdvisorViewSkeleton />
+                    </PageContainer>
+                );
+            }
             return (
                 <PageContainer center>
                     <p className="text-sm text-red-600">

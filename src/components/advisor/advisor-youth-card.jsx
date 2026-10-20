@@ -154,10 +154,7 @@ export default function AdvisorYouthCard({
                                 {canBless && (
                                     <button
                                         type="button"
-                                        disabled={
-                                            blessFull ||
-                                            isBlessing
-                                        }
+                                        disabled={blessFull || isBlessing}
                                         onClick={() =>
                                             onSelectRole(
                                                 person.id,
@@ -167,13 +164,13 @@ export default function AdvisorYouthCard({
                                         className={`
                                             rounded-xl border px-3 py-3
                                             text-sm font-semibold
-                                            transition-colors
+                                            transition-all
                                             ${
                                                 isBlessing
-                                                    ? "border-green-600 bg-green-600 text-white"
+                                                    ? "border-green-600 bg-green-600 text-white shadow-sm"
                                                     : blessFull
-                                                      ? "cursor-not-allowed bg-muted text-muted-foreground opacity-50"
-                                                      : "bg-white hover:border-green-300"
+                                                    ? "cursor-not-allowed bg-muted text-muted-foreground opacity-50"
+                                                    : "bg-background hover:border-green-300 hover:bg-green-50/50"
                                             }
                                         `}
                                     >
@@ -183,10 +180,7 @@ export default function AdvisorYouthCard({
 
                                 <button
                                     type="button"
-                                    disabled={
-                                        passFull ||
-                                        isPassing
-                                    }
+                                    disabled={passFull || isPassing}
                                     onClick={() =>
                                         onSelectRole(
                                             person.id,
@@ -196,13 +190,13 @@ export default function AdvisorYouthCard({
                                     className={`
                                         rounded-xl border px-3 py-3
                                         text-sm font-semibold
-                                        transition-colors
+                                        transition-all
                                         ${
                                             isPassing
-                                                ? "border-green-600 bg-green-600 text-white"
+                                                ? "border-green-600 bg-green-600 text-white shadow-sm"
                                                 : passFull
-                                                  ? "cursor-not-allowed bg-muted text-muted-foreground opacity-50"
-                                                  : "bg-white hover:border-green-300"
+                                                ? "cursor-not-allowed bg-muted text-muted-foreground opacity-50"
+                                                : "bg-background hover:border-green-300 hover:bg-green-50/50"
                                         }
                                     `}
                                 >
@@ -211,24 +205,22 @@ export default function AdvisorYouthCard({
                             </div>
 
                             {assignment && (
-                                <>
+                                <div className="mt-5 space-y-3">
                                     <button
                                         type="button"
                                         onClick={() =>
-                                            onTogglePrepares(
-                                                person.id
-                                            )
+                                            onTogglePrepares(person.id)
                                         }
                                         className={`
-                                            mt-3 flex w-full
+                                            flex w-full
                                             items-center justify-between
                                             rounded-xl border
                                             px-3 py-3 text-sm
-                                            transition-colors
+                                            transition-all
                                             ${
                                                 prepares
                                                     ? "border-green-300 bg-green-50 text-green-800"
-                                                    : "bg-white hover:border-green-200"
+                                                    : "bg-background hover:border-green-200 hover:bg-green-50/40"
                                             }
                                         `}
                                     >
@@ -255,14 +247,22 @@ export default function AdvisorYouthCard({
 
                                     <button
                                         type="button"
-                                        onClick={
-                                            removeAssignment
-                                        }
-                                        className="mt-4 w-full text-center text-sm font-medium text-red-600"
+                                        onClick={removeAssignment}
+                                        className="
+                                            w-full rounded-xl
+                                            border border-red-200
+                                            bg-red-50
+                                            px-3 py-3
+                                            text-sm font-semibold
+                                            text-red-700
+                                            transition-colors
+                                            hover:border-red-300
+                                            hover:bg-red-100
+                                        "
                                     >
                                         Quitar del equipo
                                     </button>
-                                </>
+                                </div>
                             )}
                         </div>
                     </motion.div>
