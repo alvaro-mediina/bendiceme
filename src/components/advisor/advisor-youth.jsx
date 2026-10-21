@@ -13,6 +13,7 @@ import {
     SheetTitle,
     SheetDescription,
 } from "@/components/ui/sheet";
+import { getOfficeLabel } from "@/lib/youth";
 
 export default function AdvisorYouth({ wardId }) {
     const [search, setSearch] = useState("");
@@ -175,10 +176,7 @@ export default function AdvisorYouth({ wardId }) {
                                                 </p>
 
                                                 <p className="mt-1 text-sm text-muted-foreground">
-                                                    {person.office ===
-                                                    "priest"
-                                                        ? "Presbítero"
-                                                        : "Maestro"}
+                                                    {getOfficeLabel(person.office)}
                                                 </p>
                                             </div>
 
@@ -283,12 +281,27 @@ export default function AdvisorYouth({ wardId }) {
                                             Oficio
                                         </label>
 
-                                        <div className="mt-2 grid grid-cols-2 gap-2">
+                                        <div className="mt-2 grid grid-cols-3 gap-2">
                                             <button
                                                 type="button"
-                                                onClick={() =>
-                                                    setEditOffice("teacher")
-                                                }
+                                                onClick={() => setEditOffice("deacon")}
+                                                className={`
+                                                    h-12 rounded-2xl border
+                                                    text-sm font-semibold
+                                                    transition-colors
+                                                    ${
+                                                        editOffice === "deacon"
+                                                            ? "border-green-600 bg-green-600 text-white"
+                                                            : "bg-background hover:border-green-300 hover:bg-green-50/50"
+                                                    }
+                                                `}
+                                            >
+                                                Diácono
+                                            </button>
+
+                                            <button
+                                                type="button"
+                                                onClick={() => setEditOffice("teacher")}
                                                 className={`
                                                     h-12 rounded-2xl border
                                                     text-sm font-semibold
@@ -305,9 +318,7 @@ export default function AdvisorYouth({ wardId }) {
 
                                             <button
                                                 type="button"
-                                                onClick={() =>
-                                                    setEditOffice("priest")
-                                                }
+                                                onClick={() => setEditOffice("priest")}
                                                 className={`
                                                     h-12 rounded-2xl border
                                                     text-sm font-semibold
@@ -321,7 +332,7 @@ export default function AdvisorYouth({ wardId }) {
                                             >
                                                 Presbítero
                                             </button>
-                                        </div>
+                                    </div>
                                     </div>
                                 </div>
 
@@ -375,10 +386,7 @@ export default function AdvisorYouth({ wardId }) {
                                     </h2>
 
                                     <p className="mt-1 text-sm text-muted-foreground">
-                                        {selectedYouth.office ===
-                                        "priest"
-                                            ? "Presbítero"
-                                            : "Maestro"}
+                                        {getOfficeLabel(selectedYouth.office)}
                                     </p>
 
                                     <span className="mt-3 inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">

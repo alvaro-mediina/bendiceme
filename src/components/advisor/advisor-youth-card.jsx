@@ -35,6 +35,9 @@ export default function AdvisorYouthCard({
     const canBless =
         person.office === "priest";
 
+    const canPrepare = 
+        person.office === "teacher" || person.office === "priest";
+
     const roleLabel =
         assignment?.status === "removed"
             ? "Se quitará del equipo"
@@ -232,7 +235,7 @@ export default function AdvisorYouthCard({
                                     </button>
                                 </div>
 
-                                {assignment && (
+                                {assignment && canPrepare && (
                                     <div className="mt-5 space-y-3">
                                         <button
                                             type="button"
