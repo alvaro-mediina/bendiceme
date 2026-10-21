@@ -25,7 +25,9 @@ export default function AdvisorYouth({ wardId }) {
     const [editName, setEditName] = useState("");
     const [editOffice, setEditOffice] = useState("teacher");  
     const [savingYouth, setSavingYouth] = useState(false);
-    const [editError, setEditError] = useState(null);  
+    const [editError, setEditError] = useState(null);
+    const [deactivatingYouth, setDeactivatingYouth] = useState(false);const [deactivateError, setDeactivateError] = useState(null);
+	const [confirmDeactivate, setConfirmDeactivate] = useState(false);
 
 
     useEffect(() => {
@@ -149,6 +151,48 @@ export default function AdvisorYouth({ wardId }) {
 
         setEditingYouth(false);
         setSavingYouth(false);
+    };
+
+    const handleDeactivateYouth = async () => {
+        if (!selectedYouth) {
+            return;
+        }
+
+        setDeactivatingYouth(true);
+        setDeactivateError(null);
+
+        const { error } = await supabase
+            .from("youth")
+            .update({
+                active: false,
+            })
+            .eq("id", selectedYouth.id)
+            .eq("ward_id", wardId);
+
+        if (error) {
+            console.error(
+                "Error desactivando joven:",
+                error
+            );
+
+            setDeactivateError(
+                "No se pudo desactivar el joven."
+            );
+
+            setDeactivatingYouth(false);
+            return;
+        }
+
+        setYouth((current) =>
+            current.filter(
+                (person) =>
+                    person.id !== selectedYouth.id
+            )
+        );
+
+        setSelectedYouth(null);
+        setEditingYouth(false);
+        setDeactivatingYouth(false);
     };
 
     return (
@@ -283,6 +327,8 @@ export default function AdvisorYouth({ wardId }) {
             onOpenChange={(open) => {
                 if (!open) {
                     setSelectedYouth(null);
+					setEditingYouth(false);
+					setConfirmDeactivate(false);
                 }
             }}
         >
@@ -503,6 +549,12 @@ export default function AdvisorYouth({ wardId }) {
                                     </div>
                                 </div>
 
+                                {deactivateError && (
+									<p className="text-center text-sm font-medium text-red-600">
+										{deactivateError}
+									</p>
+								)}
+
                                 <div className="mt-7 space-y-3">
                                     <button
                                         type="button"
@@ -528,22 +580,77 @@ export default function AdvisorYouth({ wardId }) {
                                     >
                                         Editar joven
                                     </button>
+                                    
+									{confirmDeactivate ? (
+										<div className="rounded-2xl border border-red-200 bg-red-50 p-4">
+											<p className="text-sm font-semibold text-red-700">
+												¿Desactivar a {selectedYouth.name}?
+											</p>
 
-                                    <button
-                                        type="button"
-                                        className="
-                                            h-12 w-full rounded-2xl
-                                            border border-red-200
-                                            bg-red-50
-                                            text-sm font-semibold
-                                            text-red-700
-                                            transition-colors
-                                            hover:bg-red-100
-                                        "
-                                    >
-                                        Desactivar joven
-                                    </button>
+											<p className="mt-1 text-sm text-red-600">
+												Ya no aparecerá entre los jóvenes activos.
+											</p>
+
+											<div className="mt-4 flex gap-3">
+												<button
+													type="button"
+													onClick={() =>
+														setConfirmDeactivate(false)
+													}
+													disabled={deactivatingYouth}
+													className="
+														h-11 flex-1 rounded-xl
+														border bg-white
+														text-sm font-semibold
+														transition-colors
+														hover:bg-muted/50
+													"
+												>
+													Cancelar
+												</button>
+
+												<button
+													type="button"
+													onClick={handleDeactivateYouth}
+													disabled={deactivatingYouth}
+													className="
+														h-11 flex-1 rounded-xl
+														bg-red-600
+														text-sm font-semibold
+														text-white
+														transition-colors
+														hover:bg-red-700
+														disabled:cursor-not-allowed
+														disabled:opacity-60
+													"
+												>
+													{deactivatingYouth
+														? "Desactivando..."
+														: "Sí, desactivar"}
+												</button>
+											</div>
+										</div>
+									) : (
+										<button
+											type="button"
+											onClick={() =>
+												setConfirmDeactivate(true)
+											}
+											className="
+												h-12 w-full rounded-2xl
+												border border-red-200
+												bg-red-50
+												text-sm font-semibold
+												text-red-700
+												transition-colors
+												hover:bg-red-100
+											"
+										>
+											Desactivar joven
+										</button>
+									)}
                                 </div>
+
                             </>
                         )}
                     </>
