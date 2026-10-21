@@ -23,7 +23,10 @@ export default function AdvisorYouth({ wardId }) {
     const [selectedYouth, setSelectedYouth] = useState(null);
     const [editingYouth, setEditingYouth] = useState(false);
     const [editName, setEditName] = useState("");
-    const [editOffice, setEditOffice] = useState("teacher");    
+    const [editOffice, setEditOffice] = useState("teacher");  
+    const [savingYouth, setSavingYouth] = useState(false);
+    const [editError, setEditError] = useState(null);  
+
 
     useEffect(() => {
         if (!wardId) {
@@ -85,6 +88,68 @@ export default function AdvisorYouth({ wardId }) {
 
     const activeYouthCount = youth.length;
 
+    const handleSaveYouth = async () => {
+        if (!selectedYouth) {
+            return;
+        }
+
+        const trimmedName =
+            editName.trim();
+
+        if (!trimmedName) {
+            setEditError(
+                "El nombre no puede estar vacío."
+            );
+
+            return;
+        }
+
+        setSavingYouth(true);
+        setEditError(null);
+
+        const { data, error } = await supabase
+            .from("youth")
+            .update({
+                name: trimmedName,
+                office: editOffice,
+            })
+            .eq("id", selectedYouth.id)
+            .eq("ward_id", wardId)
+            .select(`
+                id,
+                name,
+                office,
+                active
+            `)
+            .single();
+
+        if (error) {
+            console.error(
+                "Error actualizando joven:",
+                error
+            );
+
+            setEditError(
+                "No se pudo actualizar el joven."
+            );
+
+            setSavingYouth(false);
+            return;
+        }
+
+        setYouth((current) =>
+            current.map((person) =>
+                person.id === data.id
+                    ? data
+                    : person
+            )
+        );
+
+        setSelectedYouth(data);
+
+        setEditingYouth(false);
+        setSavingYouth(false);
+    };
 
     return (
         <motion.section
@@ -336,7 +401,14 @@ export default function AdvisorYouth({ wardId }) {
                                     </div>
                                 </div>
 
+                                {editError && (
+                                    <p className="text-sm font-medium text-red-600">
+                                        {editError}
+                                    </p>
+                                )}
+
                                 <div className="mt-7 flex gap-3">
+
                                     <button
                                         type="button"
                                         onClick={() =>
@@ -356,6 +428,8 @@ export default function AdvisorYouth({ wardId }) {
 
                                     <button
                                         type="button"
+                                        onClick={handleSaveYouth}
+                                        disabled={savingYouth}
                                         className="
                                             h-12 flex-1
                                             rounded-2xl
@@ -364,9 +438,13 @@ export default function AdvisorYouth({ wardId }) {
                                             text-white
                                             transition-colors
                                             hover:bg-green-700
+                                            disabled:cursor-not-allowed
+                                            disabled:opacity-60
                                         "
                                     >
-                                        Guardar cambios
+                                        {savingYouth
+                                            ? "Guardando..."
+                                            : "Guardar cambios"}
                                     </button>
                                 </div>
                             </>
