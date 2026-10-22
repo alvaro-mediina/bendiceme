@@ -2,11 +2,16 @@
 
 import { Bell, Building2, CircleHelp, LogOut, UserRound } from "lucide-react";
 import { useEffect, useState } from "react";
+
+import { Sheet, SheetContent } from "@/components/ui/sheet";
+
 import { supabase } from "@/lib/supabase";
 
 export default function AdvisorMore({ wardId, onLogout }) {
   const [wardName, setWardName] = useState("");
   const [loadingWard, setLoadingWard] = useState(true);
+  const [accountOpen, setAccountOpen] = useState(false);
+  const [advisorEmail, setAdvisorEmail] = useState("");
 
   useEffect(() => {
     if (!wardId) {
@@ -35,6 +40,21 @@ export default function AdvisorMore({ wardId, onLogout }) {
 
     loadWard();
   }, [wardId]);
+
+  const openAccount = async () => {
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser();
+
+    if (error) {
+      console.error("Error cargando cuenta del asesor:", error);
+    }
+
+    setAdvisorEmail(user?.email ?? "");
+    setAccountOpen(true);
+  };
+
   return (
     <section className="mx-auto w-full max-w-5xl">
       <header>
@@ -89,6 +109,7 @@ export default function AdvisorMore({ wardId, onLogout }) {
 
             <button
               type="button"
+              onClick={openAccount}
               className="flex w-full items-center gap-4 border-b p-4 text-left transition-colors hover:bg-muted/50"
             >
               <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-muted">
@@ -147,6 +168,59 @@ export default function AdvisorMore({ wardId, onLogout }) {
           </button>
         </section>
       </div>
+
+      <Sheet open={accountOpen} onOpenChange={setAccountOpen}>
+        <SheetContent
+          side="bottom"
+          className="
+      rounded-t-[28px]
+      px-5 pb-8 pt-3
+      lg:data-[side=bottom]:left-1/2
+      lg:data-[side=bottom]:right-auto
+      lg:data-[side=bottom]:w-[520px]
+      lg:data-[side=bottom]:max-w-[calc(100vw-2rem)]
+      lg:data-[side=bottom]:-translate-x-1/2
+    "
+        >
+          <div className="mx-auto mb-6 h-1.5 w-12 rounded-full bg-gray-200" />
+
+          <div>
+            <p className="text-sm text-muted-foreground">Cuenta</p>
+
+            <h2 className="mt-1 text-2xl font-semibold tracking-tight">
+              Información del asesor
+            </h2>
+          </div>
+
+          <div className="mt-8 space-y-6">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                Rol
+              </p>
+
+              <p className="mt-2 font-medium">Asesor</p>
+            </div>
+
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                Barrio
+              </p>
+
+              <p className="mt-2 font-medium">{wardName}</p>
+            </div>
+
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                Correo
+              </p>
+
+              <p className="mt-2 break-all font-medium">
+                {advisorEmail || "Sin correo"}
+              </p>
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
     </section>
   );
 }
