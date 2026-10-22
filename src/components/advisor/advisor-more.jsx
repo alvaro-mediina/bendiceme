@@ -6,12 +6,14 @@ import { useEffect, useState } from "react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 
 import { supabase } from "@/lib/supabase";
+import BrandLogo from "../brand-logo";
 
 export default function AdvisorMore({ wardId, onLogout }) {
   const [wardName, setWardName] = useState("");
   const [loadingWard, setLoadingWard] = useState(true);
   const [accountOpen, setAccountOpen] = useState(false);
   const [advisorEmail, setAdvisorEmail] = useState("");
+  const [aboutOpen, setAboutOpen] = useState(false);
 
   useEffect(() => {
     if (!wardId) {
@@ -128,6 +130,9 @@ export default function AdvisorMore({ wardId, onLogout }) {
             <button
               type="button"
               className="flex w-full items-center gap-4 p-4 text-left transition-colors hover:bg-muted/50"
+              onClick={() => {
+                setAboutOpen(true);
+              }}
             >
               <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-muted">
                 <CircleHelp className="size-5" />
@@ -216,6 +221,106 @@ export default function AdvisorMore({ wardId, onLogout }) {
 
               <p className="mt-2 break-all font-medium">
                 {advisorEmail || "Sin correo"}
+              </p>
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      <Sheet open={aboutOpen} onOpenChange={setAboutOpen}>
+        <SheetContent
+          side="bottom"
+          className="
+      rounded-t-[28px]
+      px-5 pb-8 pt-3
+      lg:data-[side=bottom]:left-1/2
+      lg:data-[side=bottom]:right-auto
+      lg:data-[side=bottom]:w-[520px]
+      lg:data-[side=bottom]:max-w-[calc(100vw-2rem)]
+      lg:data-[side=bottom]:-translate-x-1/2
+    "
+        >
+          <div className="mx-auto mb-6 h-1.5 w-12 rounded-full bg-gray-200" />
+
+          <div>
+            <p className="text-sm text-muted-foreground">Acerca de</p>
+
+            <BrandLogo />
+
+            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+              Una herramienta para simplificar la organización de jóvenes,
+              disponibilidad y asignaciones para la Santa Cena.
+            </p>
+          </div>
+
+          <div className="mt-8 space-y-6">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                Versión
+              </p>
+
+              <p className="mt-2 font-medium">MVP</p>
+            </div>
+
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                Propósito
+              </p>
+
+              <p className="mt-2 text-sm leading-relaxed">
+                Facilitar la organización de los equipos de la Santa Cena y la
+                coordinación entre jóvenes y asesores.
+              </p>
+            </div>
+
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                Soporte
+              </p>
+
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                Si encontrás un error, algo no funciona como esperabas o querés
+                enviar una sugerencia, podés contactarte conmigo.
+              </p>
+
+              <a
+                href={`mailto:alvaro.mediina2003@gmail.com?subject=${encodeURIComponent(
+                  "BendiceMe - Reporte de problema",
+                )}&body=${encodeURIComponent(
+                  `Hola,
+
+                    Encontré un problema en BendiceMe.
+
+                    ¿Qué ocurrió?
+
+
+                    ¿Qué esperaba que ocurriera?
+
+
+                    ¿En qué sección ocurrió?
+                    Inicio / Santa Cena / Jóvenes / Más
+
+                    Información adicional:
+
+
+                    Gracias.`,
+                )}`}
+                className="
+            mt-4 flex h-12 w-full
+            items-center justify-center
+            rounded-2xl
+            bg-green-600
+            px-4
+            text-sm font-semibold text-white
+            transition-colors
+            hover:bg-green-700
+          "
+              >
+                Contactar soporte
+              </a>
+
+              <p className="mt-3 text-center text-xs text-muted-foreground">
+                alvaro.mediina2003@gmail.com
               </p>
             </div>
           </div>
