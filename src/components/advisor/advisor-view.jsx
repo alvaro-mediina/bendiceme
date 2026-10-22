@@ -44,7 +44,13 @@ export default function AdvisorView({ wardId, onBack, onLogout }) {
 
   return (
     <>
-      <main className="mx-auto min-h-dvh w-full max-w-2xl px-4 pb-28 pt-5 sm:px-6 lg:pt-8">
+      <main
+        className={`
+          mx-auto min-h-dvh w-full max-w-2xl
+          px-4 pt-5 sm:px-6 lg:pt-8
+          ${activeView === "home" ? "pb-8" : "pb-28"}
+        `}
+      >
         {mountedViews.has("home") && (
           <motion.div
             initial={false}
@@ -150,7 +156,9 @@ export default function AdvisorView({ wardId, onBack, onLogout }) {
         )}
       </main>
 
-      <AdvisorBottomNav activeView={activeView} onChangeView={changeView} />
+      {activeView !== "home" && (
+        <AdvisorBottomNav activeView={activeView} onChangeView={changeView} />
+      )}
     </>
   );
 }

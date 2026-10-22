@@ -187,7 +187,7 @@ export default function AdvisorHome({ wardId, onNavigate }) {
             <img
               src="/images/advisor/sacrament-home.png"
               alt=""
-              className="absolute inset-0 h-full w-full object-cover"
+              className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
             />
 
             <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
@@ -207,8 +207,6 @@ export default function AdvisorHome({ wardId, onNavigate }) {
                     {assignedCount} de 5 asignados
                   </p>
                 </div>
-
-                <ArrowRight className="size-5" />
               </div>
             </div>
           </button>
@@ -277,6 +275,51 @@ export default function AdvisorHome({ wardId, onNavigate }) {
               <p className="text-sm text-white/75 lg:text-base">
                 Administrar tu grupo
               </p>
+            </div>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onNavigate("more")}
+            className="
+    group relative
+    col-span-2
+    min-h-[130px] w-full
+    overflow-hidden
+    rounded-[26px]
+    text-left
+  "
+          >
+            <div className="absolute inset-0 overflow-hidden">
+              <div
+                className="
+        h-full w-full
+        transition-transform duration-300
+        group-hover:scale-[1.02]
+      "
+              >
+                <img
+                  src="/images/advisor/more.png"
+                  alt=""
+                  className="
+          h-full w-full
+          object-cover
+          -scale-x-100
+        "
+                />
+              </div>
+            </div>
+
+            <div className="relative flex min-h-[130px] items-center p-5">
+              <div className="max-w-[52%]">
+                <p className="text-xl font-extrabold tracking-tight text-slate-900">
+                  Más
+                </p>
+
+                <p className="mt-1 text-sm leading-snug text-slate-600">
+                  Preferencias, cuenta y configuración
+                </p>
+              </div>
             </div>
           </button>
         </div>
