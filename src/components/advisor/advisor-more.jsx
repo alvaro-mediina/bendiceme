@@ -7,8 +7,7 @@ import { Sheet, SheetContent } from "@/components/ui/sheet";
 
 import { supabase } from "@/lib/supabase";
 import BrandLogo from "../brand-logo";
-import { subscribeAdvisorToPush } from "@/lib/push";
-
+import { subscribeAdvisorToPush, unsubscribeAdvisorFromPush } from "@/lib/push";
 export default function AdvisorMore({ wardId, onLogout }) {
   const [wardName, setWardName] = useState("");
   const [loadingWard, setLoadingWard] = useState(true);
@@ -125,11 +124,26 @@ export default function AdvisorMore({ wardId, onLogout }) {
         );
       }
 
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser();
+
+      if (error) {
+        throw error;
+      }
+
+      if (!user) {
+        throw new Error("No se encontró la sesión del asesor.");
+      }
+
       const registration = await navigator.serviceWorker.ready;
 
       const subscription = await registration.pushManager.getSubscription();
 
       if (subscription) {
+        await unsubscribeAdvisorFromPush(user.id, subscription);
+
         await subscription.unsubscribe();
       }
 
@@ -163,7 +177,7 @@ export default function AdvisorMore({ wardId, onLogout }) {
     <section className="mx-auto w-full max-w-5xl">
       <header>
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-green-600">
-          Ajustes del asesor
+          Preferencias y cuenta
         </p>
 
         <h1 className="mt-1 text-3xl font-semibold tracking-tight">Más</h1>
@@ -192,7 +206,7 @@ export default function AdvisorMore({ wardId, onLogout }) {
         {/* CONFIGURACIÓN */}
         <section>
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-            Configuración
+            Preferencias
           </p>
 
           <div className="mt-3 overflow-hidden rounded-2xl border bg-white">
@@ -217,7 +231,7 @@ export default function AdvisorMore({ wardId, onLogout }) {
             <button
               type="button"
               onClick={openAccount}
-              className="flex w-full items-center gap-4 border-b p-4 text-left transition-colors hover:bg-muted/50"
+              className="flex w-full items-center gap-4 border-b p-4 text-left transition-colors hover:bg-muted/50 active:bg-muted"
             >
               <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-muted">
                 <UserRound className="size-5" />
@@ -234,7 +248,7 @@ export default function AdvisorMore({ wardId, onLogout }) {
 
             <button
               type="button"
-              className="flex w-full items-center gap-4 p-4 text-left transition-colors hover:bg-muted/50"
+              className="flex w-full items-center gap-4 p-4 text-left transition-colors hover:bg-muted/50 active:bg-muted"
               onClick={() => {
                 setAboutOpen(true);
               }}
@@ -295,7 +309,7 @@ export default function AdvisorMore({ wardId, onLogout }) {
           <div className="mx-auto mb-6 h-1.5 w-12 rounded-full bg-gray-200" />
 
           <div>
-            <p className="text-sm text-muted-foreground">Configuración</p>
+            <p className="text-sm text-muted-foreground">Avisos</p>
 
             <h2 className="mt-1 text-2xl font-semibold tracking-tight">
               Notificaciones
