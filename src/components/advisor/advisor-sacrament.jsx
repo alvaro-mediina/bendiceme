@@ -15,7 +15,7 @@ import { motion } from "motion/react";
 
 import { fadeUp, staggerContainer } from "@/lib/animations";
 
-export default function AdvisorSacrament({ wardId, onBack, onLogout }) {
+export default function AdvisorSacrament({ wardId }) {
   const {
     sundays,
     selectedSundayId,
@@ -30,8 +30,6 @@ export default function AdvisorSacrament({ wardId, onBack, onLogout }) {
     team,
     blessCount,
     passCount,
-    prepareCount,
-    teamIsValid,
     hasTeamChanges,
     loadingTeam,
     savingTeam,
@@ -149,7 +147,7 @@ export default function AdvisorSacrament({ wardId, onBack, onLogout }) {
               <Button
                 type="button"
                 variant="outline"
-                className="h-12 w-full rounded-xl bg-yellow-600 text-base font-semibold text-white hover:bg-yellow-700"
+                className="h-12 w-full rounded-2xl bg-yellow-600 text-base font-semibold text-white hover:bg-yellow-700"
                 disabled={savingTeam}
                 onClick={discardChanges}
               >

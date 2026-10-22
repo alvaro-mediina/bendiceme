@@ -1,14 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  ArrowRight,
-  CalendarDays,
-  CheckCircle2,
-  CircleAlert,
-  Plus,
-  Users,
-} from "lucide-react";
 
 import { supabase } from "@/lib/supabase";
 import { formatSunday } from "@/lib/sundays";
