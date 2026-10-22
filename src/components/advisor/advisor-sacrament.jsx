@@ -80,7 +80,9 @@ export default function AdvisorSacrament({ wardId, onBack, onLogout }) {
       {/* ENCABEZADO */}
       <div className="shrink-0">
         <motion.div variants={fadeUp}>
-          <p className="text-sm text-muted-foreground">Organización</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-green-600">
+            Organización
+          </p>
 
           <h1 className="mt-1 text-3xl font-semibold tracking-tight">
             Santa Cena

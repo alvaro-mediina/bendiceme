@@ -162,7 +162,9 @@ export default function AdvisorMore({ wardId, onLogout }) {
   return (
     <section className="mx-auto w-full max-w-5xl">
       <header>
-        <p className="text-sm text-muted-foreground">Configuración</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-green-600">
+          Ajustes del asesor
+        </p>
 
         <h1 className="mt-1 text-3xl font-semibold tracking-tight">Más</h1>
       </header>
@@ -196,7 +198,7 @@ export default function AdvisorMore({ wardId, onLogout }) {
           <div className="mt-3 overflow-hidden rounded-2xl border bg-white">
             <button
               type="button"
-              className="flex w-full items-center gap-4 border-b p-4 text-left transition-colors hover:bg-muted/50"
+              className="flex w-full items-center gap-4 border-b p-4 text-left transition-colors hover:bg-muted/50 active:bg-muted"
               onClick={() => setNotificationsOpen(true)}
             >
               <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-muted">

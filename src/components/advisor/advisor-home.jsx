@@ -159,7 +159,9 @@ export default function AdvisorHome({ wardId, onNavigate }) {
   return (
     <section className="space-y-9">
       <header>
-        <p className="text-sm text-muted-foreground">Panel del asesor</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-green-600">
+          Panel del asesor
+        </p>
 
         <h1 className="mt-1 text-3xl font-semibold tracking-tight">Inicio</h1>
       </header>
