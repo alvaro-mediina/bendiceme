@@ -183,6 +183,17 @@ export default function AdvisorYouth({ wardId }) {
       return;
     }
 
+    const normalizedName = trimmedName.toLowerCase();
+
+    const alreadyExists = youth.some(
+      (person) => person.name.trim().toLowerCase() === normalizedName,
+    );
+
+    if (alreadyExists) {
+      setCreateYouthError("Ya existe un joven con ese nombre.");
+      return;
+    }
+
     setCreatingYouthLoading(true);
     setCreateYouthError(null);
 
@@ -196,11 +207,11 @@ export default function AdvisorYouth({ wardId }) {
       })
       .select(
         `
-				id,
-				name,
-				office,
-				active
-			`,
+      id,
+      name,
+      office,
+      active
+    `,
       )
       .single();
 
@@ -214,7 +225,11 @@ export default function AdvisorYouth({ wardId }) {
     }
 
     setYouth((current) =>
-      [...current, data].sort((a, b) => a.name.localeCompare(b.name, "es")),
+      [...current, data].sort((a, b) =>
+        a.name.localeCompare(b.name, "es", {
+          sensitivity: "base",
+        }),
+      ),
     );
 
     setCreatingYouth(false);
@@ -316,6 +331,7 @@ export default function AdvisorYouth({ wardId }) {
             setCreateYouthError(null);
             setCreatingYouth(true);
           }}
+          disabled={creatingYouthLoading}
           className="
                         flex h-12 w-full
                         items-center justify-center
@@ -449,7 +465,7 @@ export default function AdvisorYouth({ wardId }) {
                 <button
                   type="button"
                   onClick={handleCreateYouth}
-                  disabled={creatingYouthLoading}
+                  disabled={creatingYouthLoading || !newName.trim()}
                   className="
 									h-12 flex-1
 									rounded-2xl
@@ -458,6 +474,7 @@ export default function AdvisorYouth({ wardId }) {
 									text-white
 									hover:bg-green-700
 									disabled:opacity-60
+									disabled:cursor-not-allowed
 								"
                 >
                   {creatingYouthLoading ? "Agregando..." : "Agregar joven"}
