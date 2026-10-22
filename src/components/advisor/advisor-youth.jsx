@@ -286,34 +286,41 @@ export default function AdvisorYouth({ wardId }) {
           ) : (
             <motion.div variants={fadeUp}>
               <div className="flex flex-col gap-3">
-                {filteredYouth.map((person) => (
-                  <button
-                    key={person.id}
-                    type="button"
-                    onClick={() => setSelectedYouth(person)}
-                    className="
-                                                flex w-full
-                                                items-center
-                                                justify-between
-                                                rounded-2xl border
-                                                bg-white p-4
-                                                text-left
-                                                transition-colors
-                                                hover:border-green-200
-                                                hover:bg-green-50/30
-                                            "
-                  >
-                    <div>
-                      <p className="font-semibold">{person.name}</p>
+                {filteredYouth.length > 0 ? (
+                  filteredYouth.map((person) => (
+                    <button
+                      key={person.id}
+                      type="button"
+                      onClick={() => setSelectedYouth(person)}
+                      className="
+                        flex w-full items-center justify-between
+                        rounded-2xl border
+                        bg-white p-4
+                        text-left
+                        transition-colors
+                        hover:border-green-200
+                        hover:bg-green-50/30
+                        active:bg-green-50/50
+                      "
+                    >
+                      <div>
+                        <p className="font-semibold">{person.name}</p>
 
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        {getOfficeLabel(person.office)}
-                      </p>
-                    </div>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          {getOfficeLabel(person.office)}
+                        </p>
+                      </div>
 
-                    <ChevronRight className="size-5 text-muted-foreground" />
-                  </button>
-                ))}
+                      <ChevronRight className="size-5 text-muted-foreground" />
+                    </button>
+                  ))
+                ) : (
+                  <div className="rounded-2xl border border-dashed p-6 text-center">
+                    <p className="text-sm text-muted-foreground">
+                      No se encontraron jóvenes.
+                    </p>
+                  </div>
+                )}
               </div>
             </motion.div>
           )}
@@ -355,6 +362,9 @@ export default function AdvisorYouth({ wardId }) {
             setEditingYouth(false);
             setConfirmDeactivate(false);
             setCreatingYouth(false);
+
+            setEditError(null);
+            setDeactivateError(null);
             setCreateYouthError(null);
           }
         }}
