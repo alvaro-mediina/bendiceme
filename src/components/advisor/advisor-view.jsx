@@ -6,125 +6,71 @@ import AdvisorHome from "./advisor-home";
 import AdvisorSacrament from "./advisor-sacrament";
 import AdvisorYouth from "./advisor-youth";
 import AdvisorBottomNav from "./advisor-bottom-nav";
+import AdvisorMore from "./advisor-more";
 
-export default function AdvisorView({
-    wardId,
-    onBack,
-    onLogout,
-}) {
+export default function AdvisorView({ wardId, onBack, onLogout }) {
+  const [activeView, setActiveView] = useState(() => {
+    if (typeof window === "undefined") {
+      return "home";
+    }
 
-    const [activeView, setActiveView] =
-    useState(() => {
-        if (typeof window === "undefined") {
-            return "home";
-        }
+    return sessionStorage.getItem("bendiceme-advisor-view") ?? "home";
+  });
 
-        return (
-            sessionStorage.getItem(
-                "bendiceme-advisor-view"
-            ) ?? "home"
-        );
+  const [mountedViews, setMountedViews] = useState(() => {
+    if (typeof window === "undefined") {
+      return new Set(["home"]);
+    }
+
+    const savedView =
+      sessionStorage.getItem("bendiceme-advisor-view") ?? "home";
+
+    return new Set(["home", savedView]);
+  });
+
+  const changeView = (view) => {
+    setMountedViews((current) => {
+      const next = new Set(current);
+      next.add(view);
+      return next;
     });
 
-    const [mountedViews, setMountedViews] =
-    useState(() => {
-        if (typeof window === "undefined") {
-            return new Set(["home"]);
-        }
+    setActiveView(view);
+  };
 
-        const savedView =
-            sessionStorage.getItem(
-                "bendiceme-advisor-view"
-            ) ?? "home";
+  useEffect(() => {
+    sessionStorage.setItem("bendiceme-advisor-view", activeView);
+  }, [activeView]);
 
-        return new Set([
-            "home",
-            savedView,
-        ]);
-    });
+  return (
+    <>
+      <main className="mx-auto min-h-dvh w-full max-w-2xl px-4 pb-28 pt-5 sm:px-6 lg:pb-8 lg:pt-8">
+        {mountedViews.has("home") && (
+          <div className={activeView === "home" ? "block" : "hidden"}>
+            <AdvisorHome wardId={wardId} onNavigate={changeView} />
+          </div>
+        )}
 
-    const changeView = (view) => {
-        setMountedViews((current) => {
-            const next = new Set(current);
-            next.add(view);
-            return next;
-        });
+        {mountedViews.has("sacrament") && (
+          <div className={activeView === "sacrament" ? "block" : "hidden"}>
+            <AdvisorSacrament wardId={wardId} />
+          </div>
+        )}
 
-        setActiveView(view);
-    };
+        {mountedViews.has("youth") && (
+          <div className={activeView === "youth" ? "block" : "hidden"}>
+            <AdvisorYouth wardId={wardId} />
+          </div>
+        )}
 
-    useEffect(() => {
-        sessionStorage.setItem(
-            "bendiceme-advisor-view",
-            activeView
-        );
-    }, [activeView]);
+        {mountedViews.has("more") && (
+          <div className={activeView === "more" ? "block" : "hidden"}>
+            <AdvisorMore onLogout={onLogout} />
+          </div>
+        )}
+      </main>
 
-    return (
-        <>
-            <main className="mx-auto min-h-dvh w-full max-w-2xl px-4 pb-28 pt-5 sm:px-6 lg:pb-8 lg:pt-8">
-                {mountedViews.has("home") && (
-                    <div
-                        className={
-                            activeView === "home"
-                                ? "block"
-                                : "hidden"
-                        }
-                    >
-                        <AdvisorHome
-                            wardId={wardId}
-                            onNavigate={changeView}
-                        />
-                    </div>
-                )}
-
-                {mountedViews.has("sacrament") && (
-                    <div
-                        className={
-                            activeView === "sacrament"
-                                ? "block"
-                                : "hidden"
-                        }
-                    >
-                        <AdvisorSacrament
-                            wardId={wardId}
-                        />
-                    </div>
-                )}
-
-                {mountedViews.has("youth") && (
-                    <div
-                        className={
-                            activeView === "youth"
-                                ? "block"
-                                : "hidden"
-                        }
-                    >
-                        <AdvisorYouth
-                            wardId={wardId}
-                        />
-                    </div>
-                )}
-
-                {mountedViews.has("more") && (
-                    <div
-                        className={
-                            activeView === "more"
-                                ? "block"
-                                : "hidden"
-                        }
-                    >
-                        <AdvisorMore
-                            onLogout={onLogout}
-                        />
-                    </div>
-                )}
-            </main>
-
-            <AdvisorBottomNav
-                activeView={activeView}
-                onChangeView={changeView}
-            />
-        </>
-    );
+      <AdvisorBottomNav activeView={activeView} onChangeView={changeView} />
+    </>
+  );
 }
