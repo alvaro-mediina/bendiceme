@@ -5,64 +5,55 @@ import { supabase } from "@/lib/supabase";
 
 export default function useCurrentProfile() {
     const [profile, setProfile] = useState(null);
+
     const [loadingProfile, setLoadingProfile] = useState(true);
+
     const [profileError, setProfileError] = useState(null);
 
     useEffect(() => {
-        const loadProfile = async () => {
-            setLoadingProfile(true);
-            setProfileError(null);
+        let mounted = true;
 
-            const {
-                data: { session },
-                error: sessionError,
-            } = await supabase.auth.getSession();
-
-            if (sessionError) {
-                throw sessionError;
+        const loadProfile = async (user, showLoading = false) => {
+            if (showLoading) {
+                setLoadingProfile(true);
             }
 
-            if (!session) {
-                setProfile(null);
-                setLoadingProfile(false);
+            setProfileError(null);
+
+            if (!user) {
+                if (mounted) {
+                    setProfile(null);
+                    setLoadingProfile(false);
+                }
+
                 return;
             }
 
             try {
-                const {
-                    data: { user },
-                    error: userError,
-                } = await supabase.auth.getUser();
-
-                if (userError) {
-                    throw userError;
-                }
-
-                if (!user) {
-                    setProfile(null);
-                    return;
-                }
-
                 const { data, error } = await supabase
                     .from("profiles")
                     .select(
                         `
-                        user_id,
-                        role,
-                        ward_id,
-                        ward:wards (
-                            id,
-                            name,
-                            slug,
-                            active
-                        )
-                    `,
+                            user_id,
+                            role,
+                            ward_id,
+                            ward:wards (
+                                id,
+                                name,
+                                slug,
+                                active
+                            )
+                        `,
                     )
                     .eq("user_id", user.id)
                     .single();
 
                 if (error) {
                     throw error;
+                }
+
+                if (!mounted) {
+                    return;
                 }
 
                 setProfile({
@@ -72,25 +63,62 @@ export default function useCurrentProfile() {
             } catch (error) {
                 console.error("Error cargando perfil:", error);
 
+                if (!mounted) {
+                    return;
+                }
+
                 setProfileError("No se pudo cargar el perfil.");
 
                 setProfile(null);
             } finally {
-                setLoadingProfile(false);
+                if (mounted) {
+                    setLoadingProfile(false);
+                }
             }
         };
 
+        const initializeProfile = async () => {
+            const {
+                data: { session },
+                error,
+            } = await supabase.auth.getSession();
+
+            if (error) {
+                console.error("Error obteniendo sesión:", error);
+
+                if (mounted) {
+                    setProfileError("No se pudo cargar la sesión.");
+
+                    setLoadingProfile(false);
+                }
+
+                return;
+            }
+
+            await loadProfile(session?.user ?? null, true);
+        };
+
+        initializeProfile();
+
         const {
             data: { subscription },
-        } = supabase.auth.onAuthStateChange(() => {
-            loadProfile();
+        } = supabase.auth.onAuthStateChange((event, session) => {
+            if (event === "SIGNED_OUT") {
+                setProfile(null);
+                setLoadingProfile(false);
+
+                return;
+            }
+
+            if (event === "SIGNED_IN" || event === "USER_UPDATED") {
+                loadProfile(session?.user ?? null, false);
+            }
         });
 
         return () => {
+            mounted = false;
             subscription.unsubscribe();
         };
-
-        loadProfile();
     }, []);
 
     return {

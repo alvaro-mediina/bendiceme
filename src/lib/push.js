@@ -1,122 +1,139 @@
 export function urlBase64ToUint8Array(base64String) {
-    const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
 
-    const base64 = (base64String + padding)
-        .replace(/-/g, "+")
-        .replace(/_/g, "/");
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
 
-    const rawData = window.atob(base64);
+  const rawData = window.atob(base64);
 
-    return Uint8Array.from([...rawData].map((char) => char.charCodeAt(0)));
+  return Uint8Array.from([...rawData].map((char) => char.charCodeAt(0)));
 }
 
 export async function subscribeToPush(youthId) {
-    if (!("serviceWorker" in navigator)) {
-        throw new Error("Este navegador no soporta Service Workers.");
+  if (!("serviceWorker" in navigator)) {
+    throw new Error("Este navegador no soporta Service Workers.");
+  }
+
+  if (!("PushManager" in window)) {
+    throw new Error("Este navegador no soporta notificaciones push.");
+  }
+
+  const permission = await Notification.requestPermission();
+
+  if (permission !== "granted") {
+    throw new Error("No se concedió permiso para notificaciones.");
+  }
+
+  await navigator.serviceWorker.register("/sw.js");
+
+  const registration = await navigator.serviceWorker.ready;
+
+  let subscription = await registration.pushManager.getSubscription();
+
+  if (!subscription) {
+    const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+
+    if (!publicKey) {
+      throw new Error("Falta NEXT_PUBLIC_VAPID_PUBLIC_KEY.");
     }
 
-    if (!("PushManager" in window)) {
-        throw new Error("Este navegador no soporta notificaciones push.");
-    }
-
-    const permission = await Notification.requestPermission();
-
-    if (permission !== "granted") {
-        throw new Error("No se concedió permiso para notificaciones.");
-    }
-
-    await navigator.serviceWorker.register("/sw.js");
-
-    const registration = await navigator.serviceWorker.ready;
-
-    let subscription = await registration.pushManager.getSubscription();
-
-    if (!subscription) {
-        const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-
-        if (!publicKey) {
-            throw new Error("Falta NEXT_PUBLIC_VAPID_PUBLIC_KEY.");
-        }
-
-        subscription = await registration.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: urlBase64ToUint8Array(publicKey),
-        });
-    }
-
-    const response = await fetch("/api/push/subscribe", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-            youthId,
-            subscription: subscription.toJSON(),
-        }),
+    subscription = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(publicKey),
     });
+  }
 
-    if (!response.ok) {
-        const data = await response.json();
+  const response = await fetch("/api/push/subscribe", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      youthId,
+      subscription: subscription.toJSON(),
+    }),
+  });
 
-        throw new Error(data.error ?? "No se pudo guardar la suscripción.");
-    }
+  if (!response.ok) {
+    const data = await response.json();
 
-    localStorage.setItem("bendiceme-push-youth-id", String(youthId));
-    return subscription;
+    throw new Error(data.error ?? "No se pudo guardar la suscripción.");
+  }
+
+  localStorage.setItem("bendiceme-push-youth-id", String(youthId));
+  return subscription;
 }
 
 export async function subscribeAdvisorToPush(userId) {
-    if (!("serviceWorker" in navigator)) {
-        throw new Error("Este navegador no soporta Service Workers.");
+  if (!("serviceWorker" in navigator)) {
+    throw new Error("Este navegador no soporta Service Workers.");
+  }
+
+  if (!("PushManager" in window)) {
+    throw new Error("Este navegador no soporta notificaciones push.");
+  }
+
+  const permission = await Notification.requestPermission();
+
+  if (permission !== "granted") {
+    throw new Error("No se otorgó permiso para las notificaciones.");
+  }
+
+  await navigator.serviceWorker.register("/sw.js");
+
+  const registration = await navigator.serviceWorker.ready;
+
+  let subscription = await registration.pushManager.getSubscription();
+
+  if (!subscription) {
+    const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+
+    if (!publicKey) {
+      throw new Error("No está configurada la clave pública VAPID.");
     }
 
-    if (!("PushManager" in window)) {
-        throw new Error("Este navegador no soporta notificaciones push.");
-    }
-
-    const permission = await Notification.requestPermission();
-
-    if (permission !== "granted") {
-        throw new Error("No se otorgó permiso para las notificaciones.");
-    }
-
-    await navigator.serviceWorker.register("/sw.js");
-
-    const registration = await navigator.serviceWorker.ready;
-
-    let subscription = await registration.pushManager.getSubscription();
-
-    if (!subscription) {
-        const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-
-        if (!publicKey) {
-            throw new Error("No está configurada la clave pública VAPID.");
-        }
-
-        subscription = await registration.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: urlBase64ToUint8Array(publicKey),
-        });
-    }
-
-    const response = await fetch("/api/push/advisor-subscribe", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-            userId,
-            subscription: subscription.toJSON(),
-        }),
+    subscription = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(publicKey),
     });
+  }
 
-    if (!response.ok) {
-        const data = await response.json();
+  const response = await fetch("/api/push/advisor-subscribe", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      userId,
+      subscription: subscription.toJSON(),
+    }),
+  });
 
-        throw new Error(data.error ?? "No se pudo guardar la suscripción.");
-    }
+  if (!response.ok) {
+    const data = await response.json();
 
-    localStorage.setItem("bendiceme-advisor-push-user-id", String(userId));
+    throw new Error(data.error ?? "No se pudo guardar la suscripción.");
+  }
 
-    return subscription;
+  localStorage.setItem("bendiceme-advisor-push-user-id", String(userId));
+
+  return subscription;
+}
+
+export async function unsubscribeAdvisorFromPush(userId, subscription) {
+  const response = await fetch("/api/push/advisor-subscribe", {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      userId,
+      endpoint: subscription.endpoint,
+    }),
+  });
+
+  if (!response.ok) {
+    const data = await response.json();
+
+    throw new Error(data.error ?? "No se pudo eliminar la suscripción.");
+  }
 }

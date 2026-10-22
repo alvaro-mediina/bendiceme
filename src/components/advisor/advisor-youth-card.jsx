@@ -1,7 +1,11 @@
 "use client";
 
-import { Check } from "lucide-react";
-import { motion } from "motion/react";
+import {
+    Check,
+    ChevronDown,
+    ChevronUp,
+} from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
 
 import { fadeUp } from "@/lib/animations";
 
@@ -12,12 +16,18 @@ export default function AdvisorYouthCard({
     passFull,
     onSelectRole,
     onTogglePrepares,
+    expanded,
+    onToggleExpanded,
 }) {
+
     const isBlessing =
         assignment?.role === "bless";
 
     const isPassing =
         assignment?.role === "pass";
+
+    const isRemoved = 
+        assignment?.status === "removed";
 
     const prepares =
         assignment?.prepares ?? false;
@@ -25,159 +35,274 @@ export default function AdvisorYouthCard({
     const canBless =
         person.office === "priest";
 
-    const isConfirmed =
-        assignment?.status === "confirmed";
+    const canPrepare = 
+        person.office === "teacher" || person.office === "priest";
+
+    const roleLabel =
+        assignment?.status === "removed"
+            ? "Se quitará del equipo"
+            : isBlessing
+            ? "Bendice"
+            : isPassing
+                ? "Reparte"
+                : "Sin asignar";
+
+    const removeAssignment = () => {
+        if (!assignment) return;
+
+        onSelectRole(
+            person.id,
+            assignment.role
+        );
+    };
 
     return (
         <motion.div
             variants={fadeUp}
             className={`
-                rounded-2xl border p-4
+                overflow-hidden rounded-2xl border
                 transition-colors
                 ${
-                    assignment
-                        ? "border-green-200 bg-green-50/40"
-                        : "bg-white"
+                    assignment?.status === "confirmed"
+                        ? "border-green-200 bg-green-50/30"
+                        : assignment?.status === "pending"
+                        ? "border-amber-200 bg-amber-50/30"
+                        : assignment?.status === "draft"
+                        ? "border-slate-200 bg-slate-50/70"
+                        : assignment?.status === "removed"
+                            ? "border-red-200 bg-red-50/40"
+                            :"border-border bg-white"
                 }
             `}
         >
-            <div className="flex items-start justify-between gap-4">
-                <div>
-                    <p className="font-medium">
+            {/* CABECERA */}
+            <button
+                type="button"
+                onClick={onToggleExpanded}
+                className="flex w-full items-center justify-between gap-4 p-4 text-left"
+            >
+                <div className="min-w-0">
+                    <p className="truncate font-semibold">
                         {person.name}
                     </p>
 
-                    <span className="mt-1 inline-flex rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700 ring-1 ring-green-200">
+                    <p className="mt-1 text-sm text-muted-foreground">
                         {person.office === "priest"
                             ? "Presbítero"
                             : "Maestro"}
-                    </span>
+                    </p>
                 </div>
 
-                {assignment && (
-                    <span
-                        className={`
-                            rounded-full px-2.5 py-1
-                            text-xs font-medium
-                            ${
-                                isConfirmed
-                                    ? "bg-green-100 text-green-700"
-                                    : "bg-amber-100 text-amber-700"
-                            }
-                        `}
-                    >
-                        {isConfirmed
-                            ? "Confirmado"
-                            : "Pendiente"}
-                    </span>
-                )}
-            </div>
-
-            <div className="mt-4">
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    Asignación
-                </p>
-
-                <div className="mt-2 flex flex-wrap gap-2">
-                    {canBless && (
-                        <button
-                            type="button"
-                            disabled={blessFull}
-                            onClick={() =>
-                                onSelectRole(
-                                    person.id,
-                                    "bless"
-                                )
-                            }
-                            className={`
-                                rounded-xl border
-                                px-3 py-2
-                                text-sm font-medium
-                                transition-colors
-                                ${
-                                    isBlessing
-                                        ? "border-green-600 bg-green-600 text-white"
-                                        : blessFull
-                                            ? "cursor-not-allowed bg-muted text-muted-foreground opacity-50"
-                                            : "bg-white hover:border-green-300"
-                                }
-                            `}
+                <div className="flex shrink-0 items-center gap-3">
+                    <div className="text-right">
+                        <p
+                            className={`text-sm font-semibold ${
+                                assignment?.status === "confirmed"
+                                    ? "text-green-700"
+                                    : assignment?.status === "pending"
+                                    ? "text-amber-700"
+                                    : assignment?.status === "removed"
+                                        ? "text-red-600"
+                                        : assignment?.status === "draft"
+                                        ? "text-slate-700"
+                                        : "text-muted-foreground"
+                            }`}
                         >
-                            Bendecir
-                        </button>
-                    )}
+                            {roleLabel}
+                        </p>
 
-                    <button
-                        type="button"
-                        disabled={passFull}
-                        onClick={() =>
-                            onSelectRole(
-                                person.id,
-                                "pass"
-                            )
-                        }
-                        className={`
-                            rounded-xl border
-                            px-3 py-2
-                            text-sm font-medium
-                            transition-colors
-                            ${
-                                isPassing
-                                    ? "border-green-600 bg-green-600 text-white"
-                                    : passFull
-                                        ? "cursor-not-allowed bg-muted text-muted-foreground opacity-50"
-                                        : "bg-white hover:border-green-300"
-                            }
-                        `}
-                    >
-                        Repartir
-                    </button>
-                </div>
-            </div>
-
-            {assignment && (
-                <button
-                    type="button"
-                    onClick={() =>
-                        onTogglePrepares(
-                            person.id
-                        )
-                    }
-                    className={`
-                        mt-3 flex w-full
-                        items-center justify-between
-                        rounded-xl border
-                        px-3 py-3 text-sm
-                        transition-colors
-                        ${
-                            prepares
-                                ? "border-green-300 bg-green-50 text-green-800"
-                                : "bg-white hover:border-green-200"
-                        }
-                    `}
-                >
-                    <span>
-                        Prepara la Santa Cena
-                    </span>
-
-                    <span
-                        className={`
-                            grid size-5
-                            place-items-center
-                            rounded-md border
-                            ${
-                                prepares
-                                    ? "border-green-600 bg-green-600 text-white"
-                                    : "border-muted-foreground/30"
-                            }
-                        `}
-                    >
                         {prepares && (
-                            <Check className="size-3.5" />
+                            <p className="mt-0.5 text-xs font-medium text-green-600">
+                                Prepara
+                            </p>
                         )}
-                    </span>
-                </button>
-            )}
+                    </div>
+
+                    {expanded ? (
+                        <ChevronUp className="size-4 text-muted-foreground" />
+                    ) : (
+                        <ChevronDown className="size-4 text-muted-foreground" />
+                    )}
+                </div>
+            </button>
+
+            <AnimatePresence initial={false}>
+                {expanded && (
+                <motion.div
+                    initial={{
+                        height: 0,
+                        opacity: 0,
+                    }}
+                    animate={{
+                        height: "auto",
+                        opacity: 1,
+                    }}
+                    exit={{
+                        height: 0,
+                        opacity: 0,
+                    }}
+                    className="overflow-hidden"
+                >
+                    <div className="border-t px-4 pb-4 pt-4">
+                        {isRemoved ? (
+                            <div>
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        onSelectRole(
+                                            person.id,
+                                            assignment.role
+                                        )
+                                    }
+                                    className="
+                                        w-full rounded-xl
+                                        border border-slate-200
+                                        bg-white px-3 py-3
+                                        text-sm font-semibold
+                                        text-slate-700
+                                        transition-colors
+                                        hover:bg-slate-50
+                                    "
+                                >
+                                    Deshacer eliminación
+                                </button>
+                            </div>
+                        ) : (
+                            <>
+                                <div className="flex items-center justify-between">
+                                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                                        Asignación
+                                    </p>
+                                </div>
+
+                                <div className="mt-3 grid grid-cols-2 gap-2">
+                                    {canBless && (
+                                        <button
+                                            type="button"
+                                            disabled={
+                                                blessFull ||
+                                                isBlessing
+                                            }
+                                            onClick={() =>
+                                                onSelectRole(
+                                                    person.id,
+                                                    "bless"
+                                                )
+                                            }
+                                            className={`
+                                                rounded-xl border px-3 py-3
+                                                text-sm font-semibold
+                                                transition-all
+                                                ${
+                                                    isBlessing
+                                                        ? "border-green-600 bg-green-600 text-white shadow-sm"
+                                                        : blessFull
+                                                        ? "cursor-not-allowed bg-muted text-muted-foreground opacity-50"
+                                                        : "bg-background hover:border-green-300 hover:bg-green-50/50"
+                                                }
+                                            `}
+                                        >
+                                            Bendecir
+                                        </button>
+                                    )}
+
+                                    <button
+                                        type="button"
+                                        disabled={
+                                            passFull ||
+                                            isPassing
+                                        }
+                                        onClick={() =>
+                                            onSelectRole(
+                                                person.id,
+                                                "pass"
+                                            )
+                                        }
+                                        className={`
+                                            rounded-xl border px-3 py-3
+                                            text-sm font-semibold
+                                            transition-all
+                                            ${
+                                                isPassing
+                                                    ? "border-green-600 bg-green-600 text-white shadow-sm"
+                                                    : passFull
+                                                    ? "cursor-not-allowed bg-muted text-muted-foreground opacity-50"
+                                                    : "bg-background hover:border-green-300 hover:bg-green-50/50"
+                                            }
+                                        `}
+                                    >
+                                        Repartir
+                                    </button>
+                                </div>
+
+                                {assignment && canPrepare && (
+                                    <div className="mt-5 space-y-3">
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                onTogglePrepares(
+                                                    person.id
+                                                )
+                                            }
+                                            className={`
+                                                flex w-full
+                                                items-center justify-between
+                                                rounded-xl border
+                                                px-3 py-3 text-sm
+                                                transition-all
+                                                ${
+                                                    prepares
+                                                        ? "border-green-300 bg-green-50 text-green-800"
+                                                        : "bg-background hover:border-green-200 hover:bg-green-50/40"
+                                                }
+                                            `}
+                                        >
+                                            <span>
+                                                Prepara la Santa Cena
+                                            </span>
+
+                                            <span
+                                                className={`
+                                                    grid size-5 place-items-center
+                                                    rounded-md border
+                                                    ${
+                                                        prepares
+                                                            ? "border-green-600 bg-green-600 text-white"
+                                                            : "border-muted-foreground/30"
+                                                    }
+                                                `}
+                                            >
+                                                {prepares && (
+                                                    <Check className="size-3.5" />
+                                                )}
+                                            </span>
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            onClick={removeAssignment}
+                                            className="
+                                                w-full rounded-xl
+                                                border border-red-200
+                                                bg-red-50
+                                                px-3 py-3
+                                                text-sm font-semibold
+                                                text-red-700
+                                                transition-colors
+                                                hover:border-red-300
+                                                hover:bg-red-100
+                                            "
+                                        >
+                                            Quitar del equipo
+                                        </button>
+                                    </div>
+                                )}
+                            </>
+                        )}
+                    </div>
+                </motion.div>
+                )}
+            </AnimatePresence>
         </motion.div>
     );
 }
