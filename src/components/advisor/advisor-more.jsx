@@ -1,8 +1,40 @@
 "use client";
 
 import { Bell, Building2, CircleHelp, LogOut, UserRound } from "lucide-react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
 
-export default function AdvisorMore({ wardName = "Tu barrio", onLogout }) {
+export default function AdvisorMore({ wardId, onLogout }) {
+  const [wardName, setWardName] = useState("");
+  const [loadingWard, setLoadingWard] = useState(true);
+
+  useEffect(() => {
+    if (!wardId) {
+      return;
+    }
+
+    const loadWard = async () => {
+      setLoadingWard(true);
+
+      const { data, error } = await supabase
+        .from("wards")
+        .select("name")
+        .eq("id", wardId)
+        .single();
+
+      if (error) {
+        console.error("Error cargando barrio:", error);
+
+        setWardName("Barrio");
+      } else {
+        setWardName(data.name);
+      }
+
+      setLoadingWard(false);
+    };
+
+    loadWard();
+  }, [wardId]);
   return (
     <section className="mx-auto w-full max-w-5xl">
       <header>
@@ -23,13 +55,11 @@ export default function AdvisorMore({ wardName = "Tu barrio", onLogout }) {
               <Building2 className="size-5 text-green-700" />
             </div>
 
-            <div>
-              <p className="font-semibold">{wardName}</p>
-
-              <p className="mt-0.5 text-sm text-muted-foreground">
-                Barrio actual
-              </p>
-            </div>
+            {loadingWard ? (
+              <div className="h-5 w-40 animate-pulse rounded bg-gray-200" />
+            ) : (
+              <p>{wardName}</p>
+            )}
           </div>
         </section>
 

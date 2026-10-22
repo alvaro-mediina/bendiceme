@@ -247,7 +247,7 @@ export default function Page() {
   }
 
   if (screen === "advisor") {
-    if (loadingProfile && !profile) {
+    if (loadingProfile || !profile) {
       return (
         <PageContainer>
           <AdvisorViewSkeleton />
@@ -255,14 +255,7 @@ export default function Page() {
       );
     }
 
-    if (!profile?.ward_id) {
-      if (loadingProfile && !profile) {
-        return (
-          <PageContainer>
-            <AdvisorViewSkeleton />
-          </PageContainer>
-        );
-      }
+    if (!profile.ward_id) {
       return (
         <PageContainer center>
           <p className="text-sm text-red-600">
@@ -287,6 +280,7 @@ export default function Page() {
             }
 
             sessionStorage.removeItem("bendiceme-advisor-active");
+            sessionStorage.removeItem("bendiceme-advisor-view");
 
             setScreen("role");
           }}

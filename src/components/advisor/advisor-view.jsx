@@ -7,7 +7,7 @@ import AdvisorSacrament from "./advisor-sacrament";
 import AdvisorYouth from "./advisor-youth";
 import AdvisorBottomNav from "./advisor-bottom-nav";
 import AdvisorMore from "./advisor-more";
-
+import { motion } from "motion/react";
 export default function AdvisorView({ wardId, onBack, onLogout }) {
   const [activeView, setActiveView] = useState(() => {
     if (typeof window === "undefined") {
@@ -46,27 +46,107 @@ export default function AdvisorView({ wardId, onBack, onLogout }) {
     <>
       <main className="mx-auto min-h-dvh w-full max-w-2xl px-4 pb-28 pt-5 sm:px-6 lg:pb-8 lg:pt-8">
         {mountedViews.has("home") && (
-          <div className={activeView === "home" ? "block" : "hidden"}>
+          <motion.div
+            initial={false}
+            animate={
+              activeView === "home"
+                ? {
+                    opacity: 1,
+                    y: 0,
+                    pointerEvents: "auto",
+                  }
+                : {
+                    opacity: 0,
+                    y: 8,
+                    pointerEvents: "none",
+                  }
+            }
+            transition={{
+              duration: 0.2,
+              ease: "easeOut",
+            }}
+            className={activeView === "home" ? "block" : "hidden"}
+          >
             <AdvisorHome wardId={wardId} onNavigate={changeView} />
-          </div>
+          </motion.div>
         )}
 
         {mountedViews.has("sacrament") && (
-          <div className={activeView === "sacrament" ? "block" : "hidden"}>
+          <motion.div
+            initial={false}
+            animate={
+              activeView === "sacrament"
+                ? {
+                    opacity: 1,
+                    y: 0,
+                    pointerEvents: "auto",
+                  }
+                : {
+                    opacity: 0,
+                    y: 8,
+                    pointerEvents: "none",
+                  }
+            }
+            transition={{
+              duration: 0.2,
+              ease: "easeOut",
+            }}
+            className={activeView === "sacrament" ? "block" : "hidden"}
+          >
             <AdvisorSacrament wardId={wardId} />
-          </div>
+          </motion.div>
         )}
 
         {mountedViews.has("youth") && (
-          <div className={activeView === "youth" ? "block" : "hidden"}>
+          <motion.div
+            initial={false}
+            animate={
+              activeView === "youth"
+                ? {
+                    opacity: 1,
+                    y: 0,
+                    pointerEvents: "auto",
+                  }
+                : {
+                    opacity: 0,
+                    y: 8,
+                    pointerEvents: "none",
+                  }
+            }
+            transition={{
+              duration: 0.2,
+              ease: "easeOut",
+            }}
+            className={activeView === "youth" ? "block" : "hidden"}
+          >
             <AdvisorYouth wardId={wardId} />
-          </div>
+          </motion.div>
         )}
 
         {mountedViews.has("more") && (
-          <div className={activeView === "more" ? "block" : "hidden"}>
-            <AdvisorMore onLogout={onLogout} />
-          </div>
+          <motion.div
+            initial={false}
+            animate={
+              activeView === "more"
+                ? {
+                    opacity: 1,
+                    y: 0,
+                    pointerEvents: "auto",
+                  }
+                : {
+                    opacity: 0,
+                    y: 8,
+                    pointerEvents: "none",
+                  }
+            }
+            transition={{
+              duration: 0.2,
+              ease: "easeOut",
+            }}
+            className={activeView === "more" ? "block" : "hidden"}
+          >
+            <AdvisorMore wardId={wardId} onLogout={onLogout} />
+          </motion.div>
         )}
       </main>
 
