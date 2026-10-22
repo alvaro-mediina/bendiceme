@@ -6,13 +6,7 @@ import { motion } from "motion/react";
 import { supabase } from "@/lib/supabase";
 import { fadeUp, staggerContainer } from "@/lib/animations";
 import YouthSelectorSkeleton from "../youth/youth-selector-skeleton";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { getOfficeLabel } from "@/lib/youth";
 
 export default function AdvisorYouth({ wardId }) {
@@ -251,9 +245,13 @@ export default function AdvisorYouth({ wardId }) {
           Tus jóvenes
         </h1>
 
-        <p className="mt-2 text-sm text-muted-foreground">
-          {activeYouthCount} jóvenes activos
-        </p>
+        {loadingYouth ? (
+          <div className="mt-2 h-4 w-28 animate-pulse rounded-lg bg-gray-200" />
+        ) : (
+          <p className="mt-2 text-sm text-muted-foreground">
+            {activeYouthCount} jóvenes activos
+          </p>
+        )}
       </motion.div>
 
       <motion.div variants={fadeUp} className="mt-6">
