@@ -228,3 +228,134 @@ export async function POST(request, { params }) {
     );
   }
 }
+
+export async function DELETE(request, { params }) {
+  try {
+    const { wardId } = await params;
+
+    const authorization = request.headers.get("authorization");
+
+    if (!authorization?.startsWith("Bearer ")) {
+      return Response.json(
+        {
+          error: "No autorizado.",
+        },
+        {
+          status: 401,
+        },
+      );
+    }
+
+    const accessToken = authorization.replace("Bearer ", "");
+
+    const {
+      data: { user },
+      error: userError,
+    } = await supabaseAdmin.auth.getUser(accessToken);
+
+    if (userError || !user) {
+      return Response.json(
+        {
+          error: "Sesión inválida.",
+        },
+        {
+          status: 401,
+        },
+      );
+    }
+
+    const { data: ownerProfile, error: ownerProfileError } = await supabaseAdmin
+      .from("profiles")
+      .select("role")
+      .eq("user_id", user.id)
+      .single();
+
+    if (ownerProfileError || ownerProfile?.role !== "owner") {
+      return Response.json(
+        {
+          error: "No tenés permisos para eliminar asesores.",
+        },
+        {
+          status: 403,
+        },
+      );
+    }
+
+    const body = await request.json();
+
+    const advisorUserId = body.advisorUserId;
+
+    if (!advisorUserId) {
+      return Response.json(
+        {
+          error: "Falta el asesor a eliminar.",
+        },
+        {
+          status: 400,
+        },
+      );
+    }
+
+    const { data: advisorProfile, error: advisorProfileError } =
+      await supabaseAdmin
+        .from("profiles")
+        .select("user_id, role, ward_id")
+        .eq("user_id", advisorUserId)
+        .eq("ward_id", wardId)
+        .single();
+
+    if (advisorProfileError || !advisorProfile) {
+      return Response.json(
+        {
+          error: "No se encontró el asesor.",
+        },
+        {
+          status: 404,
+        },
+      );
+    }
+
+    if (advisorProfile.role !== "advisor") {
+      return Response.json(
+        {
+          error: "La cuenta seleccionada no es un asesor.",
+        },
+        {
+          status: 400,
+        },
+      );
+    }
+
+    const { error: deleteError } =
+      await supabaseAdmin.auth.admin.deleteUser(advisorUserId);
+
+    if (deleteError) {
+      console.error("Error eliminando asesor:", deleteError);
+
+      return Response.json(
+        {
+          error: "No se pudo eliminar el asesor.",
+        },
+        {
+          status: 500,
+        },
+      );
+    }
+
+    return Response.json({
+      success: true,
+      userId: advisorUserId,
+    });
+  } catch (error) {
+    console.error("Error inesperado eliminando asesor:", error);
+
+    return Response.json(
+      {
+        error: "Ocurrió un error inesperado.",
+      },
+      {
+        status: 500,
+      },
+    );
+  }
+}

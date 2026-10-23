@@ -45,6 +45,12 @@ export default function AdminWardPage() {
   const [approvedYouthCredentials, setApprovedYouthCredentials] =
     useState(null);
 
+  const [deletingAdvisorId, setDeletingAdvisorId] = useState(null);
+
+  const [deleteAdvisorError, setDeleteAdvisorError] = useState(null);
+
+  const [advisorToDelete, setAdvisorToDelete] = useState(null);
+
   useEffect(() => {
     if (!wardId) {
       return;
@@ -364,6 +370,52 @@ export default function AdminWardPage() {
     setReviewingRequestId(null);
   };
 
+  const handleDeleteAdvisor = async (advisorUserId) => {
+    setDeletingAdvisorId(advisorUserId);
+
+    setDeleteAdvisorError(null);
+
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (!session?.access_token) {
+      setDeleteAdvisorError("No se encontró una sesión válida.");
+
+      setDeletingAdvisorId(null);
+      return;
+    }
+
+    const response = await fetch(`/api/admin/wards/${wardId}/advisors`, {
+      method: "DELETE",
+
+      headers: {
+        "Content-Type": "application/json",
+
+        Authorization: `Bearer ${session.access_token}`,
+      },
+
+      body: JSON.stringify({
+        advisorUserId,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      setDeleteAdvisorError(data.error ?? "No se pudo eliminar el asesor.");
+
+      setDeletingAdvisorId(null);
+      return;
+    }
+
+    setAdvisors((current) =>
+      current.filter((advisor) => advisor.userId !== advisorUserId),
+    );
+
+    setDeletingAdvisorId(null);
+  };
+
   if (loading) {
     return (
       <main className="mx-auto min-h-dvh w-full max-w-3xl px-4 py-8 sm:px-6">
@@ -501,15 +553,90 @@ export default function AdminWardPage() {
                   {advisor.email?.[0]?.toUpperCase() ?? "A"}
                 </div>
 
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">
                     {advisor.email ?? "Asesor sin correo"}
                   </p>
 
                   <p className="mt-0.5 text-xs text-muted-foreground">Asesor</p>
                 </div>
+
+                <button
+                  type="button"
+                  disabled={deletingAdvisorId === advisor.userId}
+                  onClick={() => setAdvisorToDelete(advisor)}
+                  className="
+                    rounded-xl px-3 py-2
+                    text-xs font-semibold
+                    text-red-600
+                    transition-colors
+                    hover:bg-red-50
+                    disabled:opacity-60
+                  "
+                >
+                  Eliminar
+                </button>
               </div>
             ))}
+            {advisorToDelete && (
+              <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 p-4">
+                <p className="text-sm font-semibold text-red-700">
+                  ¿Eliminar este asesor?
+                </p>
+
+                <p className="mt-1 text-sm text-red-600">
+                  {advisorToDelete.email ?? "Asesor sin correo"}
+                </p>
+
+                <p className="mt-2 text-xs text-red-600/80">
+                  Esta acción eliminará su acceso a BendiceMe.
+                </p>
+
+                <div className="mt-4 flex gap-3">
+                  <button
+                    type="button"
+                    disabled={deletingAdvisorId === advisorToDelete.userId}
+                    onClick={() => setAdvisorToDelete(null)}
+                    className="
+          h-10 flex-1 rounded-xl
+          border bg-white
+          text-sm font-semibold
+          transition-colors
+          hover:bg-muted/50
+        "
+                  >
+                    Cancelar
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={deletingAdvisorId === advisorToDelete.userId}
+                    onClick={async () => {
+                      await handleDeleteAdvisor(advisorToDelete.userId);
+
+                      setAdvisorToDelete(null);
+                    }}
+                    className="
+                      h-10 flex-1 rounded-xl
+                      bg-red-600
+                      text-sm font-semibold
+                      text-white
+                      transition-colors
+                      hover:bg-red-700
+                      disabled:cursor-not-allowed
+                      disabled:opacity-60
+                    "
+                  >
+                    {deletingAdvisorId === advisorToDelete.userId
+                      ? "Eliminando..."
+                      : "Sí, eliminar"}
+                  </button>
+                </div>
+              </div>
+            )}
+            {deleteAdvisorError && (
+              <p className="mt-3 text-sm text-red-600">{deleteAdvisorError}</p>
+            )}
           </div>
         ) : (
           <div className="mt-6 rounded-2xl border border-dashed p-6 text-center">
