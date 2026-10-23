@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Building2, Plus } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 import { supabase } from "@/lib/supabase";
 
@@ -16,6 +17,7 @@ function createSlug(value) {
 }
 
 export default function AdminPage() {
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [authorized, setAuthorized] = useState(false);
 
@@ -291,9 +293,15 @@ export default function AdminPage() {
         ) : (
           <div className="mt-4 space-y-3">
             {wards.map((ward) => (
-              <div
+              <button
                 key={ward.id}
-                className="flex items-center gap-4 rounded-2xl border bg-white p-4"
+                type="button"
+                onClick={() => router.push(`/admin/wards/${ward.id}`)}
+                className="
+                  flex w-full items-center gap-4 rounded-2xl
+                  border bg-white p-4 text-left
+                  transition-colors hover:border-green-200 hover:bg-green-50/30
+                "
               >
                 <div className="grid size-11 shrink-0 place-items-center rounded-2xl bg-green-50 text-green-700">
                   <Building2 className="size-5" />
@@ -307,7 +315,7 @@ export default function AdminPage() {
                     preparan
                   </p>
                 </div>
-              </div>
+              </button>
             ))}
 
             {wards.length === 0 && (
