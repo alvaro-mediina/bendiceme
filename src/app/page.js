@@ -373,6 +373,7 @@ export default function Page() {
 
           setScreen("role");
         }}
+        isOwner={profile?.role === "owner"}
       />
     );
   }

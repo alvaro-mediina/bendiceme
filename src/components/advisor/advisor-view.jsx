@@ -11,7 +11,7 @@ import AdvisorMore from "./advisor-more";
 import { motion } from "motion/react";
 import { supabase } from "@/lib/supabase";
 
-export default function AdvisorView({ wardId, onLogout }) {
+export default function AdvisorView({ wardId, onLogout, isOwner = false }) {
   const [homeReady, setHomeReady] = useState(false);
   const [sacramentSettings, setSacramentSettings] = useState({
     passCount: 3,
@@ -135,6 +135,7 @@ export default function AdvisorView({ wardId, onLogout }) {
               sacramentSettings={sacramentSettings}
               loadingSacramentSettings={loadingSacramentSettings}
               onReady={() => setHomeReady(true)}
+              isOwner={isOwner}
             />
           </motion.div>
         )}

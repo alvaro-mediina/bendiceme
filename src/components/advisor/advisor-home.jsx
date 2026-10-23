@@ -11,6 +11,7 @@ export default function AdvisorHome({
   sacramentSettings,
   loadingSacramentSettings,
   onReady,
+  isOwner = false,
 }) {
   const [loading, setLoading] = useState(true);
 
@@ -297,34 +298,84 @@ export default function AdvisorHome({
             </div>
           </button>
 
+          {isOwner && (
+            <button
+              type="button"
+              onClick={() => {
+                window.location.href = "/admin";
+              }}
+              className="
+                group relative
+                min-h-[130px] w-full
+                overflow-hidden
+                rounded-[26px]
+                text-left
+              "
+            >
+              <div className="absolute inset-0 overflow-hidden">
+                <div
+                  className="
+                h-full w-full
+                transition-transform duration-300
+                group-hover:scale-[1.02]
+              "
+                >
+                  <img
+                    src="/images/advisor/admin.png"
+                    alt=""
+                    className="
+                  h-full w-full
+                  object-cover
+                  -scale-x-100
+                "
+                  />
+                </div>
+              </div>
+
+              <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent" />
+
+              <div className="relative flex min-h-[130px] items-center p-5">
+                <div className="max-w-[52%]">
+                  <p className="text-xl font-extrabold tracking-tight text-slate-900">
+                    Admin
+                  </p>
+
+                  <p className="mt-1 text-sm leading-snug text-slate-600">
+                    Administrar barrios y accesos.
+                  </p>
+                </div>
+              </div>
+            </button>
+          )}
+
           <button
             type="button"
             onClick={() => onNavigate("more")}
-            className="
-    group relative
-    col-span-2
-    min-h-[130px] w-full
-    overflow-hidden
-    rounded-[26px]
-    text-left
-  "
+            className={`
+              group relative
+              min-h-[130px] w-full
+              overflow-hidden
+              rounded-[26px]
+              text-left
+              ${isOwner ? "" : "col-span-2"}
+            `}
           >
             <div className="absolute inset-0 overflow-hidden">
               <div
                 className="
-        h-full w-full
-        transition-transform duration-300
-        group-hover:scale-[1.02]
-      "
+                h-full w-full
+                transition-transform duration-300
+                group-hover:scale-[1.02]
+              "
               >
                 <img
                   src="/images/advisor/more.png"
                   alt=""
                   className="
-          h-full w-full
-          object-cover
-          -scale-x-100
-        "
+                  h-full w-full
+                  object-cover
+                  -scale-x-100
+                "
                 />
               </div>
             </div>
