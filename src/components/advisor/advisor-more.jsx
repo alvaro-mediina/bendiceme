@@ -15,10 +15,18 @@ import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { supabase } from "@/lib/supabase";
 import BrandLogo from "../brand-logo";
 import { subscribeAdvisorToPush, unsubscribeAdvisorFromPush } from "@/lib/push";
-export default function AdvisorMore({ wardId, onLogout }) {
+
+export default function AdvisorMore({
+  wardId,
+  onLogout,
+  sacramentSettings,
+  onSacramentSettingsChange,
+}) {
   const [wardName, setWardName] = useState("");
-  const [passCount, setPassCount] = useState(3);
-  const [minPrepareCount, setMinPrepareCount] = useState(2);
+  const [passCount, setPassCount] = useState(sacramentSettings.passCount);
+  const [minPrepareCount, setMinPrepareCount] = useState(
+    sacramentSettings.minPrepareCount,
+  );
   const [sacramentSettingsOpen, setSacramentSettingsOpen] = useState(false);
   const [savingSacramentSettings, setSavingSacramentSettings] = useState(false);
   const [sacramentSettingsError, setSacramentSettingsError] = useState(null);
@@ -41,7 +49,7 @@ export default function AdvisorMore({ wardId, onLogout }) {
 
       const { data, error } = await supabase
         .from("wards")
-        .select("name, pass_count, min_prepare_count")
+        .select("name")
         .eq("id", wardId)
         .single();
 
@@ -51,9 +59,6 @@ export default function AdvisorMore({ wardId, onLogout }) {
         setWardName("Barrio");
       } else {
         setWardName(data.name);
-        setWardName(data.name);
-        setPassCount(data.pass_count ?? 3);
-        setMinPrepareCount(data.min_prepare_count ?? 2);
       }
 
       setLoadingWard(false);
@@ -97,6 +102,11 @@ export default function AdvisorMore({ wardId, onLogout }) {
 
     checkAdvisorPushSubscription();
   }, []);
+
+  useEffect(() => {
+    setPassCount(sacramentSettings.passCount);
+    setMinPrepareCount(sacramentSettings.minPrepareCount);
+  }, [sacramentSettings]);
 
   const handleEnableNotifications = async () => {
     setPushLoading(true);
@@ -232,6 +242,11 @@ export default function AdvisorMore({ wardId, onLogout }) {
       setSavingSacramentSettings(false);
       return;
     }
+
+    onSacramentSettingsChange({
+      passCount: data.pass_count,
+      minPrepareCount: data.min_prepare_count,
+    });
 
     setSavingSacramentSettings(false);
     setSacramentSettingsOpen(false);

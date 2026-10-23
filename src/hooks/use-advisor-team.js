@@ -4,8 +4,12 @@ import { useEffect, useState, useCallback, useRef } from "react";
 
 import { supabase } from "@/lib/supabase";
 import { notifyYouth } from "@/lib/youth-notifications";
-
-export default function useAdvisorTeam(wardId, selectedSundayId) {
+export default function useAdvisorTeam(
+  wardId,
+  selectedSundayId,
+  { requiredPassCount = 3, requiredPrepareCount = 2 } = {},
+) {
+  const requiredBlessCount = 2;
   const [team, setTeam] = useState({});
   const [initialTeam, setInitialTeam] = useState({});
   const [savingTeam, setSavingTeam] = useState(false);
@@ -186,11 +190,11 @@ export default function useAdvisorTeam(wardId, selectedSundayId) {
 
       const passCountWithoutCurrent = currentPassCount - (wasPassing ? 1 : 0);
 
-      if (role === "bless" && blessCountWithoutCurrent >= 2) {
+      if (role === "bless" && blessCountWithoutCurrent >= requiredBlessCount) {
         return current;
       }
 
-      if (role === "pass" && passCountWithoutCurrent >= 3) {
+      if (role === "pass" && passCountWithoutCurrent >= requiredPassCount) {
         return current;
       }
 
@@ -258,7 +262,10 @@ export default function useAdvisorTeam(wardId, selectedSundayId) {
     (assignment) => assignment.prepares,
   ).length;
 
-  const teamIsValid = blessCount === 2 && passCount === 3 && prepareCount >= 2;
+  const teamIsValid =
+    blessCount === requiredBlessCount &&
+    passCount === requiredPassCount &&
+    prepareCount >= requiredPrepareCount;
 
   const hasTeamChanges = (() => {
     const currentIds = Object.keys(team);
@@ -288,7 +295,7 @@ export default function useAdvisorTeam(wardId, selectedSundayId) {
   })();
 
   const saveTeam = async () => {
-    if (!wardId || !selectedSundayId || !hasTeamChanges) {
+    if (!wardId || !selectedSundayId || !hasTeamChanges || !teamIsValid) {
       return;
     }
 
@@ -436,9 +443,15 @@ export default function useAdvisorTeam(wardId, selectedSundayId) {
 
   return {
     team,
+
     blessCount,
     passCount,
     prepareCount,
+
+    requiredBlessCount,
+    requiredPassCount,
+    requiredPrepareCount,
+
     teamIsValid,
     hasTeamChanges,
 

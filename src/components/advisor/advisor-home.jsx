@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { formatSunday } from "@/lib/sundays";
 
-export default function AdvisorHome({ wardId, onNavigate }) {
+export default function AdvisorHome({ wardId, onNavigate, sacramentSettings }) {
   const [loading, setLoading] = useState(true);
 
   const [error, setError] = useState(null);
@@ -131,7 +131,8 @@ export default function AdvisorHome({ wardId, onNavigate }) {
     loadHome();
   }, [wardId]);
 
-  const teamComplete = assignedCount === 5;
+  const requiredTeamCount = 2 + sacramentSettings.passCount;
+  const teamComplete = assignedCount === requiredTeamCount;
 
   if (loading) {
     return (
@@ -196,7 +197,7 @@ export default function AdvisorHome({ wardId, onNavigate }) {
                   </p>
 
                   <p className="text-lg font-semibold">
-                    {assignedCount} de 5 asignados
+                    {assignedCount} de {requiredTeamCount} asignados
                   </p>
                 </div>
               </div>

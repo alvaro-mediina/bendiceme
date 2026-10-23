@@ -15,7 +15,11 @@ import { motion } from "motion/react";
 
 import { fadeUp, staggerContainer } from "@/lib/animations";
 
-export default function AdvisorSacrament({ wardId }) {
+export default function AdvisorSacrament({
+  wardId,
+  sacramentSettings,
+  loadingSacramentSettings,
+}) {
   const {
     sundays,
     selectedSundayId,
@@ -30,6 +34,11 @@ export default function AdvisorSacrament({ wardId }) {
     team,
     blessCount,
     passCount,
+    prepareCount,
+    requiredBlessCount,
+    requiredPassCount,
+    requiredPrepareCount,
+    teamIsValid,
     hasTeamChanges,
     loadingTeam,
     savingTeam,
@@ -39,9 +48,13 @@ export default function AdvisorSacrament({ wardId }) {
     togglePrepares,
     saveTeam,
     discardChanges,
-  } = useAdvisorTeam(wardId, selectedSundayId);
+  } = useAdvisorTeam(wardId, selectedSundayId, {
+    requiredPassCount: sacramentSettings.passCount,
+    requiredPrepareCount: sacramentSettings.minPrepareCount,
+  });
 
-  const isLoading = loadingSundays || loadingYouth || loadingTeam;
+  const isLoading =
+    loadingSundays || loadingYouth || loadingTeam || loadingSacramentSettings;
 
   const confirmedTeam = Object.fromEntries(
     Object.entries(team).filter(
@@ -64,9 +77,9 @@ export default function AdvisorSacrament({ wardId }) {
   ).length;
 
   const confirmedTeamIsComplete =
-    confirmedBlessCount === 2 &&
-    confirmedPassCount === 3 &&
-    confirmedPrepareCount >= 2;
+    confirmedBlessCount === requiredBlessCount &&
+    confirmedPassCount === requiredPassCount &&
+    confirmedPrepareCount >= requiredPrepareCount;
 
   return (
     <motion.section
@@ -123,6 +136,9 @@ export default function AdvisorSacrament({ wardId }) {
                   blessCount={confirmedBlessCount}
                   passCount={confirmedPassCount}
                   prepareCount={confirmedPrepareCount}
+                  requiredBlessCount={requiredBlessCount}
+                  requiredPassCount={requiredPassCount}
+                  requiredPrepareCount={requiredPrepareCount}
                   teamIsValid={confirmedTeamIsComplete}
                 />
               </motion.div>
@@ -134,6 +150,8 @@ export default function AdvisorSacrament({ wardId }) {
                 team={team}
                 blessCount={blessCount}
                 passCount={passCount}
+                requiredBlessCount={requiredBlessCount}
+                requiredPassCount={requiredPassCount}
                 loadingYouth={loadingYouth}
                 onSelectRole={selectRole}
                 onTogglePrepares={togglePrepares}
@@ -158,7 +176,7 @@ export default function AdvisorSacrament({ wardId }) {
             {hasTeamChanges ? (
               <Button
                 className="h-12 w-full rounded-2xl bg-green-600 text-base font-semibold text-white hover:bg-green-700"
-                disabled={savingTeam}
+                disabled={savingTeam || !teamIsValid}
                 onClick={saveTeam}
               >
                 {savingTeam ? "Guardando..." : "Guardar cambios"}

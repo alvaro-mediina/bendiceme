@@ -8,7 +8,15 @@ import AdvisorYouth from "./advisor-youth";
 import AdvisorBottomNav from "./advisor-bottom-nav";
 import AdvisorMore from "./advisor-more";
 import { motion } from "motion/react";
-export default function AdvisorView({ wardId, onBack, onLogout }) {
+import { supabase } from "@/lib/supabase";
+
+export default function AdvisorView({ wardId, onLogout }) {
+  const [sacramentSettings, setSacramentSettings] = useState({
+    passCount: 3,
+    minPrepareCount: 2,
+  });
+  const [loadingSacramentSettings, setLoadingSacramentSettings] =
+    useState(true);
   const [activeView, setActiveView] = useState(() => {
     if (typeof window === "undefined") {
       return "home";
@@ -42,6 +50,39 @@ export default function AdvisorView({ wardId, onBack, onLogout }) {
     sessionStorage.setItem("bendiceme-advisor-view", activeView);
   }, [activeView]);
 
+  useEffect(() => {
+    const loadSacramentSettings = async () => {
+      if (!wardId) {
+        setLoadingSacramentSettings(false);
+        return;
+      }
+
+      setLoadingSacramentSettings(true);
+
+      const { data, error } = await supabase
+        .from("wards")
+        .select("pass_count, min_prepare_count")
+        .eq("id", wardId)
+        .single();
+
+      if (error) {
+        console.error("Error cargando configuración de Santa Cena:", error);
+
+        setLoadingSacramentSettings(false);
+        return;
+      }
+
+      setSacramentSettings({
+        passCount: data.pass_count ?? 3,
+        minPrepareCount: data.min_prepare_count ?? 2,
+      });
+
+      setLoadingSacramentSettings(false);
+    };
+
+    loadSacramentSettings();
+  }, [wardId]);
+
   return (
     <>
       <main
@@ -73,7 +114,11 @@ export default function AdvisorView({ wardId, onBack, onLogout }) {
             }}
             className={activeView === "home" ? "block" : "hidden"}
           >
-            <AdvisorHome wardId={wardId} onNavigate={changeView} />
+            <AdvisorHome
+              wardId={wardId}
+              onNavigate={changeView}
+              sacramentSettings={sacramentSettings}
+            />
           </motion.div>
         )}
 
@@ -99,7 +144,11 @@ export default function AdvisorView({ wardId, onBack, onLogout }) {
             }}
             className={activeView === "sacrament" ? "block" : "hidden"}
           >
-            <AdvisorSacrament wardId={wardId} />
+            <AdvisorSacrament
+              wardId={wardId}
+              sacramentSettings={sacramentSettings}
+              loadingSacramentSettings={loadingSacramentSettings}
+            />
           </motion.div>
         )}
 
@@ -151,7 +200,12 @@ export default function AdvisorView({ wardId, onBack, onLogout }) {
             }}
             className={activeView === "more" ? "block" : "hidden"}
           >
-            <AdvisorMore wardId={wardId} onLogout={onLogout} />
+            <AdvisorMore
+              wardId={wardId}
+              onLogout={onLogout}
+              sacramentSettings={sacramentSettings}
+              onSacramentSettingsChange={setSacramentSettings}
+            />
           </motion.div>
         )}
       </main>
