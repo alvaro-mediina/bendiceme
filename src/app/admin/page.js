@@ -73,25 +73,40 @@ export default function AdminPage() {
     const loadWards = async () => {
       setLoadingWards(true);
 
-      const { data, error } = await supabase
+      const { data: wardsData, error: wardsError } = await supabase
         .from("wards")
-        .select("id, name, pass_count, min_prepare_count")
-        .order("name", { ascending: true });
+        .select(
+          `
+          id,
+          name,
+          slug,
+          youth_onboarding_requests (
+            id,
+            status
+          )
+        `,
+        )
+        .order("name");
 
-      if (error) {
-        console.error("Error creando barrio:", {
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code,
-        });
+      if (wardsError) {
+        console.error("Error cargando barrios:", wardsError);
 
-        setError(error.message ?? "No se pudo crear el barrio.");
-        setCreating(false);
+        setError(wardsError.message ?? "No se pudieron cargar los barrios.");
+
+        setLoadingWards(false);
         return;
       }
 
-      setWards(data ?? []);
+      const wardsWithPendingRequests = (wardsData ?? []).map((ward) => ({
+        ...ward,
+
+        pendingRequestsCount: (ward.youth_onboarding_requests ?? []).filter(
+          (request) => request.status === "pending",
+        ).length,
+      }));
+
+      setWards(wardsWithPendingRequests);
+
       setLoadingWards(false);
     };
 
@@ -131,7 +146,13 @@ export default function AdminPage() {
     }
 
     setWards((current) =>
-      [...current, data].sort((a, b) => a.name.localeCompare(b.name)),
+      [
+        ...current,
+        {
+          ...data,
+          pendingRequestsCount: 0,
+        },
+      ].sort((a, b) => a.name.localeCompare(b.name)),
     );
 
     setName("");
@@ -310,9 +331,14 @@ export default function AdminPage() {
                 <div className="min-w-0">
                   <p className="truncate font-medium">{ward.name}</p>
 
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {ward.pass_count} reparten · mínimo {ward.min_prepare_count}{" "}
-                    preparan
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    {ward.pendingRequestsCount === 0
+                      ? "Sin solicitudes pendientes"
+                      : `${ward.pendingRequestsCount} ${
+                          ward.pendingRequestsCount === 1
+                            ? "solicitud pendiente"
+                            : "solicitudes pendientes"
+                        }`}
                   </p>
                 </div>
               </button>

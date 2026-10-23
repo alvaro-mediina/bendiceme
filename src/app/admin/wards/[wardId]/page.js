@@ -34,15 +34,16 @@ export default function AdminWardPage() {
   const [loadingYouth, setLoadingYouth] = useState(true);
   const [youthError, setYouthError] = useState(null);
 
-  const [youthName, setYouthName] = useState("");
-  const [youthEmail, setYouthEmail] = useState("");
-  const [youthOffice, setYouthOffice] = useState("deacon");
+  const [youthRequests, setYouthRequests] = useState([]);
 
-  const [addingYouth, setAddingYouth] = useState(false);
+  const [loadingYouthRequests, setLoadingYouthRequests] = useState(true);
 
-  const [addYouthError, setAddYouthError] = useState(null);
+  const [youthRequestsError, setYouthRequestsError] = useState(null);
 
-  const [createdYouthCredentials, setCreatedYouthCredentials] = useState(null);
+  const [reviewingRequestId, setReviewingRequestId] = useState(null);
+
+  const [approvedYouthCredentials, setApprovedYouthCredentials] =
+    useState(null);
 
   useEffect(() => {
     if (!wardId) {
@@ -192,6 +193,56 @@ export default function AdminWardPage() {
     loadYouth();
   }, [authorized, wardId]);
 
+  useEffect(() => {
+    if (!authorized || !wardId) {
+      return;
+    }
+
+    const loadYouthRequests = async () => {
+      setLoadingYouthRequests(true);
+      setYouthRequestsError(null);
+
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session?.access_token) {
+        setYouthRequestsError("No se encontró una sesión válida.");
+
+        setLoadingYouthRequests(false);
+        return;
+      }
+
+      const response = await fetch(
+        `/api/admin/wards/${wardId}/youth-requests`,
+        {
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        },
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error("Error cargando solicitudes:", data);
+
+        setYouthRequestsError(
+          data.error ?? "No se pudieron cargar las solicitudes.",
+        );
+
+        setLoadingYouthRequests(false);
+        return;
+      }
+
+      setYouthRequests(data.requests ?? []);
+
+      setLoadingYouthRequests(false);
+    };
+
+    loadYouthRequests();
+  }, [authorized, wardId]);
+
   const handleAddAdvisor = async (event) => {
     event.preventDefault();
 
@@ -249,78 +300,68 @@ export default function AdminWardPage() {
     setAddingAdvisor(false);
   };
 
-  const handleAddYouth = async (event) => {
-    event.preventDefault();
-
-    const name = youthName.trim();
-    const email = youthEmail.trim().toLowerCase();
-
-    if (!name) {
-      setAddYouthError("Ingresá el nombre del joven.");
-      return;
-    }
-
-    if (!email) {
-      setAddYouthError("Ingresá el correo del joven.");
-      return;
-    }
-
-    setAddingYouth(true);
-    setAddYouthError(null);
-    setCreatedYouthCredentials(null);
+  const handleReviewYouthRequest = async (requestId, action) => {
+    setReviewingRequestId(requestId);
+    setYouthRequestsError(null);
+    setApprovedYouthCredentials(null);
 
     const {
       data: { session },
     } = await supabase.auth.getSession();
 
     if (!session?.access_token) {
-      setAddYouthError("No se encontró una sesión válida.");
-      setAddingYouth(false);
+      setYouthRequestsError("No se encontró una sesión válida.");
+
+      setReviewingRequestId(null);
       return;
     }
 
-    const response = await fetch(`/api/admin/wards/${wardId}/youth`, {
-      method: "POST",
+    const response = await fetch(`/api/admin/wards/${wardId}/youth-requests`, {
+      method: "PATCH",
+
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${session.access_token}`,
       },
+
       body: JSON.stringify({
-        name,
-        email,
-        office: youthOffice,
+        requestId,
+        action,
       }),
     });
 
     const data = await response.json();
 
     if (!response.ok) {
-      console.error("Error agregando joven:", data);
+      console.error("Error revisando solicitud:", data);
 
-      setAddYouthError(data.error ?? "No se pudo agregar el joven.");
+      setYouthRequestsError(data.error ?? "No se pudo revisar la solicitud.");
 
-      setAddingYouth(false);
+      setReviewingRequestId(null);
       return;
     }
 
-    setYouth((current) =>
-      [...current, data.youth].sort((a, b) =>
-        a.name.localeCompare(b.name, "es", {
-          sensitivity: "base",
-        }),
-      ),
+    setYouthRequests((current) =>
+      current.filter((item) => item.id !== requestId),
     );
 
-    setCreatedYouthCredentials({
-      name: data.youth.name,
-      email: data.youth.email,
-      password: data.temporaryPassword,
-    });
+    if (action === "approve") {
+      setYouth((current) =>
+        [...current, data.youth].sort((a, b) =>
+          a.name.localeCompare(b.name, "es", {
+            sensitivity: "base",
+          }),
+        ),
+      );
 
-    setYouthName("");
-    setYouthEmail("");
-    setYouthOffice("deacon");
-    setAddingYouth(false);
+      setApprovedYouthCredentials({
+        name: data.youth.name,
+        email: data.youth.email,
+        password: data.temporaryPassword,
+      });
+    }
+
+    setReviewingRequestId(null);
   };
 
   if (loading) {
@@ -384,8 +425,8 @@ export default function AdminWardPage() {
           {ward.name}
         </h1>
 
-        <p className="mt-2 text-sm text-muted-foreground">
-          Administrá la configuración y los usuarios de este barrio.
+        <p className="text-sm text-muted-foreground">
+          Revisá las solicitudes de alta y consultá los jóvenes del barrio.
         </p>
       </header>
 
@@ -567,141 +608,117 @@ export default function AdminWardPage() {
           </div>
         </div>
 
-        {loadingYouth ? (
-          <div className="mt-6 space-y-3">
-            {[1, 2, 3].map((item) => (
-              <div
-                key={item}
-                className="h-16 animate-pulse rounded-2xl bg-muted"
-              />
-            ))}
+        <div className="mt-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-semibold">Solicitudes pendientes</h3>
+
+              <p className="mt-1 text-xs text-muted-foreground">
+                Jóvenes cargados por los asesores.
+              </p>
+            </div>
+
+            {!loadingYouthRequests && (
+              <span className="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700">
+                {youthRequests.length}
+              </span>
+            )}
           </div>
-        ) : youthError ? (
-          <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 p-4">
-            <p className="text-sm text-red-600">{youthError}</p>
-          </div>
-        ) : youth.length > 0 ? (
-          <div className="mt-6 space-y-3">
-            {youth.map((person) => (
-              <div
-                key={person.id}
-                className="flex items-center gap-3 rounded-2xl border p-4"
-              >
-                <div className="grid size-10 shrink-0 place-items-center rounded-full bg-green-50 text-sm font-semibold text-green-700">
-                  {person.name?.[0]?.toUpperCase() ?? "J"}
+
+          {loadingYouthRequests ? (
+            <div className="mt-4 space-y-3">
+              {[1, 2].map((item) => (
+                <div
+                  key={item}
+                  className="h-28 animate-pulse rounded-2xl bg-muted"
+                />
+              ))}
+            </div>
+          ) : youthRequestsError ? (
+            <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 p-4">
+              <p className="text-sm text-red-600">{youthRequestsError}</p>
+            </div>
+          ) : youthRequests.length > 0 ? (
+            <div className="mt-4 space-y-3">
+              {youthRequests.map((request) => (
+                <div key={request.id} className="rounded-2xl border p-4">
+                  <div>
+                    <p className="font-medium">{request.name}</p>
+
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {request.email}
+                    </p>
+
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {request.office === "priest"
+                        ? "Presbítero"
+                        : request.office === "teacher"
+                          ? "Maestro"
+                          : "Diácono"}
+                    </p>
+
+                    {request.requestedByEmail && (
+                      <p className="mt-2 text-xs text-muted-foreground">
+                        Solicitado por {request.requestedByEmail}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="mt-4 grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      disabled={reviewingRequestId === request.id}
+                      onClick={() =>
+                        handleReviewYouthRequest(request.id, "reject")
+                      }
+                      className="
+                h-10 rounded-xl border
+                text-sm font-semibold
+                transition-colors
+                hover:bg-muted/50
+                disabled:opacity-60
+              "
+                    >
+                      Rechazar
+                    </button>
+
+                    <button
+                      type="button"
+                      disabled={reviewingRequestId === request.id}
+                      onClick={() =>
+                        handleReviewYouthRequest(request.id, "approve")
+                      }
+                      className="
+                h-10 rounded-xl
+                bg-green-600
+                text-sm font-semibold
+                text-white
+                transition-colors
+                hover:bg-green-700
+                disabled:opacity-60
+              "
+                    >
+                      {reviewingRequestId === request.id
+                        ? "Procesando..."
+                        : "Aprobar"}
+                    </button>
+                  </div>
                 </div>
-
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">{person.name}</p>
-
-                  <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                    {person.email ?? "Sin correo"}
-                  </p>
-                </div>
-
-                <span className="shrink-0 rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700">
-                  {person.office === "priest"
-                    ? "Presbítero"
-                    : person.office === "teacher"
-                      ? "Maestro"
-                      : "Diácono"}
-                </span>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="mt-6 rounded-2xl border border-dashed p-6 text-center">
-            <p className="text-sm text-muted-foreground">
-              Este barrio todavía no tiene jóvenes.
-            </p>
-          </div>
-        )}
-
-        <form onSubmit={handleAddYouth} className="mt-5 space-y-4">
-          <div>
-            <label htmlFor="youth-name" className="text-sm font-medium">
-              Nombre
-            </label>
-
-            <input
-              id="youth-name"
-              type="text"
-              value={youthName}
-              onChange={(event) => setYouthName(event.target.value)}
-              placeholder="Tomás Rivas"
-              className="
-        mt-2 h-11 w-full rounded-xl border
-        bg-white px-3 text-sm outline-none
-        transition-colors focus:border-green-500
-      "
-            />
-          </div>
-
-          <div>
-            <label htmlFor="youth-email" className="text-sm font-medium">
-              Correo
-            </label>
-
-            <input
-              id="youth-email"
-              type="email"
-              value={youthEmail}
-              onChange={(event) => setYouthEmail(event.target.value)}
-              placeholder="tomas@ejemplo.com"
-              className="
-        mt-2 h-11 w-full rounded-xl border
-        bg-white px-3 text-sm outline-none
-        transition-colors focus:border-green-500
-      "
-            />
-          </div>
-
-          <div>
-            <label htmlFor="youth-office" className="text-sm font-medium">
-              Oficio
-            </label>
-
-            <select
-              id="youth-office"
-              value={youthOffice}
-              onChange={(event) => setYouthOffice(event.target.value)}
-              className="
-        mt-2 h-11 w-full rounded-xl border
-        bg-white px-3 text-sm outline-none
-        transition-colors focus:border-green-500
-      "
-            >
-              <option value="deacon">Diácono</option>
-
-              <option value="teacher">Maestro</option>
-
-              <option value="priest">Presbítero</option>
-            </select>
-          </div>
-
-          {addYouthError && (
-            <p className="text-sm text-red-600">{addYouthError}</p>
+              ))}
+            </div>
+          ) : (
+            <div className="mt-4 rounded-2xl border border-dashed p-5 text-center">
+              <p className="text-sm text-muted-foreground">
+                No hay solicitudes pendientes.
+              </p>
+            </div>
           )}
+        </div>
 
-          <button
-            type="submit"
-            disabled={addingYouth}
-            className="
-      h-11 w-full rounded-xl bg-green-600
-      text-sm font-semibold text-white
-      transition-colors hover:bg-green-700
-      disabled:cursor-not-allowed
-      disabled:opacity-60
-    "
-          >
-            {addingYouth ? "Creando joven..." : "Agregar joven"}
-          </button>
-        </form>
-
-        {createdYouthCredentials && (
+        {approvedYouthCredentials && (
           <div className="mt-4 rounded-2xl border border-green-200 bg-green-50 p-4">
             <p className="text-sm font-semibold text-green-800">
-              Joven creado correctamente
+              Joven aprobado correctamente
             </p>
 
             <div className="mt-3 space-y-1 text-sm">
@@ -709,7 +726,7 @@ export default function AdminWardPage() {
                 <span className="text-muted-foreground">Joven: </span>
 
                 <span className="font-medium">
-                  {createdYouthCredentials.name}
+                  {approvedYouthCredentials.name}
                 </span>
               </p>
 
@@ -717,7 +734,7 @@ export default function AdminWardPage() {
                 <span className="text-muted-foreground">Correo: </span>
 
                 <span className="font-medium">
-                  {createdYouthCredentials.email}
+                  {approvedYouthCredentials.email}
                 </span>
               </p>
 
@@ -727,15 +744,10 @@ export default function AdminWardPage() {
                 </span>
 
                 <code className="rounded bg-white px-2 py-1 font-mono">
-                  {createdYouthCredentials.password}
+                  {approvedYouthCredentials.password}
                 </code>
               </p>
             </div>
-
-            <p className="mt-3 text-xs text-green-800/70">
-              Guardá esta contraseña ahora. No se podrá consultar nuevamente
-              desde BendiceMe.
-            </p>
           </div>
         )}
       </section>

@@ -89,16 +89,10 @@ export default function AdvisorYouth({ wardId }) {
     }
 
     const trimmedName = editName.trim();
-    const trimmedEmail = newEmail.trim().toLowerCase();
 
     if (!trimmedName) {
       setEditError("El nombre no puede estar vacío.");
 
-      return;
-    }
-
-    if (!trimmedEmail) {
-      setCreateYouthError("El correo no puede estar vacío.");
       return;
     }
 
@@ -178,9 +172,15 @@ export default function AdvisorYouth({ wardId }) {
 
   const handleCreateYouth = async () => {
     const trimmedName = newName.trim();
+    const trimmedEmail = newEmail.trim().toLowerCase();
 
     if (!trimmedName) {
       setCreateYouthError("El nombre no puede estar vacío.");
+      return;
+    }
+
+    if (!trimmedEmail) {
+      setCreateYouthError("El correo no puede estar vacío.");
       return;
     }
 
@@ -336,6 +336,7 @@ export default function AdvisorYouth({ wardId }) {
           type="button"
           onClick={() => {
             setNewName("");
+            setNewEmail("");
             setNewOffice("deacon");
             setCreateYouthError(null);
             setCreatingYouth(true);
@@ -493,7 +494,9 @@ export default function AdvisorYouth({ wardId }) {
                 <button
                   type="button"
                   onClick={handleCreateYouth}
-                  disabled={creatingYouthLoading || !newName.trim()}
+                  disabled={
+                    creatingYouthLoading || !newName.trim() || !newEmail.trim()
+                  }
                   className="
 									h-12 flex-1
 									rounded-2xl
