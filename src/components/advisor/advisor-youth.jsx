@@ -671,9 +671,7 @@ export default function AdvisorYouth({ wardId }) {
                           </span>
 
                           <span className="text-right text-sm font-medium">
-                            {selectedYouth.office === "priest"
-                              ? "Presbítero"
-                              : "Maestro"}
+                            {getOfficeLabel(selectedYouth.office)}
                           </span>
                         </div>
                       </div>
