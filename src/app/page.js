@@ -284,7 +284,7 @@ export default function Page() {
               return;
             }
 
-            if (profileData.role !== "advisor") {
+            if (!["advisor", "owner"].includes(profileData.role)) {
               await supabase.auth.signOut({
                 scope: "local",
               });
