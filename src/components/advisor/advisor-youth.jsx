@@ -26,6 +26,7 @@ export default function AdvisorYouth({ wardId }) {
   const [creatingYouth, setCreatingYouth] = useState(false);
   const [newName, setNewName] = useState("");
   const [newOffice, setNewOffice] = useState("deacon");
+  const [newEmail, setNewEmail] = useState("");
   const [creatingYouthLoading, setCreatingYouthLoading] = useState(false);
   const [createYouthError, setCreateYouthError] = useState(null);
 
@@ -88,10 +89,16 @@ export default function AdvisorYouth({ wardId }) {
     }
 
     const trimmedName = editName.trim();
+    const trimmedEmail = newEmail.trim().toLowerCase();
 
     if (!trimmedName) {
       setEditError("El nombre no puede estar vacío.");
 
+      return;
+    }
+
+    if (!trimmedEmail) {
+      setCreateYouthError("El correo no puede estar vacío.");
       return;
     }
 
@@ -191,41 +198,38 @@ export default function AdvisorYouth({ wardId }) {
     setCreatingYouthLoading(true);
     setCreateYouthError(null);
 
-    const { data, error } = await supabase
-      .from("youth")
-      .insert({
-        name: trimmedName,
-        office: newOffice,
-        active: true,
-        ward_id: wardId,
-      })
-      .select(
-        `
-      id,
-      name,
-      office,
-      active
-    `,
-      )
-      .single();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      setCreateYouthError("No se encontró una sesión válida.");
+      setCreatingYouthLoading(false);
+      return;
+    }
+
+    const { error } = await supabase.from("youth_onboarding_requests").insert({
+      name: trimmedName,
+      email: trimmedEmail,
+      office: newOffice,
+      ward_id: wardId,
+      requested_by: user.id,
+      status: "pending",
+    });
 
     if (error) {
-      console.error("Error agregando joven:", error);
+      console.error("Error solicitando alta de joven:", error);
 
-      setCreateYouthError("No se pudo agregar el joven.");
+      setCreateYouthError("No se pudo enviar la solicitud.");
 
       setCreatingYouthLoading(false);
       return;
     }
 
-    setYouth((current) =>
-      [...current, data].sort((a, b) =>
-        a.name.localeCompare(b.name, "es", {
-          sensitivity: "base",
-        }),
-      ),
-    );
-
+    setNewName("");
+    setNewEmail("");
+    setNewOffice("deacon");
     setCreatingYouth(false);
     setCreatingYouthLoading(false);
   };
@@ -418,6 +422,22 @@ export default function AdvisorYouth({ wardId }) {
                 </div>
 
                 <div>
+                  <label className="text-sm font-medium">Correo</label>
+
+                  <input
+                    type="email"
+                    value={newEmail}
+                    onChange={(event) => setNewEmail(event.target.value)}
+                    placeholder="joven@ejemplo.com"
+                    className="
+                      mt-2 h-11 w-full rounded-xl border
+                      bg-white px-3 text-sm outline-none
+                      transition-colors focus:border-green-500
+                    "
+                  />
+                </div>
+
+                <div>
                   <label className="text-sm font-medium">Oficio</label>
 
                   <div className="mt-2 grid grid-cols-3 gap-2">
@@ -485,7 +505,7 @@ export default function AdvisorYouth({ wardId }) {
 									disabled:cursor-not-allowed
 								"
                 >
-                  {creatingYouthLoading ? "Agregando..." : "Agregar joven"}
+                  {creatingYouthLoading ? "Enviando..." : "Enviar solicitud"}
                 </button>
               </div>
             </>
