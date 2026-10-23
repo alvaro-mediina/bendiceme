@@ -6,11 +6,13 @@ import AdvisorHome from "./advisor-home";
 import AdvisorSacrament from "./advisor-sacrament";
 import AdvisorYouth from "./advisor-youth";
 import AdvisorBottomNav from "./advisor-bottom-nav";
+import AdvisorViewSkeleton from "./advisor-view-skeleton";
 import AdvisorMore from "./advisor-more";
 import { motion } from "motion/react";
 import { supabase } from "@/lib/supabase";
 
 export default function AdvisorView({ wardId, onLogout }) {
+  const [homeReady, setHomeReady] = useState(false);
   const [sacramentSettings, setSacramentSettings] = useState({
     passCount: 3,
     minPrepareCount: 2,
@@ -87,11 +89,24 @@ export default function AdvisorView({ wardId, onLogout }) {
     <>
       <main
         className={`
-          mx-auto min-h-dvh w-full max-w-2xl
+          relative mx-auto min-h-dvh w-full max-w-2xl
           px-4 pt-5 sm:px-6 lg:pt-8
           ${activeView === "home" ? "pb-8" : "pb-28"}
         `}
       >
+        {activeView === "home" && !homeReady && (
+          <div className="absolute inset-0 z-10 bg-background">
+            <div
+              className="
+        mx-auto min-h-dvh w-full max-w-2xl
+        px-4 pb-8 pt-5 sm:px-6 lg:pt-8
+      "
+            >
+              <AdvisorViewSkeleton />
+            </div>
+          </div>
+        )}
+
         {mountedViews.has("home") && (
           <motion.div
             initial={false}
@@ -118,6 +133,8 @@ export default function AdvisorView({ wardId, onLogout }) {
               wardId={wardId}
               onNavigate={changeView}
               sacramentSettings={sacramentSettings}
+              loadingSacramentSettings={loadingSacramentSettings}
+              onReady={() => setHomeReady(true)}
             />
           </motion.div>
         )}

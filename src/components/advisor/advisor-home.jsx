@@ -3,9 +3,15 @@
 import { useEffect, useState } from "react";
 
 import { supabase } from "@/lib/supabase";
-import { formatSunday } from "@/lib/sundays";
+import { formatSunday, getVisibleSundays } from "@/lib/sundays";
 
-export default function AdvisorHome({ wardId, onNavigate, sacramentSettings }) {
+export default function AdvisorHome({
+  wardId,
+  onNavigate,
+  sacramentSettings,
+  loadingSacramentSettings,
+  onReady,
+}) {
   const [loading, setLoading] = useState(true);
 
   const [error, setError] = useState(null);
@@ -25,6 +31,12 @@ export default function AdvisorHome({ wardId, onNavigate, sacramentSettings }) {
   const [upcomingSundays, setUpcomingSundays] = useState([]);
 
   useEffect(() => {
+    if (!loading && !loadingSacramentSettings) {
+      onReady?.();
+    }
+  }, [loading, loadingSacramentSettings, onReady]);
+
+  useEffect(() => {
     if (!wardId) {
       return;
     }
@@ -34,24 +46,38 @@ export default function AdvisorHome({ wardId, onNavigate, sacramentSettings }) {
       setError(null);
 
       try {
-        const today = new Date().toISOString().split("T")[0];
+        const { dates: visibleSundayDates } = getVisibleSundays();
 
-        const { data: sundayData, error: sundayError } = await supabase
-          .from("sundays")
-          .select("id, date, enabled, disabled_reason")
-          .eq("ward_id", wardId)
-          .eq("active", true)
-          .gte("date", today)
-          .order("date", {
-            ascending: true,
-          })
-          .limit(4);
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
 
-        if (sundayError) {
-          throw sundayError;
+        if (!session?.access_token) {
+          throw new Error("No hay una sesión válida.");
         }
 
-        const Sundays = sundayData ?? [];
+        const response = await fetch("/api/sundays/sync", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({
+            dates: visibleSundayDates,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data.error ?? "No se pudieron sincronizar los domingos.",
+          );
+        }
+
+        const Sundays = (data.sundays ?? [])
+          .filter((sunday) => sunday.active !== false)
+          .sort((a, b) => a.date.localeCompare(b.date));
 
         setUpcomingSundays(Sundays);
 
@@ -134,7 +160,7 @@ export default function AdvisorHome({ wardId, onNavigate, sacramentSettings }) {
   const requiredTeamCount = 2 + sacramentSettings.passCount;
   const teamComplete = assignedCount === requiredTeamCount;
 
-  if (loading) {
+  if (loading || loadingSacramentSettings) {
     return (
       <section className="space-y-8">
         <div className="h-8 w-32 animate-pulse rounded-xl bg-muted" />

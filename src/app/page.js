@@ -77,7 +77,16 @@ export default function Page() {
   }
 
   if (loadingYouthSession || checkingAdvisorSession) {
-    return null;
+    return (
+      <main
+        className="
+        mx-auto min-h-dvh w-full max-w-2xl
+        px-4 pb-8 pt-5 sm:px-6 lg:pt-8
+      "
+      >
+        <AdvisorViewSkeleton />
+      </main>
+    );
   }
 
   const handleYouthLogin = async (event) => {
@@ -315,9 +324,14 @@ export default function Page() {
   if (screen === "advisor") {
     if (loadingProfile || !profile) {
       return (
-        <PageContainer>
+        <main
+          className="
+          mx-auto min-h-dvh w-full max-w-2xl
+          px-4 pb-8 pt-5 sm:px-6 lg:pt-8
+        "
+        >
           <AdvisorViewSkeleton />
-        </PageContainer>
+        </main>
       );
     }
 
@@ -332,26 +346,24 @@ export default function Page() {
     }
 
     return (
-      <PageContainer>
-        <AdvisorView
-          wardId={profile.ward_id}
-          onBack={() => setScreen("role")}
-          onLogout={async () => {
-            const { error } = await supabase.auth.signOut({
-              scope: "local",
-            });
+      <AdvisorView
+        wardId={profile.ward_id}
+        onBack={() => setScreen("role")}
+        onLogout={async () => {
+          const { error } = await supabase.auth.signOut({
+            scope: "local",
+          });
 
-            if (error) {
-              console.error("Error cerrando sesión del asesor:", error);
-            }
+          if (error) {
+            console.error("Error cerrando sesión del asesor:", error);
+          }
 
-            sessionStorage.removeItem("bendiceme-advisor-active");
-            sessionStorage.removeItem("bendiceme-advisor-view");
+          sessionStorage.removeItem("bendiceme-advisor-active");
+          sessionStorage.removeItem("bendiceme-advisor-view");
 
-            setScreen("role");
-          }}
-        />
-      </PageContainer>
+          setScreen("role");
+        }}
+      />
     );
   }
 
