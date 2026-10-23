@@ -1,6 +1,13 @@
 "use client";
 
-import { Bell, Building2, CircleHelp, LogOut, UserRound } from "lucide-react";
+import {
+  Bell,
+  Building2,
+  CircleHelp,
+  LogOut,
+  UserRound,
+  UsersRound,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { Sheet, SheetContent } from "@/components/ui/sheet";
@@ -10,6 +17,11 @@ import BrandLogo from "../brand-logo";
 import { subscribeAdvisorToPush, unsubscribeAdvisorFromPush } from "@/lib/push";
 export default function AdvisorMore({ wardId, onLogout }) {
   const [wardName, setWardName] = useState("");
+  const [passCount, setPassCount] = useState(3);
+  const [minPrepareCount, setMinPrepareCount] = useState(2);
+  const [sacramentSettingsOpen, setSacramentSettingsOpen] = useState(false);
+  const [savingSacramentSettings, setSavingSacramentSettings] = useState(false);
+  const [sacramentSettingsError, setSacramentSettingsError] = useState(null);
   const [loadingWard, setLoadingWard] = useState(true);
   const [accountOpen, setAccountOpen] = useState(false);
   const [advisorEmail, setAdvisorEmail] = useState("");
@@ -29,7 +41,7 @@ export default function AdvisorMore({ wardId, onLogout }) {
 
       const { data, error } = await supabase
         .from("wards")
-        .select("name")
+        .select("name, pass_count, min_prepare_count")
         .eq("id", wardId)
         .single();
 
@@ -39,6 +51,9 @@ export default function AdvisorMore({ wardId, onLogout }) {
         setWardName("Barrio");
       } else {
         setWardName(data.name);
+        setWardName(data.name);
+        setPassCount(data.pass_count ?? 3);
+        setMinPrepareCount(data.min_prepare_count ?? 2);
       }
 
       setLoadingWard(false);
@@ -173,6 +188,55 @@ export default function AdvisorMore({ wardId, onLogout }) {
     setAccountOpen(true);
   };
 
+  const decreasePassCount = () => {
+    setPassCount((current) => {
+      const next = Math.max(1, current - 1);
+
+      setMinPrepareCount((prepareCount) => Math.min(prepareCount, next + 2));
+
+      return next;
+    });
+  };
+
+  const increasePassCount = () => {
+    setPassCount((current) => Math.min(20, current + 1));
+  };
+
+  const decreasePrepareCount = () => {
+    setMinPrepareCount((current) => Math.max(1, current - 1));
+  };
+
+  const increasePrepareCount = () => {
+    setMinPrepareCount((current) => Math.min(passCount + 2, current + 1));
+  };
+
+  const handleSaveSacramentSettings = async () => {
+    setSavingSacramentSettings(true);
+    setSacramentSettingsError(null);
+
+    const { data, error } = await supabase
+      .from("wards")
+      .update({
+        pass_count: passCount,
+        min_prepare_count: minPrepareCount,
+      })
+      .eq("id", wardId)
+      .select("id, pass_count, min_prepare_count")
+      .single();
+
+    if (error) {
+      console.error("Error guardando configuración de Santa Cena:", error);
+
+      setSacramentSettingsError("No se pudo guardar la configuración.");
+
+      setSavingSacramentSettings(false);
+      return;
+    }
+
+    setSavingSacramentSettings(false);
+    setSacramentSettingsOpen(false);
+  };
+
   return (
     <section className="mx-auto w-full max-w-5xl">
       <header>
@@ -224,6 +288,24 @@ export default function AdvisorMore({ wardId, onLogout }) {
 
                 <p className="mt-0.5 text-sm text-muted-foreground">
                   Gestionar avisos del asesor
+                </p>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setSacramentSettingsOpen(true)}
+              className="flex w-full items-center gap-4 border-b p-4 text-left transition-colors hover:bg-muted/50 active:bg-muted"
+            >
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-muted">
+                <UsersRound className="size-5" />
+              </div>
+
+              <div className="flex-1">
+                <p className="font-medium">Santa Cena</p>
+
+                <p className="mt-0.5 text-sm text-muted-foreground">
+                  Configurar el equipo del barrio
                 </p>
               </div>
             </button>
@@ -381,6 +463,194 @@ export default function AdvisorMore({ wardId, onLogout }) {
               <p className="mt-3 text-sm text-red-600">{pushError}</p>
             )}
           </div>
+        </SheetContent>
+      </Sheet>
+
+      <Sheet
+        open={sacramentSettingsOpen}
+        onOpenChange={setSacramentSettingsOpen}
+      >
+        <SheetContent
+          side="bottom"
+          className="
+      rounded-t-[28px]
+      px-5 pb-8 pt-3
+      lg:data-[side=bottom]:left-1/2
+      lg:data-[side=bottom]:right-auto
+      lg:data-[side=bottom]:w-[520px]
+      lg:data-[side=bottom]:max-w-[calc(100vw-2rem)]
+      lg:data-[side=bottom]:-translate-x-1/2
+    "
+        >
+          <div className="mx-auto mb-6 h-1.5 w-12 rounded-full bg-gray-200" />
+
+          <div>
+            <p className="text-sm text-muted-foreground">Configuración</p>
+
+            <h2 className="mt-1 text-2xl font-semibold tracking-tight">
+              Santa Cena
+            </h2>
+
+            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+              Estas cantidades se aplican a todos los asesores de{" "}
+              <span className="font-medium text-foreground">{wardName}</span>.
+            </p>
+          </div>
+
+          <div className="mt-8 space-y-4">
+            {/* BENDICEN */}
+            <div className="rounded-2xl border bg-white p-4">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="font-semibold">Bendicen</p>
+
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Cantidad fija para la Santa Cena
+                  </p>
+                </div>
+
+                <div className="flex size-11 items-center justify-center rounded-xl bg-muted text-lg font-semibold">
+                  2
+                </div>
+              </div>
+            </div>
+
+            {/* REPARTEN */}
+            <div className="rounded-2xl border bg-white p-4">
+              <div>
+                <p className="font-semibold">Reparten</p>
+
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Jóvenes necesarios para repartir
+                </p>
+              </div>
+
+              <div className="mt-5 flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={decreasePassCount}
+                  disabled={passCount <= 1}
+                  className="
+              flex size-11 items-center justify-center
+              rounded-xl border
+              text-xl font-medium
+              transition-colors
+              hover:bg-muted
+              disabled:cursor-not-allowed
+              disabled:opacity-40
+            "
+                >
+                  −
+                </button>
+
+                <span className="text-2xl font-semibold">{passCount}</span>
+
+                <button
+                  type="button"
+                  onClick={increasePassCount}
+                  disabled={passCount >= 20}
+                  className="
+              flex size-11 items-center justify-center
+              rounded-xl border
+              text-xl font-medium
+              transition-colors
+              hover:bg-muted
+              disabled:cursor-not-allowed
+              disabled:opacity-40
+            "
+                >
+                  +
+                </button>
+              </div>
+            </div>
+
+            {/* PREPARAN */}
+            <div className="rounded-2xl border bg-white p-4">
+              <div>
+                <p className="font-semibold">Preparan</p>
+
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Cantidad mínima que debe preparar la Santa Cena
+                </p>
+              </div>
+
+              <div className="mt-5 flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={decreasePrepareCount}
+                  disabled={minPrepareCount <= 1}
+                  className="
+              flex size-11 items-center justify-center
+              rounded-xl border
+              text-xl font-medium
+              transition-colors
+              hover:bg-muted
+              disabled:cursor-not-allowed
+              disabled:opacity-40
+            "
+                >
+                  −
+                </button>
+
+                <span className="text-2xl font-semibold">
+                  {minPrepareCount}
+                </span>
+
+                <button
+                  type="button"
+                  onClick={increasePrepareCount}
+                  disabled={minPrepareCount >= passCount + 2}
+                  className="
+              flex size-11 items-center justify-center
+              rounded-xl border
+              text-xl font-medium
+              transition-colors
+              hover:bg-muted
+              disabled:cursor-not-allowed
+              disabled:opacity-40
+            "
+                >
+                  +
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-6 rounded-2xl bg-green-50 p-4">
+            <p className="text-sm leading-relaxed text-green-800">
+              El equipo tendrá{" "}
+              <span className="font-semibold">{passCount + 2} jóvenes</span>: 2
+              para bendecir y {passCount} para repartir. Al menos{" "}
+              {minPrepareCount}{" "}
+              {minPrepareCount === 1 ? "deberá preparar" : "deberán preparar"}{" "}
+              la Santa Cena.
+            </p>
+          </div>
+
+          {sacramentSettingsError && (
+            <p className="mt-4 text-sm text-red-600">
+              {sacramentSettingsError}
+            </p>
+          )}
+
+          <button
+            type="button"
+            onClick={handleSaveSacramentSettings}
+            disabled={savingSacramentSettings}
+            className="
+        mt-6 flex h-12 w-full
+        items-center justify-center
+        rounded-2xl
+        bg-green-600
+        px-4
+        text-sm font-semibold text-white
+        transition-colors
+        hover:bg-green-700
+        disabled:opacity-60
+      "
+          >
+            {savingSacramentSettings ? "Guardando..." : "Guardar configuración"}
+          </button>
         </SheetContent>
       </Sheet>
 

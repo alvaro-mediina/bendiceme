@@ -17,6 +17,7 @@ import { supabase } from "@/lib/supabase";
 
 export default function Page() {
   const [screen, setScreen] = useState("role");
+  const [advisorEmail, setAdvisorEmail] = useState("");
   const [advisorPassword, setAdvisorPassword] = useState("");
   const [advisorError, setAdvisorError] = useState(null);
   const {
@@ -186,6 +187,7 @@ export default function Page() {
             setScreen("youth-login");
           }}
           onAdvisor={async () => {
+            setAdvisorEmail("");
             setAdvisorError(null);
             setAdvisorPassword("");
 
@@ -211,11 +213,14 @@ export default function Page() {
     return (
       <PageContainer center>
         <AdvisorLogin
+          email={advisorEmail}
           password={advisorPassword}
           error={advisorError}
           loading={advisorLoading}
+          onEmailChange={setAdvisorEmail}
           onPasswordChange={setAdvisorPassword}
           onBack={() => {
+            setAdvisorEmail("");
             setAdvisorPassword("");
             setAdvisorError(null);
             setScreen("role");
@@ -226,19 +231,75 @@ export default function Page() {
             setAdvisorLoading(true);
             setAdvisorError(null);
 
-            const { error } = await supabase.auth.signInWithPassword({
-              email: "alvaro.mediina2003@gmail.com",
-              password: advisorPassword,
-            });
+            const { data: authData, error: authError } =
+              await supabase.auth.signInWithPassword({
+                email: advisorEmail.trim(),
+                password: advisorPassword,
+              });
 
-            if (error) {
-              console.error("Error login asesor", error);
-              setAdvisorError("La contraseña no es correcta.");
+            if (authError) {
+              console.error("Error login asesor:", authError);
+
+              setAdvisorError("El correo o la contraseña no son correctos.");
 
               setAdvisorLoading(false);
               return;
             }
 
+            const user = authData.user;
+
+            const { data: profileData, error: profileError } = await supabase
+              .from("profiles")
+              .select(
+                `
+        user_id,
+        role,
+        ward_id
+      `,
+              )
+              .eq("user_id", user.id)
+              .single();
+
+            if (profileError || !profileData) {
+              console.error("Error cargando perfil del asesor:", profileError);
+
+              await supabase.auth.signOut({
+                scope: "local",
+              });
+
+              setAdvisorError(
+                "No se encontró un perfil asociado a esta cuenta.",
+              );
+
+              setAdvisorLoading(false);
+              return;
+            }
+
+            if (profileData.role !== "advisor") {
+              await supabase.auth.signOut({
+                scope: "local",
+              });
+
+              setAdvisorError("Esta cuenta no corresponde a un asesor.");
+
+              setAdvisorLoading(false);
+              return;
+            }
+
+            if (!profileData.ward_id) {
+              await supabase.auth.signOut({
+                scope: "local",
+              });
+
+              setAdvisorError(
+                "Esta cuenta todavía no tiene un barrio asignado.",
+              );
+
+              setAdvisorLoading(false);
+              return;
+            }
+
+            setAdvisorEmail("");
             setAdvisorPassword("");
             setAdvisorLoading(false);
 
