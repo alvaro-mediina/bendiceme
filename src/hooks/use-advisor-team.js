@@ -295,7 +295,7 @@ export default function useAdvisorTeam(
   })();
 
   const saveTeam = async () => {
-    if (!wardId || !selectedSundayId || !hasTeamChanges || !teamIsValid) {
+    if (!wardId || !selectedSundayId || !hasTeamChanges) {
       return;
     }
 

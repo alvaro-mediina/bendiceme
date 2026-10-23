@@ -176,7 +176,7 @@ export default function AdvisorSacrament({
             {hasTeamChanges ? (
               <Button
                 className="h-12 w-full rounded-2xl bg-green-600 text-base font-semibold text-white hover:bg-green-700"
-                disabled={savingTeam || !teamIsValid}
+                disabled={savingTeam}
                 onClick={saveTeam}
               >
                 {savingTeam ? "Guardando..." : "Guardar cambios"}
