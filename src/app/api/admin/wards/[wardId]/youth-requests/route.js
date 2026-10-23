@@ -252,6 +252,7 @@ export async function PATCH(request, { params }) {
         user_id: createdUserId,
         ward_id: wardId,
         role: "youth",
+        must_change_password: true,
       });
 
     if (profileError) {

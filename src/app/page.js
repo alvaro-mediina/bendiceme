@@ -118,7 +118,8 @@ export default function Page() {
         `
             user_id,
             role,
-            ward_id
+            ward_id,
+            must_change_password
         `,
       )
       .eq("user_id", user.id)
@@ -141,6 +142,15 @@ export default function Page() {
       setYouthLoginError("Esta cuenta no corresponde a un joven.");
 
       setYouthLoginLoading(false);
+      return;
+    }
+
+    if (profileData.must_change_password) {
+      setYouthEmail("");
+      setYouthPassword("");
+      setYouthLoginLoading(false);
+
+      window.location.href = "/change-password";
       return;
     }
 
