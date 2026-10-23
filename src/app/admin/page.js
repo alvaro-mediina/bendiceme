@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Building2, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
-
+import AdminHomeSkeleton from "@/components/admin/admin-home-skeleton";
 import { supabase } from "@/lib/supabase";
 
 function createSlug(value) {
@@ -162,15 +162,7 @@ export default function AdminPage() {
   };
 
   if (loading) {
-    return (
-      <main className="mx-auto min-h-dvh w-full max-w-3xl px-4 py-8 sm:px-6">
-        <div className="space-y-5">
-          <div className="h-8 w-44 animate-pulse rounded-xl bg-muted" />
-          <div className="h-40 animate-pulse rounded-3xl bg-muted" />
-          <div className="h-56 animate-pulse rounded-3xl bg-muted" />
-        </div>
-      </main>
-    );
+    return <AdminHomeSkeleton />;
   }
 
   if (!authorized) {

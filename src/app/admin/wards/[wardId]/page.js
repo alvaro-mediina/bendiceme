@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Building2, UsersRound, UserRoundCog } from "lucide-react";
+import AdminWardSkeleton from "@/components/admin/admin-ward-skeleton";
 
 import { supabase } from "@/lib/supabase";
 
@@ -416,17 +417,11 @@ export default function AdminWardPage() {
     setDeletingAdvisorId(null);
   };
 
-  if (loading) {
-    return (
-      <main className="mx-auto min-h-dvh w-full max-w-3xl px-4 py-8 sm:px-6">
-        <div className="space-y-6">
-          <div className="h-8 w-40 animate-pulse rounded-xl bg-muted" />
-          <div className="h-40 animate-pulse rounded-3xl bg-muted" />
-          <div className="h-40 animate-pulse rounded-3xl bg-muted" />
-          <div className="h-40 animate-pulse rounded-3xl bg-muted" />
-        </div>
-      </main>
-    );
+  if (
+    loading ||
+    (authorized && (loadingAdvisors || loadingYouth || loadingYouthRequests))
+  ) {
+    return <AdminWardSkeleton />;
   }
 
   if (!authorized) {
