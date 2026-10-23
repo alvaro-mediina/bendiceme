@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Building2, Plus } from "lucide-react";
+import { Building2, Plus, ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 import AdminHomeSkeleton from "@/components/admin/admin-home-skeleton";
 import { supabase } from "@/lib/supabase";
@@ -30,6 +30,8 @@ export default function AdminPage() {
 
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState(null);
+
+  const [showCreateWard, setShowCreateWard] = useState(false);
 
   useEffect(() => {
     const checkAccess = async () => {
@@ -159,6 +161,7 @@ export default function AdminPage() {
     setPassCount(3);
     setMinPrepareCount(2);
     setCreating(false);
+    setShowCreateWard(false);
   };
 
   if (loading) {
@@ -193,95 +196,117 @@ export default function AdminPage() {
         </p>
       </header>
 
-      <form
-        onSubmit={handleCreateWard}
-        className="mt-8 rounded-3xl border bg-white p-5"
-      >
-        <div className="flex items-center gap-3">
-          <div className="grid size-10 place-items-center rounded-2xl bg-green-50 text-green-700">
+      <section className="mt-8 rounded-3xl border bg-white">
+        <button
+          type="button"
+          onClick={() => setShowCreateWard((current) => !current)}
+          className="
+      flex w-full items-center
+      gap-3 p-5 text-left
+    "
+        >
+          <div className="grid size-10 shrink-0 place-items-center rounded-2xl bg-green-50 text-green-700">
             <Plus className="size-5" />
           </div>
 
-          <div>
+          <div className="min-w-0 flex-1">
             <h2 className="font-semibold">Nuevo barrio</h2>
 
             <p className="text-sm text-muted-foreground">
               Creá la estructura inicial del barrio.
             </p>
           </div>
-        </div>
 
-        <div className="mt-6 space-y-5">
-          <div>
-            <label className="text-sm font-medium">Nombre</label>
+          <ChevronDown
+            className={`
+        size-5 shrink-0
+        text-muted-foreground
+        transition-transform duration-200
+        ${showCreateWard ? "rotate-180" : ""}
+      `}
+          />
+        </button>
 
-            <input
-              type="text"
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              placeholder="Barrio Centro"
-              className="
+        {showCreateWard && (
+          <form onSubmit={handleCreateWard} className="border-t px-5 pb-5 pt-5">
+            <div className="space-y-5">
+              <div>
+                <label className="text-sm font-medium">Nombre</label>
+
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(event) => setName(event.target.value)}
+                  placeholder="Barrio Centro"
+                  className="
+              mt-2 h-11 w-full rounded-xl border
+              bg-white px-3 text-sm outline-none
+              transition-colors focus:border-green-500
+            "
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium">Reparten</label>
+
+                  <input
+                    type="number"
+                    min="1"
+                    max="20"
+                    value={passCount}
+                    onChange={(event) =>
+                      setPassCount(Number(event.target.value))
+                    }
+                    className="
                 mt-2 h-11 w-full rounded-xl border
                 bg-white px-3 text-sm outline-none
-                transition-colors focus:border-green-500
+                focus:border-green-500
               "
-            />
-          </div>
+                  />
+                </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm font-medium">Reparten</label>
+                <div>
+                  <label className="text-sm font-medium">Preparan</label>
 
-              <input
-                type="number"
-                min="1"
-                max="20"
-                value={passCount}
-                onChange={(event) => setPassCount(Number(event.target.value))}
+                  <input
+                    type="number"
+                    min="1"
+                    max={passCount + 2}
+                    value={minPrepareCount}
+                    onChange={(event) =>
+                      setMinPrepareCount(Number(event.target.value))
+                    }
+                    className="
+                mt-2 h-11 w-full rounded-xl border
+                bg-white px-3 text-sm outline-none
+                focus:border-green-500
+              "
+                  />
+                </div>
+              </div>
+
+              {error && <p className="text-sm text-red-600">{error}</p>}
+
+              <button
+                type="submit"
+                disabled={creating}
                 className="
-                  mt-2 h-11 w-full rounded-xl border
-                  bg-white px-3 text-sm outline-none
-                  focus:border-green-500
-                "
-              />
+            h-11 w-full rounded-xl
+            bg-green-600
+            text-sm font-semibold text-white
+            transition-colors
+            hover:bg-green-700
+            disabled:cursor-not-allowed
+            disabled:opacity-60
+          "
+              >
+                {creating ? "Creando..." : "Crear barrio"}
+              </button>
             </div>
-
-            <div>
-              <label className="text-sm font-medium">Preparan</label>
-
-              <input
-                type="number"
-                min="1"
-                max={passCount + 2}
-                value={minPrepareCount}
-                onChange={(event) =>
-                  setMinPrepareCount(Number(event.target.value))
-                }
-                className="
-                  mt-2 h-11 w-full rounded-xl border
-                  bg-white px-3 text-sm outline-none
-                  focus:border-green-500
-                "
-              />
-            </div>
-          </div>
-
-          {error && <p className="text-sm text-red-600">{error}</p>}
-
-          <button
-            type="submit"
-            disabled={creating}
-            className="
-              h-11 w-full rounded-xl bg-green-600
-              text-sm font-semibold text-white
-              transition-colors hover:bg-green-700
-              disabled:cursor-not-allowed disabled:opacity-60
-            "
-          >
-            {creating ? "Creando..." : "Crear barrio"}
-          </button>
-        </div>
-      </form>
+          </form>
+        )}
+      </section>
 
       <section className="mt-10">
         <div className="flex items-center justify-between">

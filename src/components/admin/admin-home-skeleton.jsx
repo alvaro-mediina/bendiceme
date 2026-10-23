@@ -1,4 +1,4 @@
-import { Building2, Plus } from "lucide-react";
+import { Building2, ChevronDown, Plus } from "lucide-react";
 
 export default function AdminHomeSkeleton() {
   return (
@@ -15,43 +15,21 @@ export default function AdminHomeSkeleton() {
         </p>
       </header>
 
-      <section className="mt-8 rounded-3xl border bg-white p-5">
-        <div className="flex items-center gap-3">
-          <div className="grid size-10 place-items-center rounded-2xl bg-green-50 text-green-700">
+      <section className="mt-8 rounded-3xl border bg-white">
+        <div className="flex w-full items-center gap-3 p-5">
+          <div className="grid size-10 shrink-0 place-items-center rounded-2xl bg-green-50 text-green-700">
             <Plus className="size-5" />
           </div>
 
-          <div>
+          <div className="min-w-0 flex-1">
             <h2 className="font-semibold">Nuevo barrio</h2>
 
             <p className="text-sm text-muted-foreground">
               Creá la estructura inicial del barrio.
             </p>
           </div>
-        </div>
 
-        <div className="mt-6 space-y-5">
-          <div>
-            <p className="text-sm font-medium">Nombre</p>
-
-            <div className="skeleton-shimmer mt-2 h-11 w-full rounded-xl" />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-sm font-medium">Reparten</p>
-
-              <div className="skeleton-shimmer mt-2 h-11 rounded-xl" />
-            </div>
-
-            <div>
-              <p className="text-sm font-medium">Preparan</p>
-
-              <div className="skeleton-shimmer mt-2 h-11 rounded-xl" />
-            </div>
-          </div>
-
-          <div className="skeleton-shimmer h-11 rounded-xl" />
+          <ChevronDown className="size-5 shrink-0 text-muted-foreground" />
         </div>
       </section>
 
