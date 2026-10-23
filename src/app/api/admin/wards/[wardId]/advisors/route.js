@@ -90,3 +90,141 @@ export async function GET(request, { params }) {
     );
   }
 }
+
+function generateTemporaryPassword() {
+  const chars =
+    "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%";
+
+  let password = "";
+
+  for (let index = 0; index < 14; index += 1) {
+    password += chars[Math.floor(Math.random() * chars.length)];
+  }
+
+  return password;
+}
+
+export async function POST(request, { params }) {
+  let createdUserId = null;
+
+  try {
+    const { wardId } = await params;
+
+    const authorization = request.headers.get("authorization");
+
+    if (!authorization?.startsWith("Bearer ")) {
+      return Response.json({ error: "No autorizado." }, { status: 401 });
+    }
+
+    const accessToken = authorization.replace("Bearer ", "");
+
+    const {
+      data: { user },
+      error: userError,
+    } = await supabaseAdmin.auth.getUser(accessToken);
+
+    if (userError || !user) {
+      return Response.json({ error: "Sesión inválida." }, { status: 401 });
+    }
+
+    const { data: ownerProfile, error: ownerError } = await supabaseAdmin
+      .from("profiles")
+      .select("role")
+      .eq("user_id", user.id)
+      .single();
+
+    if (ownerError || ownerProfile?.role !== "owner") {
+      return Response.json(
+        { error: "No tenés permisos para realizar esta acción." },
+        { status: 403 },
+      );
+    }
+
+    const body = await request.json();
+
+    const email =
+      typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
+
+    if (!email) {
+      return Response.json(
+        { error: "Ingresá un correo electrónico." },
+        { status: 400 },
+      );
+    }
+
+    const { data: ward, error: wardError } = await supabaseAdmin
+      .from("wards")
+      .select("id")
+      .eq("id", wardId)
+      .single();
+
+    if (wardError || !ward) {
+      return Response.json({ error: "El barrio no existe." }, { status: 404 });
+    }
+
+    const temporaryPassword = generateTemporaryPassword();
+
+    const { data: authData, error: authError } =
+      await supabaseAdmin.auth.admin.createUser({
+        email,
+        password: temporaryPassword,
+        email_confirm: true,
+      });
+
+    if (authError || !authData.user) {
+      console.error("Error creando usuario asesor:", authError);
+
+      return Response.json(
+        {
+          error: authError?.message ?? "No se pudo crear la cuenta del asesor.",
+        },
+        { status: 400 },
+      );
+    }
+
+    createdUserId = authData.user.id;
+
+    const { error: profileError } = await supabaseAdmin
+      .from("profiles")
+      .insert({
+        user_id: createdUserId,
+        role: "advisor",
+        ward_id: wardId,
+      });
+
+    if (profileError) {
+      console.error("Error creando perfil del asesor:", profileError);
+
+      await supabaseAdmin.auth.admin.deleteUser(createdUserId);
+
+      return Response.json(
+        {
+          error: "Se creó la cuenta pero no se pudo asociar al barrio.",
+        },
+        { status: 500 },
+      );
+    }
+
+    return Response.json(
+      {
+        advisor: {
+          userId: createdUserId,
+          email,
+        },
+        temporaryPassword,
+      },
+      { status: 201 },
+    );
+  } catch (error) {
+    console.error("Error inesperado creando asesor:", error);
+
+    if (createdUserId) {
+      await supabaseAdmin.auth.admin.deleteUser(createdUserId).catch(() => {});
+    }
+
+    return Response.json(
+      { error: "Ocurrió un error inesperado." },
+      { status: 500 },
+    );
+  }
+}

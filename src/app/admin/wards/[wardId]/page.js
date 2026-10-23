@@ -21,6 +21,15 @@ export default function AdminWardPage() {
   const [loadingAdvisors, setLoadingAdvisors] = useState(true);
   const [advisorsError, setAdvisorsError] = useState(null);
 
+  const [advisorEmail, setAdvisorEmail] = useState("");
+
+  const [addingAdvisor, setAddingAdvisor] = useState(false);
+
+  const [addAdvisorError, setAddAdvisorError] = useState(null);
+
+  const [createdAdvisorCredentials, setCreatedAdvisorCredentials] =
+    useState(null);
+
   useEffect(() => {
     if (!wardId) {
       return;
@@ -125,6 +134,63 @@ export default function AdminWardPage() {
 
     loadAdvisors();
   }, [authorized, wardId]);
+
+  const handleAddAdvisor = async (event) => {
+    event.preventDefault();
+
+    const email = advisorEmail.trim().toLowerCase();
+
+    if (!email) {
+      setAddAdvisorError("Ingresá el correo del asesor.");
+      return;
+    }
+
+    setAddingAdvisor(true);
+    setAddAdvisorError(null);
+    setCreatedAdvisorCredentials(null);
+
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (!session?.access_token) {
+      setAddAdvisorError("No se encontró una sesión válida.");
+      setAddingAdvisor(false);
+      return;
+    }
+
+    const response = await fetch(`/api/admin/wards/${wardId}/advisors`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({
+        email,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error("Error agregando asesor:", data);
+
+      setAddAdvisorError(data.error ?? "No se pudo agregar el asesor.");
+
+      setAddingAdvisor(false);
+      return;
+    }
+
+    setAdvisors((current) => [...current, data.advisor]);
+
+    setCreatedAdvisorCredentials({
+      email: data.advisor.email,
+      password: data.temporaryPassword,
+    });
+
+    setAdvisorEmail("");
+    setAddingAdvisor(false);
+  };
 
   if (loading) {
     return (
@@ -281,13 +347,78 @@ export default function AdminWardPage() {
           </div>
         )}
 
-        <button
-          type="button"
-          disabled
-          className="mt-4 h-11 w-full rounded-xl bg-green-600 text-sm font-semibold text-white opacity-50"
-        >
-          Agregar asesor
-        </button>
+        <form onSubmit={handleAddAdvisor} className="mt-5 space-y-3">
+          <div>
+            <label htmlFor="advisor-email" className="text-sm font-medium">
+              Correo del nuevo asesor
+            </label>
+
+            <input
+              id="advisor-email"
+              type="email"
+              value={advisorEmail}
+              onChange={(event) => setAdvisorEmail(event.target.value)}
+              placeholder="asesor@ejemplo.com"
+              className="
+        mt-2 h-11 w-full rounded-xl border
+        bg-white px-3 text-sm outline-none
+        transition-colors focus:border-green-500
+      "
+            />
+          </div>
+
+          {addAdvisorError && (
+            <p className="text-sm text-red-600">{addAdvisorError}</p>
+          )}
+
+          <button
+            type="submit"
+            disabled={addingAdvisor}
+            className="
+      h-11 w-full rounded-xl
+      bg-green-600 text-sm font-semibold
+      text-white transition-colors
+      hover:bg-green-700
+      disabled:cursor-not-allowed
+      disabled:opacity-60
+    "
+          >
+            {addingAdvisor ? "Creando asesor..." : "Agregar asesor"}
+          </button>
+        </form>
+
+        {createdAdvisorCredentials && (
+          <div className="mt-4 rounded-2xl border border-green-200 bg-green-50 p-4">
+            <p className="text-sm font-semibold text-green-800">
+              Asesor creado correctamente
+            </p>
+
+            <div className="mt-3 space-y-1 text-sm">
+              <p>
+                <span className="text-muted-foreground">Correo: </span>
+
+                <span className="font-medium">
+                  {createdAdvisorCredentials.email}
+                </span>
+              </p>
+
+              <p>
+                <span className="text-muted-foreground">
+                  Contraseña temporal:{" "}
+                </span>
+
+                <code className="rounded bg-white px-2 py-1 font-mono">
+                  {createdAdvisorCredentials.password}
+                </code>
+              </p>
+            </div>
+
+            <p className="mt-3 text-xs text-green-800/70">
+              Guardá esta contraseña ahora. No se podrá consultar nuevamente
+              desde BendiceMe.
+            </p>
+          </div>
+        )}
       </section>
 
       <section className="mt-6 rounded-3xl border bg-white p-5">
