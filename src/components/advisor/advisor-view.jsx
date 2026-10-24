@@ -8,6 +8,7 @@ import AdvisorYouth from "./advisor-youth";
 import AdvisorBottomNav from "./advisor-bottom-nav";
 import AdvisorViewSkeleton from "./advisor-view-skeleton";
 import AdvisorMore from "./advisor-more";
+import AdminView from "@/components/admin/admin-view";
 import { motion } from "motion/react";
 import { supabase } from "@/lib/supabase";
 
@@ -196,6 +197,32 @@ export default function AdvisorView({ wardId, onLogout, isOwner = false }) {
           </motion.div>
         )}
 
+        {isOwner && mountedViews.has("admin") && (
+          <motion.div
+            initial={false}
+            animate={
+              activeView === "admin"
+                ? {
+                    opacity: 1,
+                    y: 0,
+                    pointerEvents: "auto",
+                  }
+                : {
+                    opacity: 0,
+                    y: 8,
+                    pointerEvents: "none",
+                  }
+            }
+            transition={{
+              duration: 0.2,
+              ease: "easeOut",
+            }}
+            className={activeView === "admin" ? "block" : "hidden"}
+          >
+            <AdminView />
+          </motion.div>
+        )}
+
         {mountedViews.has("more") && (
           <motion.div
             initial={false}
@@ -229,7 +256,11 @@ export default function AdvisorView({ wardId, onLogout, isOwner = false }) {
       </main>
 
       {activeView !== "home" && (
-        <AdvisorBottomNav activeView={activeView} onChangeView={changeView} />
+        <AdvisorBottomNav
+          activeView={activeView}
+          onChangeView={changeView}
+          isOwner={isOwner}
+        />
       )}
     </>
   );

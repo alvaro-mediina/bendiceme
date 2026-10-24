@@ -301,9 +301,7 @@ export default function AdvisorHome({
           {isOwner && (
             <button
               type="button"
-              onClick={() => {
-                window.location.href = "/admin";
-              }}
+              onClick={() => onNavigate("admin")}
               className="
                 group relative
                 min-h-[130px] w-full
