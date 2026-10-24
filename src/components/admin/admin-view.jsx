@@ -17,7 +17,7 @@ function createSlug(value) {
     .replace(/^-+|-+$/g, "");
 }
 
-export default function AdminView() {
+export default function AdminView({ onOpenWard }) {
   const router = useRouter();
 
   const [wards, setWards] = useState([]);
@@ -31,6 +31,8 @@ export default function AdminView() {
   const [error, setError] = useState(null);
 
   const [showCreateWard, setShowCreateWard] = useState(false);
+
+  const [selectedWardId, setSelectedWardId] = useState(null);
 
   useEffect(() => {
     const loadWards = async () => {
@@ -282,7 +284,7 @@ export default function AdminView() {
               <button
                 key={ward.id}
                 type="button"
-                onClick={() => router.push(`/admin/wards/${ward.id}`)}
+                onClick={() => onOpenWard(ward.id)}
                 className="
                   flex w-full items-center gap-4 rounded-2xl
                   border bg-white p-4 text-left

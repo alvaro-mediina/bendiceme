@@ -9,11 +9,13 @@ import AdvisorBottomNav from "./advisor-bottom-nav";
 import AdvisorViewSkeleton from "./advisor-view-skeleton";
 import AdvisorMore from "./advisor-more";
 import AdminView from "@/components/admin/admin-view";
+import AdminWardView from "@/components/admin/admin-ward-view";
 import { motion } from "motion/react";
 import { supabase } from "@/lib/supabase";
 
 export default function AdvisorView({ wardId, onLogout, isOwner = false }) {
   const [homeReady, setHomeReady] = useState(false);
+  const [selectedWardId, setSelectedWardId] = useState(null);
   const [sacramentSettings, setSacramentSettings] = useState({
     passCount: 3,
     minPrepareCount: 2,
@@ -219,7 +221,41 @@ export default function AdvisorView({ wardId, onLogout, isOwner = false }) {
             }}
             className={activeView === "admin" ? "block" : "hidden"}
           >
-            <AdminView />
+            <AdminView
+              onOpenWard={(wardId) => {
+                setSelectedWardId(wardId);
+                changeView("admin-ward");
+              }}
+            />
+          </motion.div>
+        )}
+
+        {isOwner && mountedViews.has("admin-ward") && (
+          <motion.div
+            initial={false}
+            animate={
+              activeView === "admin-ward"
+                ? {
+                    opacity: 1,
+                    y: 0,
+                    pointerEvents: "auto",
+                  }
+                : {
+                    opacity: 0,
+                    y: 8,
+                    pointerEvents: "none",
+                  }
+            }
+            transition={{
+              duration: 0.2,
+              ease: "easeOut",
+            }}
+            className={activeView === "admin-ward" ? "block" : "hidden"}
+          >
+            <AdminWardView
+              wardId={selectedWardId}
+              onBack={() => changeView("admin")}
+            />
           </motion.div>
         )}
 
