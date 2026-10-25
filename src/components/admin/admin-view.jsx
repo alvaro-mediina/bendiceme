@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { Building2, Plus, ChevronDown } from "lucide-react";
-import { useRouter } from "next/navigation";
 
 import AdminHomeSkeleton from "@/components/admin/admin-home-skeleton";
 import { supabase } from "@/lib/supabase";
@@ -18,8 +17,6 @@ function createSlug(value) {
 }
 
 export default function AdminView({ onOpenWard }) {
-  const router = useRouter();
-
   const [wards, setWards] = useState([]);
   const [loadingWards, setLoadingWards] = useState(true);
 
@@ -31,8 +28,6 @@ export default function AdminView({ onOpenWard }) {
   const [error, setError] = useState(null);
 
   const [showCreateWard, setShowCreateWard] = useState(false);
-
-  const [selectedWardId, setSelectedWardId] = useState(null);
 
   useEffect(() => {
     const loadWards = async () => {
@@ -262,64 +257,50 @@ export default function AdminView({ onOpenWard }) {
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold">Barrios registrados</h2>
 
-          {!loadingWards && (
-            <span className="text-sm text-muted-foreground">
-              {wards.length}
-            </span>
-          )}
+          <span className="text-sm text-muted-foreground">{wards.length}</span>
         </div>
 
-        {loadingWards ? (
-          <div className="mt-4 space-y-3">
-            {[1, 2, 3].map((item) => (
-              <div
-                key={item}
-                className="h-20 animate-pulse rounded-2xl bg-muted"
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="mt-4 space-y-3">
-            {wards.map((ward) => (
-              <button
-                key={ward.id}
-                type="button"
-                onClick={() => onOpenWard(ward.id)}
-                className="
-                  flex w-full items-center gap-4 rounded-2xl
-                  border bg-white p-4 text-left
-                  transition-colors hover:border-green-200 hover:bg-green-50/30
-                "
-              >
-                <div className="grid size-11 shrink-0 place-items-center rounded-2xl bg-green-50 text-green-700">
-                  <Building2 className="size-5" />
-                </div>
+        <div className="mt-4 space-y-3">
+          {wards.map((ward) => (
+            <button
+              key={ward.id}
+              type="button"
+              onClick={() => onOpenWard(ward.id)}
+              className="
+          flex w-full items-center gap-4 rounded-2xl
+          border bg-white p-4 text-left
+          transition-colors
+          hover:border-green-200 hover:bg-green-50/30
+        "
+            >
+              <div className="grid size-11 shrink-0 place-items-center rounded-2xl bg-green-50 text-green-700">
+                <Building2 className="size-5" />
+              </div>
 
-                <div className="min-w-0">
-                  <p className="truncate font-medium">{ward.name}</p>
+              <div className="min-w-0">
+                <p className="truncate font-medium">{ward.name}</p>
 
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    {ward.pendingRequestsCount === 0
-                      ? "Sin solicitudes pendientes"
-                      : `${ward.pendingRequestsCount} ${
-                          ward.pendingRequestsCount === 1
-                            ? "solicitud pendiente"
-                            : "solicitudes pendientes"
-                        }`}
-                  </p>
-                </div>
-              </button>
-            ))}
-
-            {wards.length === 0 && (
-              <div className="rounded-2xl border border-dashed p-8 text-center">
-                <p className="text-sm text-muted-foreground">
-                  Todavía no hay barrios registrados.
+                <p className="mt-2 text-sm text-muted-foreground">
+                  {ward.pendingRequestsCount === 0
+                    ? "Sin solicitudes pendientes"
+                    : `${ward.pendingRequestsCount} ${
+                        ward.pendingRequestsCount === 1
+                          ? "solicitud pendiente"
+                          : "solicitudes pendientes"
+                      }`}
                 </p>
               </div>
-            )}
-          </div>
-        )}
+            </button>
+          ))}
+
+          {wards.length === 0 && (
+            <div className="rounded-2xl border border-dashed p-8 text-center">
+              <p className="text-sm text-muted-foreground">
+                Todavía no hay barrios registrados.
+              </p>
+            </div>
+          )}
+        </div>
       </section>
     </section>
   );
