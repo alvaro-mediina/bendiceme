@@ -11,19 +11,6 @@ const supabaseAdmin = createClient(
   },
 );
 
-function generateTemporaryPassword() {
-  const chars =
-    "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%";
-
-  let password = "";
-
-  for (let index = 0; index < 14; index += 1) {
-    password += chars[Math.floor(Math.random() * chars.length)];
-  }
-
-  return password;
-}
-
 async function getOwner(request) {
   const authorization = request.headers.get("authorization");
 
@@ -224,7 +211,7 @@ export async function PATCH(request, { params }) {
       });
     }
 
-    const temporaryPassword = generateTemporaryPassword();
+    const temporaryPassword = "sereungranjoven2026.";
 
     const { data: authData, error: authError } =
       await supabaseAdmin.auth.admin.createUser({

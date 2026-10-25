@@ -73,6 +73,55 @@ export default function AdminView({ onOpenWard }) {
     loadWards();
   }, []);
 
+  useEffect(() => {
+    const channel = supabase
+      .channel("admin-ward-requests")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "youth_onboarding_requests",
+        },
+        async () => {
+          const { data: wardsData, error: wardsError } = await supabase
+            .from("wards")
+            .select(
+              `
+              id,
+              name,
+              slug,
+              youth_onboarding_requests (
+                id,
+                status
+              )
+            `,
+            )
+            .order("name");
+
+          if (wardsError) {
+            console.error("Error actualizando solicitudes:", wardsError);
+            return;
+          }
+
+          const wardsWithPendingRequests = (wardsData ?? []).map((ward) => ({
+            ...ward,
+
+            pendingRequestsCount: (ward.youth_onboarding_requests ?? []).filter(
+              (request) => request.status === "pending",
+            ).length,
+          }));
+
+          setWards(wardsWithPendingRequests);
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
   const handleCreateWard = async (event) => {
     event.preventDefault();
 

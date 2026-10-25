@@ -87,7 +87,6 @@ export default function AdvisorView({ wardId, onLogout, isOwner = false }) {
 
     loadSacramentSettings();
   }, [wardId]);
-
   return (
     <>
       <main

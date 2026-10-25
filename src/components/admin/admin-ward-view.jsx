@@ -223,6 +223,53 @@ export default function AdminWardView({ wardId, onBack }) {
     loadYouthRequests();
   }, [wardId]);
 
+  useEffect(() => {
+    if (!wardId) {
+      return;
+    }
+
+    const channel = supabase
+      .channel(`admin-youth-requests-${wardId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "youth_onboarding_requests",
+          filter: `ward_id=eq.${wardId}`,
+        },
+        async () => {
+          const {
+            data: { session },
+          } = await supabase.auth.getSession();
+
+          if (!session?.access_token) {
+            return;
+          }
+
+          const response = await fetch(
+            `/api/admin/wards/${wardId}/youth-requests`,
+            {
+              headers: {
+                Authorization: `Bearer ${session.access_token}`,
+              },
+            },
+          );
+
+          const data = await response.json();
+
+          if (response.ok) {
+            setYouthRequests(data.requests ?? []);
+          }
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [wardId]);
+
   const handleAddAdvisor = async (event) => {
     event.preventDefault();
 
@@ -650,7 +697,7 @@ export default function AdminWardView({ wardId, onBack }) {
 
               <p>
                 <span className="text-muted-foreground">
-                  Contraseña temporal:{" "}
+                  Contraseña inicial:{" "}
                 </span>
 
                 <code className="rounded bg-white px-2 py-1 font-mono">
@@ -660,8 +707,8 @@ export default function AdminWardView({ wardId, onBack }) {
             </div>
 
             <p className="mt-3 text-xs text-green-800/70">
-              Guardá esta contraseña ahora. No se podrá consultar nuevamente
-              desde BendiceMe.
+              El asesor deberá cambiar esta contraseña al iniciar sesión por
+              primera vez.
             </p>
           </div>
         )}
@@ -811,11 +858,11 @@ export default function AdminWardView({ wardId, onBack }) {
 
               <p>
                 <span className="text-muted-foreground">
-                  Contraseña temporal:{" "}
+                  Contraseña inicial:{" "}
                 </span>
 
                 <code className="rounded bg-white px-2 py-1 font-mono">
-                  {approvedYouthCredentials.password}
+                  sereungranjoven2026.
                 </code>
               </p>
             </div>

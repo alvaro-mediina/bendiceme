@@ -91,19 +91,6 @@ export async function GET(request, { params }) {
   }
 }
 
-function generateTemporaryPassword() {
-  const chars =
-    "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%";
-
-  let password = "";
-
-  for (let index = 0; index < 14; index += 1) {
-    password += chars[Math.floor(Math.random() * chars.length)];
-  }
-
-  return password;
-}
-
 export async function POST(request, { params }) {
   let createdUserId = null;
 
@@ -162,7 +149,7 @@ export async function POST(request, { params }) {
       return Response.json({ error: "El barrio no existe." }, { status: 404 });
     }
 
-    const temporaryPassword = generateTemporaryPassword();
+    const temporaryPassword = "sereungranasesor2026.";
 
     const { data: authData, error: authError } =
       await supabaseAdmin.auth.admin.createUser({
