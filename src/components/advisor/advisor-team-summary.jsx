@@ -1,202 +1,154 @@
 "use client";
 
-import { motion } from "motion/react";
-import { Button } from "@/components/ui/button";
+import { CheckCircle2, CircleAlert } from "lucide-react";
 
 export default function AdvisorTeamSummary({
-    blessCount,
-    passCount,
-    prepareCount,
-    teamIsValid,
-    hasTeamChanges,
-    savingTeam,
-    saveMessage,
-    availablePriests,
-    availableYouthCount,
-    onSave,
-    showSaveButton = true,
+  team = {},
+  blessCount,
+  passCount,
+  prepareCount,
+  requiredBlessCount,
+  requiredPassCount,
+  requiredPrepareCount,
+  teamIsValid,
 }) {
-    let warningMessage = null;
+  const getYouthName = (youthId) => team[youthId]?.youth?.name ?? "Joven";
 
-    if (availableYouthCount < 5) {
-        warningMessage =
-            `Solo hay ${availableYouthCount} jóvenes disponibles. Se necesitan 5 para completar el equipo.`;
-    } else if (availablePriests < 2) {
-        warningMessage =
-            "No hay suficientes presbíteros disponibles para asignar 2 a bendecir.";
-    } else if (!teamIsValid) {
-        if (blessCount < 2) {
-            const missing = 2 - blessCount;
+  const teamIds = Object.keys(team);
 
-            warningMessage =
-                `Falta${missing > 1 ? "n" : ""} ${missing} ${
-                    missing === 1
-                        ? "joven"
-                        : "jóvenes"
-                } para bendecir.`;
-        } else if (passCount < 3) {
-            const missing = 3 - passCount;
+  const blessingYouth = teamIds
+    .filter((youthId) => team[youthId]?.role === "bless")
+    .map((youthId) => ({
+      name: getYouthName(youthId),
+      prepares: team[youthId]?.prepares ?? false,
+    }));
 
-            warningMessage =
-                `Falta${missing > 1 ? "n" : ""} ${missing} ${
-                    missing === 1
-                        ? "joven"
-                        : "jóvenes"
-                } para repartir.`;
-        } else if (prepareCount < 2) {
-            const missing = 2 - prepareCount;
+  const passingYouth = teamIds
+    .filter((youthId) => team[youthId]?.role === "pass")
+    .map((youthId) => ({
+      name: getYouthName(youthId),
+      prepares: team[youthId]?.prepares ?? false,
+    }));
 
-            warningMessage =
-                `Falta${missing > 1 ? "n" : ""} ${missing} ${
-                    missing === 1
-                        ? "joven"
-                        : "jóvenes"
-                } para preparar la Santa Cena.`;
-        }
-    }
+  const assignedCount = blessCount + passCount;
 
-    return (
-        <div
-            className="rounded-2xl border bg-white p-5 text-center"
-        >
-            <div className="flex flex-col items-center">
-                <h2 className="text-lg font-semibold">
-                    Equipo
-                </h2>
+  const requiredTeamCount = requiredBlessCount + requiredPassCount;
 
-                <p
-                    className={`mt-1 text-xs ${
-                        teamIsValid
-                            ? "text-green-700"
-                            : "text-amber-700"
-                    }`}
-                >
-                    {teamIsValid
-                        ? "Equipo completo"
-                        : "Equipo todavía incompleto"}
-                </p>
+  return (
+    <section className="overflow-hidden rounded-[28px] border bg-card shadow-sm">
+      <div
+        className={`p-5 sm:p-6 ${teamIsValid ? "bg-green-50" : "bg-amber-50"}`}
+      >
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <div
+              className={`flex items-center gap-2 text-sm font-semibold ${
+                teamIsValid ? "text-green-700" : "text-amber-700"
+              }`}
+            >
+              {teamIsValid ? (
+                <CheckCircle2 className="size-4" />
+              ) : (
+                <CircleAlert className="size-4" />
+              )}
 
-                <span className="mt-3 text-2xl font-semibold tracking-tight">
-                    {blessCount + passCount}/5
-                </span>
-
-                <span className="text-xs text-muted-foreground">
-                    jóvenes asignados
-                </span>
+              {teamIsValid ? "Equipo completo" : "Equipo incompleto"}
             </div>
 
-            <div className="mx-auto mt-6 flex max-w-[220px] flex-col gap-4 text-left">
-                <div className="flex items-center justify-between">
-                    <span className="text-sm">
-                        Bendecir
-                    </span>
+            <p className="mt-3 text-4xl font-black tracking-tight">
+              {assignedCount}
+              <span className="text-2xl font-semibold text-muted-foreground">
+                /{requiredTeamCount}
+              </span>
+            </p>
 
-                    <span
-                        className={
-                            blessCount === 2
-                                ? "text-sm font-semibold text-green-700"
-                                : "text-sm font-semibold text-muted-foreground"
-                        }
-                    >
-                        {blessCount}/2
-                    </span>
-                </div>
+            <p className="mt-1 text-sm text-muted-foreground">
+              jóvenes asignados
+            </p>
+          </div>
 
-                <div className="flex items-center justify-between">
-                    <span className="text-sm">
-                        Repartir
-                    </span>
-
-                    <span
-                        className={
-                            passCount === 3
-                                ? "text-sm font-semibold text-green-700"
-                                : "text-sm font-semibold text-muted-foreground"
-                        }
-                    >
-                        {passCount}/3
-                    </span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                    <span className="text-sm">
-                        Preparación
-                    </span>
-
-                    <span
-                        className={
-                            prepareCount >= 2
-                                ? "text-sm font-semibold text-green-700"
-                                : "text-sm font-semibold text-muted-foreground"
-                        }
-                    >
-                        {prepareCount}/2
-                    </span>
-                </div>
-            </div>
-
-            {warningMessage && (
-                <motion.div
-                    initial={{
-                        opacity: 0,
-                        y: 4,
-                    }}
-                    animate={{
-                        opacity: 1,
-                        y: 0,
-                    }}
-                    className="mx-auto mt-6 max-w-[240px] rounded-xl bg-amber-50 p-3 text-sm text-amber-800"
-                >
-                    {warningMessage}
-                </motion.div>
-            )}
-
-            {showSaveButton && (
-                <>
-                    <motion.div
-                        whileTap={
-                            hasTeamChanges &&
-                            !savingTeam
-                                ? {
-                                    scale: 0.98,
-                                }
-                                : undefined
-                        }
-                        className="mx-auto max-w-[240px]"
-                    >
-                        <Button
-                            className="mt-6 h-12 w-full rounded-xl bg-green-600 text-white hover:bg-green-700"
-                            disabled={
-                                savingTeam ||
-                                !hasTeamChanges
-                            }
-                            onClick={onSave}
-                        >
-                            {savingTeam
-                                ? "Guardando..."
-                                : hasTeamChanges
-                                ? "Guardar cambios"
-                                : "Equipo guardado"}
-                        </Button>
-                    </motion.div>
-
-                    {saveMessage && (
-                        <motion.p
-                            initial={{
-                                opacity: 0,
-                                y: 4,
-                            }}
-                            animate={{
-                                opacity: 1,
-                                y: 0,
-                            }}
-                            className="mt-3 text-center text-sm font-medium text-green-700"
-                        >
-                            {saveMessage}
-                        </motion.p>
-                    )}
-                </>
-            )}
+          <div className="flex gap-1.5 pt-2">
+            {Array.from({
+              length: requiredTeamCount,
+            }).map((_, index) => (
+              <span
+                key={index}
+                className={`size-2.5 rounded-full ${
+                  index < assignedCount
+                    ? teamIsValid
+                      ? "bg-green-600"
+                      : "bg-amber-500"
+                    : "bg-black/10"
+                }`}
+              />
+            ))}
+          </div>
         </div>
-    );
+      </div>
+
+      <div className="divide-y">
+        <RoleRow
+          label="Bendicen"
+          count={blessCount}
+          required={requiredBlessCount}
+          names={blessingYouth}
+        />
+
+        <RoleRow
+          label="Reparten"
+          count={passCount}
+          required={requiredPassCount}
+          names={passingYouth}
+        />
+      </div>
+    </section>
+  );
+}
+
+function RoleRow({ label, count, required, names, showPrepareBadge = true }) {
+  const complete = count >= required;
+
+  return (
+    <div className="p-5">
+      <div className="flex items-center justify-between gap-4">
+        <h3 className="text-base font-bold">{label}</h3>
+
+        <div
+          className={`flex items-center gap-1.5 text-sm font-bold ${
+            complete ? "text-green-700" : "text-amber-700"
+          }`}
+        >
+          {complete ? (
+            <CheckCircle2 className="size-4" />
+          ) : (
+            <CircleAlert className="size-4" />
+          )}
+          {count}/{required}
+        </div>
+      </div>
+
+      {names.length > 0 ? (
+        <div className="mt-3 space-y-2">
+          {names.map((person, index) => (
+            <div
+              key={`${person.name}-${index}`}
+              className="flex items-center gap-2"
+            >
+              <p className="text-sm font-medium text-foreground">
+                {person.name}
+              </p>
+
+              {showPrepareBadge && person.prepares && (
+                <span className="inline-flex rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-semibold text-green-700">
+                  Prepara
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="mt-3 text-sm text-muted-foreground">Falta asignar</p>
+      )}
+    </div>
+  );
 }

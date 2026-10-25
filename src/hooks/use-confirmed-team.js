@@ -4,67 +4,68 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
 export default function useConfirmedTeam(assignment) {
-    const [confirmedTeam, setConfirmedTeam] = useState([]);
+  const [confirmedTeam, setConfirmedTeam] = useState([]);
 
-    const [loadingTeam, setLoadingTeam] = useState(false);
+  const [loadingTeam, setLoadingTeam] = useState(false);
 
-    useEffect(() => {
-        const loadConfirmedTeam = async () => {
-            if (!assignment?.sunday_id) {
-                setConfirmedTeam([]);
-                return;
-            }
+  useEffect(() => {
+    const loadConfirmedTeam = async () => {
+      if (!assignment?.sunday_id) {
+        setConfirmedTeam([]);
+        return;
+      }
 
-            setLoadingTeam(true);
+      setLoadingTeam(true);
 
-            const { data, error } = await supabase
-                .from("assignments")
-                .select(
-                    `
-                        youth_id,
-                        role,
-                        prepares,
-                        status,
-                        youth:youth (
-                            id,
-                            name,
-                            office
-                        )
-                    `,
-                )
-                .eq("sunday_id", assignment.sunday_id)
-                .eq("status", "confirmed");
+      const { data, error } = await supabase
+        .from("assignments")
+        .select(
+          `
+            youth_id,
+            role,
+            prepares,
+            status,
+            youth:youth (
+            id,
+            name,
+            office
+            )
+        `,
+        )
+        .eq("ward_id", assignment.ward_id)
+        .eq("sunday_id", assignment.sunday_id)
+        .eq("status", "confirmed");
 
-            if (error) {
-                console.error("Error cargando equipo confirmado:", error);
+      if (error) {
+        console.error("Error cargando equipo confirmado:", error);
 
-                setConfirmedTeam([]);
-                setLoadingTeam(false);
-                return;
-            }
+        setConfirmedTeam([]);
+        setLoadingTeam(false);
+        return;
+      }
 
-            setConfirmedTeam(data ?? []);
+      setConfirmedTeam(data ?? []);
 
-            setLoadingTeam(false);
-        };
-
-        loadConfirmedTeam();
-    }, [assignment?.sunday_id, assignment?.status]);
-
-    const blessingTeam = useMemo(
-        () => confirmedTeam.filter((member) => member.role === "bless"),
-        [confirmedTeam],
-    );
-
-    const passingTeam = useMemo(
-        () => confirmedTeam.filter((member) => member.role === "pass"),
-        [confirmedTeam],
-    );
-
-    return {
-        confirmedTeam,
-        loadingTeam,
-        blessingTeam,
-        passingTeam,
+      setLoadingTeam(false);
     };
+
+    loadConfirmedTeam();
+  }, [assignment?.ward_id, assignment?.sunday_id, assignment?.status]);
+
+  const blessingTeam = useMemo(
+    () => confirmedTeam.filter((member) => member.role === "bless"),
+    [confirmedTeam],
+  );
+
+  const passingTeam = useMemo(
+    () => confirmedTeam.filter((member) => member.role === "pass"),
+    [confirmedTeam],
+  );
+
+  return {
+    confirmedTeam,
+    loadingTeam,
+    blessingTeam,
+    passingTeam,
+  };
 }

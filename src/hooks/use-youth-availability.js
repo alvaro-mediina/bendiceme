@@ -90,16 +90,24 @@ export default function useYouthAvailability(currentYouth) {
             setErrorMessage(null);
 
             try {
+                const {
+                    data: { session },
+                } = await supabase.auth.getSession();
+
+                if (!session?.access_token) {
+                    throw new Error("No hay una sesión válida.");
+                }
+
                 const response = await fetch("/api/sundays/sync", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
+                        Authorization: `Bearer ${session.access_token}`,
                     },
                     body: JSON.stringify({
                         dates: visibleSundayDates,
                     }),
                 });
-
                 const data = await response.json();
 
                 if (!response.ok) {
@@ -134,6 +142,7 @@ export default function useYouthAvailability(currentYouth) {
                         .from("availability")
                         .select("sunday_id")
                         .eq("youth_id", currentYouth.id)
+                        .eq("ward_id", currentYouth.ward_id)
                         .eq("available", true);
 
                 if (availabilityError) {
@@ -186,7 +195,12 @@ export default function useYouthAvailability(currentYouth) {
         };
 
         loadData();
-    }, [currentYouth.id, visibleSundayDates, activeMonthDate]);
+    }, [
+        currentYouth.id,
+        currentYouth.ward_id,
+        visibleSundayDates,
+        activeMonthDate,
+    ]);
 
     const toggleSunday = (id) => {
         setSelected((current) => {
@@ -212,6 +226,7 @@ export default function useYouthAvailability(currentYouth) {
                 .update({
                     status: "declined",
                 })
+                .eq("ward_id", currentYouth.ward_id)
                 .eq("youth_id", currentYouth.id)
                 .in("sunday_id", removedSundayIds)
                 .in("status", ["pending", "confirmed"]);
@@ -230,6 +245,7 @@ export default function useYouthAvailability(currentYouth) {
                 .update({
                     available: false,
                 })
+                .eq("ward_id", currentYouth.ward_id)
                 .eq("youth_id", currentYouth.id)
                 .in("sunday_id", removedSundayIds);
 
@@ -264,6 +280,7 @@ export default function useYouthAvailability(currentYouth) {
                 await supabase
                     .from("availability")
                     .select("sunday_id")
+                    .eq("ward_id", currentYouth.ward_id)
                     .eq("youth_id", currentYouth.id)
                     .in("sunday_id", selectedVisibleSundays);
 
@@ -286,6 +303,7 @@ export default function useYouthAvailability(currentYouth) {
                     .update({
                         available: true,
                     })
+                    .eq("ward_id", currentYouth.ward_id)
                     .eq("youth_id", currentYouth.id)
                     .in("sunday_id", existingSundayIds);
 
@@ -317,6 +335,7 @@ export default function useYouthAvailability(currentYouth) {
 
             if (newSundayIds.length > 0) {
                 const rows = newSundayIds.map((sundayId) => ({
+                    ward_id: currentYouth.ward_id,
                     youth_id: currentYouth.id,
                     sunday_id: sundayId,
                     available: true,

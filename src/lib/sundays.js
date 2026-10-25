@@ -40,7 +40,11 @@ function canCreateNextMonthSundays(now = new Date()) {
     return now >= lastSunday;
 }
 
-export async function ensureAvailableSundays() {
+export async function ensureAvailableSundays(wardId) {
+    if (!wardId) {
+        throw new Error("No se recibió el barrio para crear los domingos.");
+    }
+
     const now = new Date();
 
     const useNextMonth = canCreateNextMonthSundays(now);
@@ -54,12 +58,13 @@ export async function ensureAvailableSundays() {
     const rows = dates.map((date) => ({
         date,
         active: true,
+        ward_id: wardId,
     }));
 
     const { data, error } = await supabase
         .from("sundays")
         .upsert(rows, {
-            onConflict: "date",
+            onConflict: "ward_id,date",
         })
         .select()
         .order("date", {
@@ -121,9 +126,11 @@ export function getVisibleSundays() {
 export function formatSunday(dateString) {
     const date = new Date(`${dateString}T00:00:00`);
 
-    return date.toLocaleDateString("es-AR", {
+    const formatted = date.toLocaleDateString("es-AR", {
         weekday: "long",
         day: "numeric",
         month: "long",
     });
+
+    return formatted.charAt(0).toUpperCase() + formatted.slice(1);
 }

@@ -2,11 +2,11 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-import { ensureAvailableSundays, getVisibleSundays } from "@/lib/sundays";
+import { getVisibleSundays } from "@/lib/sundays";
 
 import { supabase } from "@/lib/supabase";
 
-export default function useAdvisorAvailability() {
+export default function useAdvisorAvailability(wardId) {
     const [sundays, setSundays] = useState([]);
     const [selectedSundayId, setSelectedSundayId] = useState(null);
 
@@ -19,12 +19,17 @@ export default function useAdvisorAvailability() {
     const [availabilityError, setAvailabilityError] = useState(null);
 
     const loadSundays = useCallback(async () => {
+        if (!wardId) {
+            setSundays([]);
+            setSelectedSundayId(null);
+            setLoadingSundays(false);
+            return;
+        }
+
         setLoadingSundays(true);
         setAvailabilityError(null);
 
         try {
-            await ensureAvailableSundays();
-
             const { dates } = getVisibleSundays();
 
             if (dates.length === 0) {
@@ -33,9 +38,38 @@ export default function useAdvisorAvailability() {
                 return;
             }
 
+            const {
+                data: { session },
+            } = await supabase.auth.getSession();
+
+            if (!session?.access_token) {
+                throw new Error("No hay una sesión válida.");
+            }
+
+            const response = await fetch("/api/sundays/sync", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${session.access_token}`,
+                },
+                body: JSON.stringify({
+                    dates,
+                }),
+            });
+
+            const syncData = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    syncData.error ??
+                        "No se pudieron sincronizar los domingos.",
+                );
+            }
+
             const { data, error } = await supabase
                 .from("sundays")
                 .select("id, date, enabled, disabled_reason")
+                .eq("ward_id", wardId)
                 .eq("active", true)
                 .in("date", dates)
                 .order("date", {
@@ -62,10 +96,15 @@ export default function useAdvisorAvailability() {
         } finally {
             setLoadingSundays(false);
         }
-    }, []);
+    }, [wardId]);
 
     const loadAvailableYouth = useCallback(
         async ({ showLoading = true } = {}) => {
+            if (!wardId || !selectedSundayId) {
+                setAvailableYouth([]);
+                setLoadingYouth(false);
+                return;
+            }
             if (!selectedSundayId) {
                 setAvailableYouth([]);
                 setLoadingYouth(false);
@@ -91,6 +130,7 @@ export default function useAdvisorAvailability() {
                             )
                         `,
                 )
+                .eq("ward_id", wardId)
                 .eq("sunday_id", selectedSundayId)
                 .eq("available", true);
 
@@ -114,7 +154,7 @@ export default function useAdvisorAvailability() {
 
             setLoadingYouth(false);
         },
-        [selectedSundayId],
+        [wardId, selectedSundayId],
     );
 
     useEffect(() => {

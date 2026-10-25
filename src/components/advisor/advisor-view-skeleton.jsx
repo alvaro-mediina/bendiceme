@@ -1,80 +1,34 @@
-import BrandLogo from "../brand-logo";
-
-function Shimmer() {
-    return (
-        <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-gray-100/90 to-transparent" />
-    );
-}
-
 export default function AdvisorViewSkeleton() {
-    return (
-        <section className="mx-auto w-full max-w-2xl">
-            <BrandLogo />
+  return (
+    <section className="mx-auto w-full max-w-5xl px-1">
+      <div className="animate-pulse">
+        <div className="h-3 w-24 rounded-full bg-gray-200" />
 
-            <div className="mt-8">
-                <div className="relative h-3 w-40 overflow-hidden rounded bg-gray-200">
-                    <Shimmer />
-                </div>
+        <div className="mt-3 h-9 w-40 rounded-xl bg-gray-200" />
 
-                <div className="relative mt-5 h-8 w-56 overflow-hidden rounded bg-gray-200">
-                    <Shimmer />
-                </div>
+        <div className="mt-3 h-4 w-32 rounded-full bg-gray-200" />
 
-                <div className="relative mt-3 h-4 w-80 max-w-full overflow-hidden rounded bg-gray-200">
-                    <Shimmer />
-                </div>
+        <div className="mt-8 h-[300px] w-full rounded-[28px] bg-gray-200" />
 
-                <div className="mt-8 flex gap-2 overflow-hidden">
-                    {[1, 2, 3].map((item) => (
-                        <div
-                            key={item}
-                            className="relative h-11 w-40 shrink-0 overflow-hidden rounded-xl bg-gray-200"
-                        >
-                            <Shimmer />
-                        </div>
-                    ))}
-                </div>
+        <div className="mt-8 h-5 w-32 rounded-lg bg-gray-200" />
 
-                <div className="mt-8">
-                    <div className="relative h-6 w-44 overflow-hidden rounded bg-gray-200">
-                        <Shimmer />
-                    </div>
+        <div className="mt-4 grid grid-cols-2 gap-3">
+          <div className="h-36 rounded-[24px] bg-gray-200" />
+          <div className="h-36 rounded-[24px] bg-gray-200" />
+        </div>
+      </div>
 
-                    <div className="mt-4 flex flex-col gap-3">
-                        {[1, 2, 3].map((item) => (
-                            <div
-                                key={item}
-                                className="relative h-[110px] overflow-hidden rounded-2xl border bg-gray-100"
-                            >
-                                <Shimmer />
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                <div className="mt-8 rounded-2xl border bg-white p-4 sm:p-5">
-                    <div className="relative h-5 w-28 overflow-hidden rounded bg-gray-200">
-                        <Shimmer />
-                    </div>
-
-                    <div className="mt-5 flex flex-col gap-4">
-                        {[1, 2, 3].map((item) => (
-                            <div
-                                key={item}
-                                className="flex items-center justify-between"
-                            >
-                                <div className="relative h-4 w-24 overflow-hidden rounded bg-gray-200">
-                                    <Shimmer />
-                                </div>
-
-                                <div className="relative h-4 w-10 overflow-hidden rounded bg-gray-200">
-                                    <Shimmer />
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </div>
-        </section>
-    );
+      <div
+        className="
+          fixed bottom-4 left-1/2
+          h-16 w-[calc(100%-2rem)]
+          max-w-md
+          -translate-x-1/2
+          animate-pulse
+          rounded-[24px]
+          bg-gray-200
+        "
+      />
+    </section>
+  );
 }
