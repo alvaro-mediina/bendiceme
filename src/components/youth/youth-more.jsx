@@ -15,7 +15,7 @@ import { supabase } from "@/lib/supabase";
 import { getOfficeLabel } from "@/lib/youth";
 
 const preferences = [
-  { id: "notifications", title: "Notificaciones", description: "Gestionar avisos de tus turnos", icon: Bell },
+  { id: "notifications", title: "Notificaciones", description: "Gestionar avisos de tus turnos y clases", icon: Bell },
   { id: "account", title: "Cuenta", description: "Información de tu sesión", icon: UserRound },
   { id: "about", title: "Acerca de BendiceMe", description: "Información de la aplicación", icon: CircleHelp },
 ];
@@ -137,7 +137,7 @@ export default function YouthMore({ currentYouth, onLogout, logoutLoading }) {
           <div className="mx-auto mb-6 h-1.5 w-12 rounded-full bg-gray-200" />
           <SheetTitle className="text-2xl font-semibold tracking-tight">{panelTitle}</SheetTitle>
           <SheetDescription>
-            {panel === "notifications" && "Recibí avisos de tus asignaciones y recordatorios de tus turnos."}
+            {panel === "notifications" && "Recibí avisos de tus turnos de Santa Cena y recordatorios de tus clases de Escuela Dominical, los sábados por la mañana y por la noche."}
             {panel === "account" && "Información de tu cuenta de joven."}
             {panel === "about" && "Información y soporte de BendiceMe."}
           </SheetDescription>

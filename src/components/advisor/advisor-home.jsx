@@ -308,13 +308,26 @@ export default function AdvisorHome({
               src="/images/youth/dominical.png"
               alt=""
               fill
-              sizes={isOwner ? "(max-width: 672px) calc(100vw - 32px), 624px" : "(max-width: 672px) calc(50vw - 26px), 302px"}
-              className="object-cover transition-transform duration-300 group-hover:scale-105"
+              sizes={
+                isOwner
+                  ? "(max-width: 672px) calc(100vw - 32px), 624px"
+                  : "(max-width: 672px) calc(50vw - 26px), 302px"
+              }
+              className={`
+                object-cover
+                transition-transform duration-300
+                group-hover:scale-105
+                ${isOwner ? "object-[center_20%]" : "object-center"}
+              `}
             />
             <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/30 to-transparent" />
             <div className="relative flex min-h-[190px] flex-col justify-end p-4 text-white sm:min-h-[220px] sm:p-5 lg:min-h-[290px]">
-              <p className="text-lg font-extrabold tracking-tight sm:text-xl lg:text-2xl">Escuela Dominical</p>
-              <p className="mt-1 text-sm text-white/85">Organizar las clases del barrio</p>
+              <p className="text-lg font-extrabold tracking-tight sm:text-xl lg:text-2xl">
+                Escuela Dominical
+              </p>
+              <p className="mt-1 text-sm text-white/85">
+                Organizar las clases del barrio
+              </p>
             </div>
           </button>
 
@@ -370,45 +383,61 @@ export default function AdvisorHome({
             type="button"
             onClick={() => onNavigate("more")}
             className={`
-              group relative
-              w-full
-              overflow-hidden
-              rounded-[26px]
-              text-left
-              ${isOwner ? "min-h-[130px]" : "min-h-[190px] sm:min-h-[220px] lg:min-h-[290px]"}
-            `}
+    group relative
+    w-full
+    overflow-hidden
+    rounded-[26px]
+    text-left
+    ${
+      isOwner
+        ? "min-h-[130px]"
+        : "min-h-[190px] sm:min-h-[220px] lg:min-h-[290px]"
+    }
+  `}
           >
             <div className="absolute inset-0 overflow-hidden">
               <div
                 className="
-                h-full w-full
-                transition-transform duration-300
-                group-hover:scale-[1.02]
-              "
+        h-full w-full
+        transition-transform duration-300
+        group-hover:scale-[1.02]
+      "
               >
                 <img
                   src="/images/advisor/more.png"
                   alt=""
                   className="
-                  h-full w-full
-                  object-cover
-                  -scale-x-100
-                "
+          h-full w-full
+          object-cover
+          -scale-x-100
+        "
                 />
               </div>
             </div>
 
-            <div className={`relative flex items-center p-5 ${isOwner ? "min-h-[130px]" : "min-h-[190px] sm:min-h-[220px] lg:min-h-[290px]"}`}>
-              <div className="max-w-[52%]">
-                <p className="text-xl font-extrabold tracking-tight text-slate-900">
+            {isOwner ? (
+              <div className="relative flex min-h-[130px] items-center p-5">
+                <div className="max-w-[52%]">
+                  <p className="text-xl font-extrabold tracking-tight text-slate-900">
+                    Más
+                  </p>
+
+                  <p className="mt-1 text-sm leading-snug text-slate-600">
+                    Preferencias, cuenta y configuración
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="relative flex min-h-[190px] flex-col justify-end p-5 sm:min-h-[220px] lg:min-h-[290px]">
+                <p className="text-xl font-extrabold tracking-tight text-slate-900 lg:text-2xl">
                   Más
                 </p>
 
-                <p className="mt-1 text-sm leading-snug text-slate-600">
+                <p className="mt-1 text-sm leading-snug text-slate-600 lg:text-base">
                   Preferencias, cuenta y configuración
                 </p>
               </div>
-            </div>
+            )}
           </button>
         </div>
       </section>

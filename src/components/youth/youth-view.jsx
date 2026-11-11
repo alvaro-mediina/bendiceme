@@ -37,8 +37,16 @@ export default function YouthView({
   onLogout,
   logoutLoading,
 }) {
-  const [activeView, setActiveView] = useState(initialView);
-  const [mountedViews, setMountedViews] = useState(() => new Set([initialView]));
+  const [activeView, setActiveView] = useState(() => {
+    if (typeof window !== "undefined" &&
+      new URLSearchParams(window.location.search).get("view") === "school") {
+      return "school";
+    }
+    return initialView;
+  });
+  const [mountedViews, setMountedViews] = useState(
+    () => new Set([activeView]),
+  );
 
   const changeView = (view) => {
     setMountedViews((current) => {
@@ -64,7 +72,7 @@ export default function YouthView({
           <>
             <header>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-green-600">
-                Panel del joven
+                Panel de joven
               </p>
               <h1 className="mt-1 text-3xl font-semibold tracking-tight text-slate-900">
                 Hola, {currentYouth.name.split(" ")[0]}
@@ -78,7 +86,7 @@ export default function YouthView({
                     key={item.id}
                     type="button"
                     onClick={() => changeView(item.id)}
-                    className="group relative flex min-h-[190px] items-end overflow-hidden rounded-[26px] text-left sm:min-h-[220px]"
+                    className="group relative flex min-h-[190px] items-end overflow-hidden rounded-[26px] text-left [clip-path:inset(0_round_26px)] sm:min-h-[220px]"
                   >
                     <Image
                       src={item.image}
@@ -107,6 +115,7 @@ export default function YouthView({
                   <Image
                     src="/images/advisor/more.png"
                     alt=""
+                    loading="eager"
                     fill
                     sizes="(max-width: 608px) calc(100vw - 32px), 576px"
                     className="-scale-x-100 object-cover"
@@ -156,10 +165,12 @@ export default function YouthView({
 
         {mountedViews.has("school") && (
           <div hidden={activeView !== "school"}>
-            <SundaySchoolView key={currentYouth.ward_id} wardId={currentYouth.ward_id} />
+            <SundaySchoolView
+              key={currentYouth.ward_id}
+              wardId={currentYouth.ward_id}
+            />
           </div>
         )}
-
 
         {mountedViews.has("more") && (
           <div hidden={activeView !== "more"}>

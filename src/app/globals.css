@@ -50,6 +50,14 @@
   }
 }
 
+html.advisor-view-active {
+  scrollbar-width: none;
+}
+
+html.advisor-view-active::-webkit-scrollbar {
+  display: none;
+}
+
 .app-shell {
   min-height: 100svh;
   background: #fff;

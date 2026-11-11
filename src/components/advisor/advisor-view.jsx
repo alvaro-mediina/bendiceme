@@ -53,6 +53,15 @@ export default function AdvisorView({ wardId, onLogout, isOwner = false }) {
   };
 
   useEffect(() => {
+    const root = document.documentElement;
+    root.classList.add("advisor-view-active");
+
+    return () => {
+      root.classList.remove("advisor-view-active");
+    };
+  }, []);
+
+  useEffect(() => {
     sessionStorage.setItem("bendiceme-advisor-view", activeView);
   }, [activeView]);
 

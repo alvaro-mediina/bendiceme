@@ -8,6 +8,14 @@
     {
       "path": "/api/push/reminders?type=sunday",
       "schedule": "0 11 * * 0"
+    },
+    {
+      "path": "/api/push/sunday-school-reminders?slot=morning",
+      "schedule": "0 12 * * 6"
+    },
+    {
+      "path": "/api/push/sunday-school-reminders?slot=evening",
+      "schedule": "0 23 * * 6"
     }
   ]
 }
