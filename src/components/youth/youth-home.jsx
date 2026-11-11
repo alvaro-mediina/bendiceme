@@ -3,7 +3,6 @@
 import { motion } from "motion/react";
 import { staggerContainer } from "@/lib/animations";
 import useYouthAvailability from "@/hooks/use-youth-availability";
-import PageHeader from "@/components/page-header";
 import YouthAvailabilityList from "./youth-availability-list";
 import YouthHomeActions from "./youth-home-actions";
 
@@ -40,10 +39,14 @@ export default function YouthHome({
       animate="visible"
       variants={staggerContainer}
     >
-      <PageHeader
-        eyebrow={`Disponibilidad · ${formattedMonth}`}
-        title="Santa Cena"
-      />
+      <header>
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-green-600">
+          Disponibilidad · {formattedMonth}
+        </p>
+        <h1 className="mt-1 text-3xl font-semibold tracking-tight text-slate-900">
+          Santa Cena
+        </h1>
+      </header>
 
       <YouthAvailabilityList
         loaded={loaded}

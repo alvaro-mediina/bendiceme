@@ -2,18 +2,15 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { BookOpen, Church, Ellipsis, Home, LogOut } from "lucide-react";
+import { BookOpen, Church, Ellipsis, Home } from "lucide-react";
 
 import BottomNav from "@/components/layout/bottom-nav";
 import PageContainer from "@/components/layout/page-container";
 import PageHeader from "@/components/page-header";
-import { Button } from "@/components/ui/button";
-import useYouthPushNotifications from "@/hooks/use-youth-push-notifications";
-import { getOfficeLabel } from "@/lib/youth";
 import AvailabilitySaved from "./availability-saved";
 import YouthAssignments from "./youth-assignments";
 import YouthHome from "./youth-home";
-import YouthNotificationCard from "./youth-notification-card";
+import YouthMore from "./youth-more";
 
 const navigation = [
   { id: "home", label: "Inicio", icon: Home },
@@ -29,7 +26,7 @@ const navigation = [
     label: "Escuela Dominical",
     icon: BookOpen,
     image: "/images/youth/dominical.png",
-    description: "Consultá las próximas clases de tu barrio.",
+    description: "Consultá las próximas clases de escuela dominical.",
   },
   { id: "more", label: "Más", icon: Ellipsis },
 ];
@@ -41,8 +38,19 @@ export default function YouthView({
   logoutLoading,
 }) {
   const [activeView, setActiveView] = useState(initialView);
-  const { pushLoading, pushEnabled, pushError, enableNotifications } =
-    useYouthPushNotifications(currentYouth.id);
+  const [mountedViews, setMountedViews] = useState(() => new Set([initialView]));
+
+  const changeView = (view) => {
+    setMountedViews((current) => {
+      if (current.has(view)) {
+        return current;
+      }
+
+      return new Set([...current, view]);
+    });
+    setActiveView(view);
+  };
+
   const inSacrament = ["sacrament", "saved", "assignments"].includes(
     activeView,
   );
@@ -54,10 +62,14 @@ export default function YouthView({
       <main className="w-full max-w-xl pb-28">
         {activeView === "home" && (
           <>
-            <PageHeader
-              title={`Hola, ${currentYouth.name.split(" ")[0]}`}
-              description={getOfficeLabel(currentYouth.office)}
-            />
+            <header>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-green-600">
+                Panel del joven
+              </p>
+              <h1 className="mt-1 text-3xl font-semibold tracking-tight text-slate-900">
+                Hola, {currentYouth.name.split(" ")[0]}
+              </h1>
+            </header>
             <div className="mt-6 grid grid-cols-2 gap-3">
               {navigation
                 .filter((item) => item.image)
@@ -65,7 +77,7 @@ export default function YouthView({
                   <button
                     key={item.id}
                     type="button"
-                    onClick={() => setActiveView(item.id)}
+                    onClick={() => changeView(item.id)}
                     className="group relative flex min-h-[190px] items-end overflow-hidden rounded-[26px] text-left sm:min-h-[220px]"
                   >
                     <Image
@@ -88,7 +100,7 @@ export default function YouthView({
                 ))}
               <button
                 type="button"
-                onClick={() => setActiveView("more")}
+                onClick={() => changeView("more")}
                 className="group relative col-span-2 min-h-[130px] w-full overflow-hidden rounded-[26px] text-left"
               >
                 <div className="absolute inset-0 transition-transform duration-300 group-hover:scale-[1.02]">
@@ -115,28 +127,30 @@ export default function YouthView({
           </>
         )}
 
-        {activeView === "sacrament" && (
-          <YouthHome
-            currentYouth={currentYouth}
-            onSave={() =>
-              setActiveView((view) => (view === "sacrament" ? "saved" : view))
-            }
-            onViewAssignments={() => setActiveView("assignments")}
-          />
+        {mountedViews.has("sacrament") && (
+          <div hidden={activeView !== "sacrament"}>
+            <YouthHome
+              currentYouth={currentYouth}
+              onSave={() =>
+                setActiveView((view) => (view === "sacrament" ? "saved" : view))
+              }
+              onViewAssignments={() => changeView("assignments")}
+            />
+          </div>
         )}
 
         {activeView === "saved" && (
           <AvailabilitySaved
             currentYouth={currentYouth}
-            onEdit={() => setActiveView("sacrament")}
-            onViewAssignments={() => setActiveView("assignments")}
+            onEdit={() => changeView("sacrament")}
+            onViewAssignments={() => changeView("assignments")}
           />
         )}
 
         {activeView === "assignments" && (
           <YouthAssignments
             currentYouth={currentYouth}
-            onBack={() => setActiveView("sacrament")}
+            onBack={() => changeView("sacrament")}
           />
         )}
 
@@ -149,33 +163,24 @@ export default function YouthView({
           </>
         )}
 
-        {activeView === "more" && (
-          <>
-            <PageHeader title="Más" />
-            <YouthNotificationCard
-              pushEnabled={pushEnabled}
-              pushLoading={pushLoading}
-              pushError={pushError}
-              onEnableNotifications={enableNotifications}
+        {mountedViews.has("more") && (
+          <div hidden={activeView !== "more"}>
+            <YouthMore
+              currentYouth={currentYouth}
+              onLogout={onLogout}
+              logoutLoading={logoutLoading}
             />
-            <Button
-              className="mt-4"
-              variant="outline"
-              onClick={onLogout}
-              disabled={logoutLoading}
-            >
-              <LogOut className="size-4" />
-              {logoutLoading ? "Cerrando sesión..." : "Cerrar sesión"}
-            </Button>
-          </>
+          </div>
         )}
       </main>
 
-      <BottomNav
-        items={navigation}
-        activeView={inSacrament ? "sacrament" : activeView}
-        onChangeView={setActiveView}
-      />
+      {activeView !== "home" && (
+        <BottomNav
+          items={navigation}
+          activeView={inSacrament ? "sacrament" : activeView}
+          onChangeView={changeView}
+        />
+      )}
     </PageContainer>
   );
 }

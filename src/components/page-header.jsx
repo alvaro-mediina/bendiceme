@@ -15,12 +15,6 @@ export default function PageHeader({
 }) {
   return (
     <header>
-      <motion.p
-        variants={fadeUp}
-        className="text-xs font-semibold uppercase tracking-[0.18em] text-green-600"
-      >
-        Panel de jóven
-      </motion.p>
       <motion.div variants={fadeUp} className="mt-1">
         {eyebrow && (
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-green-600">

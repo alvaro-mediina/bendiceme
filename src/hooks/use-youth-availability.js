@@ -372,6 +372,8 @@ export default function useYouthAvailability(currentYouth) {
 
         setInitialSelected(selectedSnapshot);
 
+        setHadAvailability(selectedVisibleSundays.length > 0);
+
         setSaving(false);
 
         return true;

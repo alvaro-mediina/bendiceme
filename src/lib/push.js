@@ -1,3 +1,5 @@
+import { supabase } from "@/lib/supabase";
+
 export function urlBase64ToUint8Array(base64String) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
 
@@ -134,6 +136,27 @@ export async function unsubscribeAdvisorFromPush(userId, subscription) {
   if (!response.ok) {
     const data = await response.json();
 
+    throw new Error(data.error ?? "No se pudo eliminar la suscripción.");
+  }
+}
+
+export async function unsubscribeYouthFromPush(subscription) {
+  const { data: { session }, error } = await supabase.auth.getSession();
+
+  if (error) throw error;
+  if (!session) throw new Error("No se encontró una sesión válida.");
+
+  const response = await fetch("/api/push/subscribe", {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${session.access_token}`,
+    },
+    body: JSON.stringify({ endpoint: subscription.endpoint }),
+  });
+
+  if (!response.ok) {
+    const data = await response.json();
     throw new Error(data.error ?? "No se pudo eliminar la suscripción.");
   }
 }
