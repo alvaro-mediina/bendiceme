@@ -6,7 +6,7 @@ import { BookOpen, Church, Ellipsis, Home } from "lucide-react";
 
 import BottomNav from "@/components/layout/bottom-nav";
 import PageContainer from "@/components/layout/page-container";
-import PageHeader from "@/components/page-header";
+import SundaySchoolView from "@/components/sunday-school/sunday-school-view";
 import AvailabilitySaved from "./availability-saved";
 import YouthAssignments from "./youth-assignments";
 import YouthHome from "./youth-home";
@@ -154,14 +154,12 @@ export default function YouthView({
           />
         )}
 
-        {activeView === "school" && (
-          <>
-            <PageHeader title="Escuela Dominical" />
-            <p className="mt-6 rounded-2xl border border-dashed p-6 text-center text-sm text-muted-foreground">
-              Todavía no hay clases publicadas.
-            </p>
-          </>
+        {mountedViews.has("school") && (
+          <div hidden={activeView !== "school"}>
+            <SundaySchoolView key={currentYouth.ward_id} wardId={currentYouth.ward_id} />
+          </div>
         )}
+
 
         {mountedViews.has("more") && (
           <div hidden={activeView !== "more"}>

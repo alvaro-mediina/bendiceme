@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 
 import AdvisorHome from "./advisor-home";
+import SundaySchoolView from "@/components/sunday-school/sunday-school-view";
 import AdvisorSacrament from "./advisor-sacrament";
 import AdvisorYouth from "./advisor-youth";
 import AdvisorBottomNav from "./advisor-bottom-nav";
@@ -256,6 +257,12 @@ export default function AdvisorView({ wardId, onLogout, isOwner = false }) {
               onBack={() => changeView("admin")}
             />
           </motion.div>
+        )}
+
+        {mountedViews.has("school") && (
+          <div hidden={activeView !== "school"}>
+            <SundaySchoolView key={wardId} wardId={wardId} canEdit />
+          </div>
         )}
 
         {mountedViews.has("more") && (

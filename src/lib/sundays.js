@@ -88,8 +88,31 @@ export async function ensureAvailableSundays(wardId) {
     };
 }
 
-export function getVisibleSundays() {
-    const now = new Date();
+export function getVisibleSundays(now = new Date(), timeZone) {
+    if (timeZone) {
+        const parts = new Intl.DateTimeFormat("en-US", {
+            timeZone,
+            year: "numeric",
+            month: "numeric",
+            day: "numeric",
+            hour: "numeric",
+            minute: "numeric",
+            second: "numeric",
+            hourCycle: "h23",
+        }).formatToParts(now);
+        const values = Object.fromEntries(
+            parts.map(({ type, value }) => [type, value]),
+        );
+
+        now = new Date(
+            Number(values.year),
+            Number(values.month) - 1,
+            Number(values.day),
+            Number(values.hour),
+            Number(values.minute),
+            Number(values.second),
+        );
+    }
 
     const currentMonthSundays = getSundaysOfMonth(now);
 

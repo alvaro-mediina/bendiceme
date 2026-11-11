@@ -1,7 +1,7 @@
 "use client";
 
 import BottomNav from "@/components/layout/bottom-nav";
-import { Home, Church, UsersRound, ShieldCheck, Ellipsis } from "lucide-react";
+import { Home, BookOpen, Church, UsersRound, ShieldCheck, Ellipsis } from "lucide-react";
 
 export default function AdvisorBottomNav({
   activeView,
@@ -24,6 +24,8 @@ export default function AdvisorBottomNav({
       label: "Jóvenes",
       icon: UsersRound,
     },
+
+    { id: "school", label: "Clases", icon: BookOpen },
 
     ...(isOwner
       ? [

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 
 import { supabase } from "@/lib/supabase";
 import { formatSunday, getVisibleSundays } from "@/lib/sundays";
@@ -298,6 +299,25 @@ export default function AdvisorHome({
             </div>
           </button>
 
+          <button
+            type="button"
+            onClick={() => onNavigate("school")}
+            className={`group relative min-h-[190px] overflow-hidden rounded-[26px] text-left sm:min-h-[220px] lg:min-h-[290px] ${isOwner ? "col-span-2" : ""}`}
+          >
+            <Image
+              src="/images/youth/dominical.png"
+              alt=""
+              fill
+              sizes={isOwner ? "(max-width: 672px) calc(100vw - 32px), 624px" : "(max-width: 672px) calc(50vw - 26px), 302px"}
+              className="object-cover transition-transform duration-300 group-hover:scale-105"
+            />
+            <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/30 to-transparent" />
+            <div className="relative flex min-h-[190px] flex-col justify-end p-4 text-white sm:min-h-[220px] sm:p-5 lg:min-h-[290px]">
+              <p className="text-lg font-extrabold tracking-tight sm:text-xl lg:text-2xl">Escuela Dominical</p>
+              <p className="mt-1 text-sm text-white/85">Organizar las clases del barrio</p>
+            </div>
+          </button>
+
           {isOwner && (
             <button
               type="button"
@@ -351,11 +371,11 @@ export default function AdvisorHome({
             onClick={() => onNavigate("more")}
             className={`
               group relative
-              min-h-[130px] w-full
+              w-full
               overflow-hidden
               rounded-[26px]
               text-left
-              ${isOwner ? "" : "col-span-2"}
+              ${isOwner ? "min-h-[130px]" : "min-h-[190px] sm:min-h-[220px] lg:min-h-[290px]"}
             `}
           >
             <div className="absolute inset-0 overflow-hidden">
@@ -378,7 +398,7 @@ export default function AdvisorHome({
               </div>
             </div>
 
-            <div className="relative flex min-h-[130px] items-center p-5">
+            <div className={`relative flex items-center p-5 ${isOwner ? "min-h-[130px]" : "min-h-[190px] sm:min-h-[220px] lg:min-h-[290px]"}`}>
               <div className="max-w-[52%]">
                 <p className="text-xl font-extrabold tracking-tight text-slate-900">
                   Más
