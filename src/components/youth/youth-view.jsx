@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Image from "next/image";
 import { BookOpen, Church, Ellipsis, Home } from "lucide-react";
-
 import BottomNav from "@/components/layout/bottom-nav";
 import PageContainer from "@/components/layout/page-container";
 import SundaySchoolView from "@/components/sunday-school/sunday-school-view";
@@ -11,6 +10,8 @@ import AvailabilitySaved from "./availability-saved";
 import YouthAssignments from "./youth-assignments";
 import YouthHome from "./youth-home";
 import YouthMore from "./youth-more";
+import YouthNextSundayCard from "./youth-next-sunday-card";
+import useYouthNextSunday from "@/hooks/use-youth-next-sunday";
 
 const navigation = [
   { id: "home", label: "Inicio", icon: Home },
@@ -26,7 +27,7 @@ const navigation = [
     label: "Escuela Dominical",
     icon: BookOpen,
     image: "/images/youth/dominical.png",
-    description: "Consultá las próximas clases de escuela dominical.",
+    description: "Consultá las clases de escuela dominical.",
   },
   { id: "more", label: "Más", icon: Ellipsis },
 ];
@@ -38,15 +39,16 @@ export default function YouthView({
   logoutLoading,
 }) {
   const [activeView, setActiveView] = useState(() => {
-    if (typeof window !== "undefined" &&
-      new URLSearchParams(window.location.search).get("view") === "school") {
+    if (
+      typeof window !== "undefined" &&
+      new URLSearchParams(window.location.search).get("view") === "school"
+    ) {
       return "school";
     }
     return initialView;
   });
-  const [mountedViews, setMountedViews] = useState(
-    () => new Set([activeView]),
-  );
+  const [mountedViews, setMountedViews] = useState(() => new Set([activeView]));
+  const nextSundaySummary = useYouthNextSunday(currentYouth);
 
   const changeView = (view) => {
     setMountedViews((current) => {
@@ -64,9 +66,7 @@ export default function YouthView({
   );
 
   return (
-    <PageContainer
-      center={activeView === "saved" || activeView === "assignments"}
-    >
+    <PageContainer center={activeView === "saved"}>
       <main className="w-full max-w-xl pb-28">
         {activeView === "home" && (
           <>
@@ -78,6 +78,13 @@ export default function YouthView({
                 Hola, {currentYouth.name.split(" ")[0]}
               </h1>
             </header>
+
+            <YouthNextSundayCard
+              {...nextSundaySummary}
+              onRetry={nextSundaySummary.reload}
+              currentYouthId={currentYouth.id}
+            />
+
             <div className="mt-6 grid grid-cols-2 gap-3">
               {navigation
                 .filter((item) => item.image)

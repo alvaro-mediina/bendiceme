@@ -51,7 +51,7 @@ export default function useNextAssignment(currentYouth) {
         )
         .eq("ward_id", currentYouth.ward_id)
         .eq("youth_id", currentYouth.id)
-        .in("status", ["pending", "confirmed", "declined"]);
+        .in("status", ["pending", "confirmed"]);
 
       if (!active || currentRequestId !== requestId) {
         return;
