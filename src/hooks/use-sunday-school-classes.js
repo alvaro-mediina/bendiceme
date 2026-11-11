@@ -25,36 +25,54 @@ export default function useSundaySchoolClasses(wardId) {
   const [classes, setClasses] = useState([]);
   const [teachers, setTeachers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
   const requestId = useRef(0);
+  const editSnapshot = useRef({ pending: true, classes: [] });
 
-  const refresh = useCallback(() => {
+  const loadClasses = useCallback(() => {
     const currentRequest = ++requestId.current;
+    editSnapshot.current.pending = true;
 
     return requestClasses()
       .then((data) => {
         if (currentRequest !== requestId.current) return;
+        editSnapshot.current.classes = data.classes;
         setClasses(data.classes);
         setTeachers(data.teachers ?? []);
         setError(null);
       })
       .catch((error) => {
         if (currentRequest === requestId.current) {
+          editSnapshot.current.classes = [];
           setClasses((current) => current.map((item) => ({ ...item, aids: undefined })));
           setError(error.message);
         }
       })
       .finally(() => {
-        if (currentRequest === requestId.current) setLoading(false);
+        if (currentRequest === requestId.current) {
+          editSnapshot.current.pending = false;
+          setLoading(false);
+          setRefreshing(false);
+        }
       });
   }, []);
 
+  const refresh = () => {
+    setRefreshing(true);
+    return loadClasses();
+  };
+
   useEffect(() => {
-    refresh();
+    let active = true;
+    const currentEditSnapshot = editSnapshot.current;
+    loadClasses();
     const handleClassChange = () => {
+      if (!active) return;
+      setRefreshing(true);
       // Drop cached aids immediately, since the teacher may have changed.
       setClasses((current) => current.map((item) => ({ ...item, aids: undefined })));
-      refresh();
+      loadClasses();
     };
     const channel = supabase.channel(`sunday-school-${wardId}`)
       .on("postgres_changes", {
@@ -81,10 +99,12 @@ export default function useSundaySchoolClasses(wardId) {
       });
 
     return () => {
+      active = false;
+      currentEditSnapshot.pending = true;
       requestId.current += 1;
       supabase.removeChannel(channel);
     };
-  }, [wardId, refresh]);
+  }, [wardId, loadClasses]);
 
   const saveClass = async (values) => {
     await requestClasses({
@@ -104,5 +124,22 @@ export default function useSundaySchoolClasses(wardId) {
     await refresh();
   };
 
-  return { classes, teachers, loading, error, refresh, saveClass, deleteClass };
+  const getClassForEditing = (id) => {
+    // Check the live request state too: an onClick from the previous render
+    // must not open a form while Realtime is revalidating the private aids.
+    if (editSnapshot.current.pending) return null;
+    return editSnapshot.current.classes.find((item) => item.id === id) ?? null;
+  };
+
+  return {
+    classes,
+    teachers,
+    loading,
+    refreshing,
+    error,
+    refresh,
+    saveClass,
+    deleteClass,
+    getClassForEditing,
+  };
 }

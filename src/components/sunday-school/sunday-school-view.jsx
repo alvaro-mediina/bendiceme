@@ -12,7 +12,17 @@ const emptyClass = { date: "", topic: "", teacherYouthId: "" };
 const inputClassName = "mt-2 w-full rounded-xl border bg-background px-3 py-2 text-base";
 
 export default function SundaySchoolView({ wardId, canEdit = false }) {
-  const { classes, teachers, loading, error, refresh, saveClass, deleteClass } = useSundaySchoolClasses(wardId);
+  const {
+    classes,
+    teachers,
+    loading,
+    refreshing,
+    error,
+    refresh,
+    saveClass,
+    deleteClass,
+    getClassForEditing,
+  } = useSundaySchoolClasses(wardId);
   const [formOpen, setFormOpen] = useState(false);
   const [values, setValues] = useState(emptyClass);
   const [saving, setSaving] = useState(false);
@@ -29,16 +39,19 @@ export default function SundaySchoolView({ wardId, canEdit = false }) {
   );
 
   const openForm = (item) => {
-    setValues(item ? {
-      id: item.id,
-      date: availableSundays.includes(item.date) ? item.date : "",
-      topic: item.topic,
-      teacherYouthId: teachers.some((teacher) => String(teacher.id) === String(item.teacher_youth_id))
-        ? String(item.teacher_youth_id)
+    const classToEdit = item ? getClassForEditing(item.id) : null;
+    if (item && !classToEdit) return;
+
+    setValues(classToEdit ? {
+      id: classToEdit.id,
+      date: availableSundays.includes(classToEdit.date) ? classToEdit.date : "",
+      topic: classToEdit.topic,
+      teacherYouthId: teachers.some((teacher) => String(teacher.id) === String(classToEdit.teacher_youth_id))
+        ? String(classToEdit.teacher_youth_id)
         : "",
       aids: {
-        scriptures: item.aids?.scriptures ?? "",
-        keyTips: item.aids?.keyTips ?? "",
+        scriptures: classToEdit.aids?.scriptures ?? "",
+        keyTips: classToEdit.aids?.keyTips ?? "",
       },
     } : emptyClass);
     setSaveError(null);
@@ -144,9 +157,11 @@ export default function SundaySchoolView({ wardId, canEdit = false }) {
                   <Button
                     variant="outline"
                     className="h-12 w-full min-w-0 gap-1.5 rounded-2xl px-2 text-xs font-semibold sm:text-sm"
+                    disabled={loading || refreshing || Boolean(error)}
                     onClick={() => openForm(item)}
                   >
-                    <Pencil className="size-4" /> Editar clase
+                    <Pencil className="size-4" />
+                    {refreshing ? "Actualizando..." : "Editar clase"}
                   </Button>
                   <Button
                     variant="outline"
