@@ -220,6 +220,19 @@ export async function PATCH(request, { params }) {
         email_confirm: true,
       });
 
+    if (
+      authError?.code === "email_exists" ||
+      authError?.code === "user_already_exists"
+    ) {
+      return Response.json(
+        {
+          error:
+            "Ya existe una cuenta con este correo. Podés rechazar la solicitud y pedir al asesor que la envíe con otro correo.",
+        },
+        { status: 409 },
+      );
+    }
+
     if (authError || !authData.user) {
       console.error("Error creando usuario:", authError);
 

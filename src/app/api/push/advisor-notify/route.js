@@ -42,6 +42,20 @@ export async function POST(request) {
             );
         }
 
+        const { data: youth, error: youthError } = await supabaseAdmin
+            .from("youth")
+            .select("name, ward_id")
+            .eq("id", youthId)
+            .single();
+
+        if (youthError) {
+            throw youthError;
+        }
+
+        if (!youth.ward_id) {
+            return NextResponse.json({ success: true, sent: 0 });
+        }
+
         // Comprobamos que el joven realmente
         // esté disponible para ese domingo.
         if (type === "youth_available" || type === "youth_unavailable") {
@@ -49,6 +63,7 @@ export async function POST(request) {
                 await supabaseAdmin
                     .from("availability")
                     .select("available")
+                    .eq("ward_id", youth.ward_id)
                     .eq("youth_id", youthId)
                     .eq("sunday_id", sundayId)
                     .maybeSingle();
@@ -99,6 +114,7 @@ export async function POST(request) {
                 await supabaseAdmin
                     .from("assignments")
                     .select("status")
+                    .eq("ward_id", youth.ward_id)
                     .eq("youth_id", youthId)
                     .eq("sunday_id", sundayId)
                     .maybeSingle();
@@ -147,16 +163,6 @@ export async function POST(request) {
             }
         }
 
-        const { data: youth, error: youthError } = await supabaseAdmin
-            .from("youth")
-            .select("name")
-            .eq("id", youthId)
-            .single();
-
-        if (youthError) {
-            throw youthError;
-        }
-
         const { data: sunday, error: sundayError } = await supabaseAdmin
             .from("sundays")
             .select("date")
@@ -167,10 +173,25 @@ export async function POST(request) {
             throw sundayError;
         }
 
+        const { data: recipients, error: recipientsError } = await supabaseAdmin
+            .from("profiles")
+            .select("user_id")
+            .eq("ward_id", youth.ward_id)
+            .in("role", ["advisor", "owner"]);
+
+        if (recipientsError) {
+            throw recipientsError;
+        }
+
+        if (!recipients?.length) {
+            return NextResponse.json({ success: true, sent: 0 });
+        }
+
         const { data: subscriptions, error: subscriptionsError } =
             await supabaseAdmin
                 .from("advisor_push_subscriptions")
-                .select("id, endpoint, p256dh, auth");
+                .select("id, endpoint, p256dh, auth")
+                .in("user_id", recipients.map(({ user_id }) => user_id));
 
         if (subscriptionsError) {
             throw subscriptionsError;

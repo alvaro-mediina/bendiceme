@@ -43,6 +43,7 @@ export default function AdminWardView({ wardId, onBack }) {
   const [youthRequestsError, setYouthRequestsError] = useState(null);
 
   const [reviewingRequestId, setReviewingRequestId] = useState(null);
+  const [reviewErrors, setReviewErrors] = useState({});
 
   const [approvedYouthCredentials, setApprovedYouthCredentials] =
     useState(null);
@@ -371,64 +372,69 @@ export default function AdminWardView({ wardId, onBack }) {
 
   const handleReviewYouthRequest = async (requestId, action) => {
     setReviewingRequestId(requestId);
-    setYouthRequestsError(null);
+    const setReviewError = (message) => {
+      setReviewErrors((current) => ({ ...current, [requestId]: message }));
+    };
+
+    setReviewError(null);
     setApprovedYouthCredentials(null);
 
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
-    if (!session?.access_token) {
-      setYouthRequestsError("No se encontró una sesión válida.");
+      if (!session?.access_token) {
+        setReviewError("No se encontró una sesión válida.");
+        return;
+      }
 
-      setReviewingRequestId(null);
-      return;
-    }
+      const response = await fetch(`/api/admin/wards/${wardId}/youth-requests`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          requestId,
+          action,
+        }),
+      });
 
-    const response = await fetch(`/api/admin/wards/${wardId}/youth-requests`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${session.access_token}`,
-      },
-      body: JSON.stringify({
-        requestId,
-        action,
-      }),
-    });
+      const data = await response.json();
 
-    const data = await response.json();
+      if (!response.ok) {
+        console.error("Error revisando solicitud:", data);
 
-    if (!response.ok) {
-      console.error("Error revisando solicitud:", data);
+        setReviewError(data.error ?? "No se pudo revisar la solicitud.");
+        return;
+      }
 
-      setYouthRequestsError(data.error ?? "No se pudo revisar la solicitud.");
-
-      setReviewingRequestId(null);
-      return;
-    }
-
-    setYouthRequests((current) =>
-      current.filter((item) => item.id !== requestId),
-    );
-
-    if (action === "approve") {
-      setYouth((current) =>
-        [...current, data.youth].sort((a, b) =>
-          a.name.localeCompare(b.name, "es", {
-            sensitivity: "base",
-          }),
-        ),
+      setYouthRequests((current) =>
+        current.filter((item) => item.id !== requestId),
       );
 
-      setApprovedYouthCredentials({
-        name: data.youth.name,
-        email: data.youth.email,
-        password: data.temporaryPassword,
-      });
-    }
+      if (action === "approve") {
+        setYouth((current) =>
+          [...current, data.youth].sort((a, b) =>
+            a.name.localeCompare(b.name, "es", {
+              sensitivity: "base",
+            }),
+          ),
+        );
 
-    setReviewingRequestId(null);
+        setApprovedYouthCredentials({
+          name: data.youth.name,
+          email: data.youth.email,
+          password: data.temporaryPassword,
+        });
+      }
+    } catch (error) {
+      console.error("Error revisando solicitud:", error);
+      setReviewError("No se pudo revisar la solicitud. Volvé a intentarlo.");
+    } finally {
+      setReviewingRequestId(null);
+    }
   };
 
   if (loading) {
@@ -782,10 +788,16 @@ export default function AdminWardView({ wardId, onBack }) {
                     )}
                   </div>
 
+                  {reviewErrors[request.id] && (
+                    <p role="alert" className="mt-3 text-sm text-red-600">
+                      {reviewErrors[request.id]}
+                    </p>
+                  )}
+
                   <div className="mt-4 grid grid-cols-2 gap-3">
                     <button
                       type="button"
-                      disabled={reviewingRequestId === request.id}
+                      disabled={reviewingRequestId !== null}
                       onClick={() =>
                         handleReviewYouthRequest(request.id, "reject")
                       }
@@ -802,7 +814,7 @@ export default function AdminWardView({ wardId, onBack }) {
 
                     <button
                       type="button"
-                      disabled={reviewingRequestId === request.id}
+                      disabled={reviewingRequestId !== null}
                       onClick={() =>
                         handleReviewYouthRequest(request.id, "approve")
                       }
