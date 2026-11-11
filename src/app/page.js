@@ -1,9 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import YouthHome from "@/components/youth/youth-home";
-import AvailabilitySaved from "@/components/youth/availability-saved";
-import YouthAssignments from "@/components/youth/youth-assignments";
+import YouthView from "@/components/youth/youth-view";
 import AdvisorView from "@/components/advisor/advisor-view";
 import RoleSelector from "@/components/access/role-selector";
 import AdvisorLogin from "@/components/advisor/advisor-login";
@@ -35,16 +33,6 @@ export default function Page() {
   const [youthLoginLoading, setYouthLoginLoading] = useState(false);
   const [youthLogoutLoading, setYouthLogoutLoading] = useState(false);
   const { profile, loadingProfile, profileError } = useCurrentProfile();
-
-  useEffect(() => {
-    if (loadingYouthSession) {
-      return;
-    }
-
-    if (currentYouth) {
-      setScreen(youthStartScreen === "saved" ? "saved" : "home");
-    }
-  }, [loadingYouthSession, currentYouth, youthStartScreen]);
 
   useEffect(() => {
     const restoreAdvisorScreen = async () => {
@@ -189,11 +177,9 @@ export default function Page() {
     setYouthPassword("");
 
     setYouthLoginLoading(false);
-
-    setScreen(restoredYouth.startScreen);
   };
 
-  if (screen === "role") {
+  if (screen === "role" && !currentYouth) {
     return (
       <PageContainer center>
         <RoleSelector
@@ -378,7 +364,7 @@ export default function Page() {
     );
   }
 
-  if (screen === "youth-login") {
+  if (screen === "youth-login" && !currentYouth) {
     return (
       <PageContainer center>
         <YouthLogin
@@ -400,57 +386,36 @@ export default function Page() {
     );
   }
 
-  if (screen === "saved") {
-    return (
-      <PageContainer center>
-        <AvailabilitySaved
-          currentYouth={currentYouth}
-          onEdit={() => setScreen("home")}
-          onViewAssignments={() => setScreen("assignments")}
-        />
-      </PageContainer>
-    );
-  }
-
-  if (screen === "assignments") {
-    return (
-      <PageContainer center>
-        <YouthAssignments
-          currentYouth={currentYouth}
-          onBack={() => setScreen("home")}
-        />
-      </PageContainer>
-    );
+  if (!currentYouth) {
+    return null;
   }
 
   return (
-    <PageContainer center>
-      <YouthHome
-        currentYouth={currentYouth}
-        onSave={() => setScreen("saved")}
-        onViewAssignments={() => setScreen("assignments")}
-        onChangeYouth={async () => {
-          setYouthLogoutLoading(true);
+    <YouthView
+      key={currentYouth.id}
+      currentYouth={currentYouth}
+      initialView={youthStartScreen === "saved" ? "saved" : "home"}
+      onLogout={async () => {
+        setYouthLogoutLoading(true);
 
-          const { error } = await supabase.auth.signOut({
-            scope: "local",
-          });
+        const { error } = await supabase.auth.signOut({
+          scope: "local",
+        });
 
-          if (error) {
-            console.error("Error cerrando sesión del joven:", error);
-
-            setYouthLogoutLoading(false);
-            return;
-          }
-
-          clearYouth();
+        if (error) {
+          console.error("Error cerrando sesión del joven:", error);
 
           setYouthLogoutLoading(false);
+          return;
+        }
 
-          setScreen("role");
-        }}
-        logoutLoading={youthLogoutLoading}
-      />
-    </PageContainer>
+        clearYouth();
+
+        setYouthLogoutLoading(false);
+
+        setScreen("role");
+      }}
+      logoutLoading={youthLogoutLoading}
+    />
   );
 }
