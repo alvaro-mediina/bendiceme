@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { supabase } from "@/lib/supabase";
@@ -16,8 +16,20 @@ export default function useNextAssignment(currentYouth) {
 
   const [errorMessage, setErrorMessage] = useState(null);
 
+  const refreshAssignmentRef = useRef(null);
+
   useEffect(() => {
-    const loadAssignment = async () => {
+    let active = true;
+    let requestId = 0;
+
+    const loadAssignment = async ({ showLoading = false } = {}) => {
+      const currentRequestId = ++requestId;
+
+      if (showLoading) {
+        setLoading(true);
+        setAssignment(null);
+        setErrorMessage(null);
+      }
       const today = new Date();
 
       const currentDate = [
@@ -41,6 +53,10 @@ export default function useNextAssignment(currentYouth) {
         .eq("youth_id", currentYouth.id)
         .in("status", ["pending", "confirmed", "declined"]);
 
+      if (!active || currentRequestId !== requestId) {
+        return;
+      }
+
       if (error) {
         console.error(error);
 
@@ -53,12 +69,35 @@ export default function useNextAssignment(currentYouth) {
         const nextAssignment = futureAssignments[0] ?? null;
 
         setAssignment(nextAssignment);
+        setErrorMessage(null);
       }
 
       setLoading(false);
     };
 
-    loadAssignment();
+    refreshAssignmentRef.current = loadAssignment;
+    loadAssignment({ showLoading: true });
+
+    // DELETE events cannot be filtered reliably, and reassignment updates
+    // may no longer match this youth. Always refetch the scoped query.
+    const channel = supabase
+      .channel(`youth-next-assignment-${currentYouth.ward_id}-${currentYouth.id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "assignments" },
+        () => loadAssignment(),
+      )
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") {
+          loadAssignment();
+        }
+      });
+
+    return () => {
+      active = false;
+      refreshAssignmentRef.current = null;
+      supabase.removeChannel(channel);
+    };
   }, [currentYouth.id, currentYouth.ward_id]);
 
   const updateStatus = async (newStatus) => {
@@ -69,7 +108,7 @@ export default function useNextAssignment(currentYouth) {
     setUpdating(true);
     setErrorMessage(null);
 
-    const { data, error: assignmentError } = await supabase
+    const { error: assignmentError } = await supabase
       .from("assignments")
       .update({
         status: newStatus,
@@ -96,6 +135,8 @@ export default function useNextAssignment(currentYouth) {
 
       return;
     }
+
+    await refreshAssignmentRef.current?.();
 
     if (newStatus === "declined") {
       const { error: availabilityError } = await supabase
@@ -144,7 +185,6 @@ export default function useNextAssignment(currentYouth) {
       }
     }
 
-    setAssignment(data);
     setUpdating(false);
 
     if (newStatus === "confirmed") {

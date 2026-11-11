@@ -9,13 +9,21 @@ export default function useConfirmedTeam(assignment) {
   const [loadingTeam, setLoadingTeam] = useState(false);
 
   useEffect(() => {
-    const loadConfirmedTeam = async () => {
+    let active = true;
+    let requestId = 0;
+
+    const loadConfirmedTeam = async ({ showLoading = false } = {}) => {
+      const currentRequestId = ++requestId;
       if (!assignment?.sunday_id) {
         setConfirmedTeam([]);
+        setLoadingTeam(false);
         return;
       }
 
-      setLoadingTeam(true);
+      if (showLoading) {
+        setConfirmedTeam([]);
+        setLoadingTeam(true);
+      }
 
       const { data, error } = await supabase
         .from("assignments")
@@ -36,10 +44,13 @@ export default function useConfirmedTeam(assignment) {
         .eq("sunday_id", assignment.sunday_id)
         .eq("status", "confirmed");
 
+      if (!active || currentRequestId !== requestId) {
+        return;
+      }
+
       if (error) {
         console.error("Error cargando equipo confirmado:", error);
 
-        setConfirmedTeam([]);
         setLoadingTeam(false);
         return;
       }
@@ -49,8 +60,34 @@ export default function useConfirmedTeam(assignment) {
       setLoadingTeam(false);
     };
 
-    loadConfirmedTeam();
-  }, [assignment?.ward_id, assignment?.sunday_id, assignment?.status]);
+    loadConfirmedTeam({ showLoading: true });
+
+    if (!assignment?.ward_id || !assignment?.sunday_id) {
+      return () => {
+        active = false;
+      };
+    }
+
+    // Refetch rather than applying payloads: the query includes youth data,
+    // and deleted or moved assignments may not include the original scope.
+    const channel = supabase
+      .channel(`youth-confirmed-team-${assignment.ward_id}-${assignment.sunday_id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "assignments" },
+        () => loadConfirmedTeam(),
+      )
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") {
+          loadConfirmedTeam();
+        }
+      });
+
+    return () => {
+      active = false;
+      supabase.removeChannel(channel);
+    };
+  }, [assignment?.ward_id, assignment?.sunday_id]);
 
   const blessingTeam = useMemo(
     () => confirmedTeam.filter((member) => member.role === "bless"),
