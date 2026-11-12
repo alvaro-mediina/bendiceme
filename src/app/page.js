@@ -6,6 +6,7 @@ import AdvisorView from "@/components/advisor/advisor-view";
 import RoleSelector from "@/components/access/role-selector";
 import AdvisorLogin from "@/components/advisor/advisor-login";
 import useCurrentYouth from "@/hooks/use-current-youth";
+import useYouthNextSunday from "@/hooks/use-youth-next-sunday";
 import PageContainer from "@/components/layout/page-container";
 import useCurrentProfile from "@/hooks/use-current-profile";
 import YouthLogin from "@/components/youth/youth-login";
@@ -33,6 +34,7 @@ export default function Page() {
   const [youthLoginLoading, setYouthLoginLoading] = useState(false);
   const [youthLogoutLoading, setYouthLogoutLoading] = useState(false);
   const { profile, loadingProfile, profileError } = useCurrentProfile();
+  const nextSundaySummary = useYouthNextSunday(currentYouth);
 
   useEffect(() => {
     const restoreAdvisorScreen = async () => {
@@ -64,7 +66,11 @@ export default function Page() {
     return <MaintenanceScreen />;
   }
 
-  if (loadingYouthSession || checkingAdvisorSession) {
+  if (
+    loadingYouthSession ||
+    checkingAdvisorSession ||
+    (currentYouth && nextSundaySummary.loading)
+  ) {
     return (
       <main
         className="
@@ -394,6 +400,7 @@ export default function Page() {
     <YouthView
       key={currentYouth.id}
       currentYouth={currentYouth}
+      nextSundaySummary={nextSundaySummary}
       initialView={youthStartScreen === "saved" ? "saved" : "home"}
       onLogout={async () => {
         setYouthLogoutLoading(true);

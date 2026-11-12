@@ -21,17 +21,20 @@ async function synchronizeSundays(dates) {
   if (!response.ok) throw new Error(data.error ?? "No se pudieron cargar los domingos.");
 }
 
+const emptySummary = { nextSunday: null, assignment: null, classes: [] };
+
 export default function useYouthNextSunday(currentYouth) {
-  const [summary, setSummary] = useState({
-    nextSunday: null,
-    assignment: null,
-    classes: [],
-  });
-  const [loading, setLoading] = useState(true);
+  const youthId = currentYouth?.id;
+  const wardId = currentYouth?.ward_id;
+  const profileKey = youthId && wardId ? JSON.stringify([wardId, youthId]) : null;
+  const [summary, setSummary] = useState(emptySummary);
+  const [loadedProfile, setLoadedProfile] = useState(null);
   const [error, setError] = useState(null);
   const [retry, setRetry] = useState(0);
 
   useEffect(() => {
+    if (!youthId || !wardId) return;
+
     let active = true;
     let requestId = 0;
     let syncedDates = "";
@@ -63,7 +66,7 @@ export default function useYouthNextSunday(currentYouth) {
         const { data: sundays, error: sundayError } = await supabase
           .from("sundays")
           .select("id, date, active, enabled")
-          .eq("ward_id", currentYouth.ward_id)
+          .eq("ward_id", wardId)
           .in("date", dates)
           .order("date");
         if (sundayError) throw sundayError;
@@ -79,15 +82,15 @@ export default function useYouthNextSunday(currentYouth) {
             supabase
               .from("assignments")
               .select("id, role, prepares, status")
-              .eq("ward_id", currentYouth.ward_id)
-              .eq("youth_id", currentYouth.id)
+              .eq("ward_id", wardId)
+              .eq("youth_id", youthId)
               .eq("sunday_id", nextSunday.id)
               .in("status", ["pending", "confirmed"])
               .maybeSingle(),
             supabase
               .from("sunday_school_classes")
               .select("id, date, topic, teacher_name, teacher_youth_id")
-              .eq("ward_id", currentYouth.ward_id)
+              .eq("ward_id", wardId)
               .eq("date", nextSunday.date)
               .order("id"),
           ]);
@@ -104,16 +107,17 @@ export default function useYouthNextSunday(currentYouth) {
       } catch (error) {
         if (active && currentRequest === requestId) {
           console.error("Error cargando próximo domingo del joven:", error);
+          setSummary(emptySummary);
           setError("No se pudo cargar tu próximo domingo.");
         }
       } finally {
-        if (active && currentRequest === requestId) setLoading(false);
+        if (active && currentRequest === requestId) setLoadedProfile(profileKey);
       }
     };
 
     loadSummary();
     const channel = supabase
-      .channel(`youth-next-sunday-${currentYouth.ward_id}-${currentYouth.id}`)
+      .channel(`youth-next-sunday-${wardId}-${youthId}`)
       .on("postgres_changes", {
         event: "*", schema: "public", table: "assignments",
       }, loadSummary)
@@ -133,12 +137,12 @@ export default function useYouthNextSunday(currentYouth) {
       supabase.removeChannel(channel);
       document.removeEventListener("visibilitychange", handleVisibility);
     };
-  }, [currentYouth.id, currentYouth.ward_id, retry]);
+  }, [youthId, wardId, profileKey, retry]);
 
   return {
-    ...summary,
-    loading,
-    error,
+    ...(loadedProfile === profileKey ? summary : emptySummary),
+    loading: Boolean(profileKey && loadedProfile !== profileKey),
+    error: loadedProfile === profileKey ? error : null,
     reload: () => setRetry((current) => current + 1),
   };
 }

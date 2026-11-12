@@ -11,7 +11,6 @@ import YouthAssignments from "./youth-assignments";
 import YouthHome from "./youth-home";
 import YouthMore from "./youth-more";
 import YouthNextSundayCard from "./youth-next-sunday-card";
-import useYouthNextSunday from "@/hooks/use-youth-next-sunday";
 
 const navigation = [
   { id: "home", label: "Inicio", icon: Home },
@@ -34,6 +33,7 @@ const navigation = [
 
 export default function YouthView({
   currentYouth,
+  nextSundaySummary,
   initialView,
   onLogout,
   logoutLoading,
@@ -48,8 +48,6 @@ export default function YouthView({
     return initialView;
   });
   const [mountedViews, setMountedViews] = useState(() => new Set([activeView]));
-  const nextSundaySummary = useYouthNextSunday(currentYouth);
-
   const changeView = (view) => {
     setMountedViews((current) => {
       if (current.has(view)) {

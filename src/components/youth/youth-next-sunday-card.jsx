@@ -8,7 +8,6 @@ export default function YouthNextSundayCard({
   nextSunday,
   assignment,
   classes,
-  loading,
   error,
   onRetry,
   currentYouthId,
@@ -18,16 +17,7 @@ export default function YouthNextSundayCard({
       <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
         Próximo Domingo
       </p>
-      {loading ? (
-        <div
-          aria-label="Cargando próximo domingo"
-          className="mt-4 flex min-h-[300px] flex-col justify-end rounded-[28px] border p-6"
-        >
-          <div className="h-8 w-3/4 rounded skeleton-shimmer" />
-          <div className="mt-4 h-4 w-1/2 rounded skeleton-shimmer" />
-          <div className="mt-3 h-5 w-2/3 rounded skeleton-shimmer" />
-        </div>
-      ) : error ? (
+      {error ? (
         <div
           role="alert"
           className="mt-4 rounded-[28px] border border-red-200 bg-red-50 p-5 text-sm text-red-700"
