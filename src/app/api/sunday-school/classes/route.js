@@ -1,6 +1,8 @@
 import { createClient } from "@supabase/supabase-js";
+import { after } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { getVisibleSundays } from "@/lib/sundays";
+import { notifySundaySchoolAssignment } from "@/lib/sunday-school-assignment-notifications";
 
 const fields = "id, ward_id, date, topic, teacher_name, teacher_youth_id";
 
@@ -186,6 +188,24 @@ async function saveClass(request, editing) {
       return Response.json({ error: "Clase inválida." }, { status: 400 });
     }
 
+    let previousTeacherId = null;
+    if (editing) {
+      const { data: previousClass, error: previousClassError } = await supabaseAdmin
+        .from("sunday_school_classes")
+        .select("teacher_youth_id")
+        .eq("id", body.id)
+        .eq("ward_id", access.wardId)
+        .maybeSingle();
+      if (previousClassError) throw previousClassError;
+      if (!previousClass) {
+        return Response.json(
+          { error: "No se encontró la clase en tu barrio." },
+          { status: 404 },
+        );
+      }
+      previousTeacherId = previousClass.teacher_youth_id;
+    }
+
     const { data: teacher, error: teacherError } = await supabaseAdmin
       .from("youth")
       .select("id, name")
@@ -228,6 +248,20 @@ async function saveClass(request, editing) {
     const { data, error } = result;
     if (error) throw error;
     if (!data) return Response.json({ error: "No se encontró la clase en tu barrio." }, { status: 404 });
+
+    if (!editing || String(previousTeacherId) !== String(data.teacher_youth_id)) {
+      after(async () => {
+        try {
+          await notifySundaySchoolAssignment({
+            classId: data.id,
+            wardId: access.wardId,
+            youthId: data.teacher_youth_id,
+          });
+        } catch (error) {
+          console.error("No se pudo notificar la clase asignada:", error.message);
+        }
+      });
+    }
 
     return Response.json({ class: data }, { status: editing ? 200 : 201 });
   } catch (error) {
