@@ -3,13 +3,19 @@
 import { useState } from "react";
 import { BookOpen, Pencil, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import useSundaySchoolClasses from "@/hooks/use-sunday-school-classes";
 import { formatSunday, getVisibleSundays } from "@/lib/sundays";
 import ClassPreparation from "./class-preparation";
 
 const emptyClass = { date: "", topic: "", teacherYouthId: "" };
-const inputClassName = "mt-2 w-full rounded-xl border bg-background px-3 py-2 text-base";
+const inputClassName =
+  "mt-2 w-full rounded-xl border bg-background px-3 py-2 text-base";
 
 export default function SundaySchoolView({ wardId, canEdit = false }) {
   const {
@@ -31,8 +37,14 @@ export default function SundaySchoolView({ wardId, canEdit = false }) {
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState(null);
   const now = new Date();
-  const today = [now.getFullYear(), String(now.getMonth() + 1).padStart(2, "0"), String(now.getDate()).padStart(2, "0")].join("-");
-  const visibleClasses = canEdit ? classes : classes.filter((item) => item.date >= today);
+  const today = [
+    now.getFullYear(),
+    String(now.getMonth() + 1).padStart(2, "0"),
+    String(now.getDate()).padStart(2, "0"),
+  ].join("-");
+  const visibleClasses = canEdit
+    ? classes
+    : classes.filter((item) => item.date >= today);
   const { dates: availableSundays } = getVisibleSundays(
     new Date(),
     "America/Argentina/Cordoba",
@@ -42,18 +54,27 @@ export default function SundaySchoolView({ wardId, canEdit = false }) {
     const classToEdit = item ? getClassForEditing(item.id) : null;
     if (item && !classToEdit) return;
 
-    setValues(classToEdit ? {
-      id: classToEdit.id,
-      date: availableSundays.includes(classToEdit.date) ? classToEdit.date : "",
-      topic: classToEdit.topic,
-      teacherYouthId: teachers.some((teacher) => String(teacher.id) === String(classToEdit.teacher_youth_id))
-        ? String(classToEdit.teacher_youth_id)
-        : "",
-      aids: {
-        scriptures: classToEdit.aids?.scriptures ?? "",
-        keyTips: classToEdit.aids?.keyTips ?? "",
-      },
-    } : emptyClass);
+    setValues(
+      classToEdit
+        ? {
+            id: classToEdit.id,
+            date: availableSundays.includes(classToEdit.date)
+              ? classToEdit.date
+              : "",
+            topic: classToEdit.topic,
+            teacherYouthId: teachers.some(
+              (teacher) =>
+                String(teacher.id) === String(classToEdit.teacher_youth_id),
+            )
+              ? String(classToEdit.teacher_youth_id)
+              : "",
+            aids: {
+              scriptures: classToEdit.aids?.scriptures ?? "",
+              keyTips: classToEdit.aids?.keyTips ?? "",
+            },
+          }
+        : emptyClass,
+    );
     setSaveError(null);
     setFormOpen(true);
   };
@@ -61,12 +82,17 @@ export default function SundaySchoolView({ wardId, canEdit = false }) {
   const submit = async (event) => {
     event.preventDefault();
     if (saving) return;
-    const { dates } = getVisibleSundays(new Date(), "America/Argentina/Cordoba");
+    const { dates } = getVisibleSundays(
+      new Date(),
+      "America/Argentina/Cordoba",
+    );
     if (!dates.includes(values.date)) {
       setSaveError("Seleccioná uno de los domingos disponibles.");
       return;
     }
-    if (!teachers.some((teacher) => String(teacher.id) === values.teacherYouthId)) {
+    if (
+      !teachers.some((teacher) => String(teacher.id) === values.teacherYouthId)
+    ) {
       setSaveError("Seleccioná un joven de tu barrio como maestro.");
       return;
     }
@@ -99,25 +125,44 @@ export default function SundaySchoolView({ wardId, canEdit = false }) {
   return (
     <section>
       <header>
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-green-600">Clases de tu barrio</p>
-        <h1 className="mt-1 text-3xl font-semibold tracking-tight text-slate-900">Escuela Dominical</h1>
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-green-600">
+          Clases de tu barrio
+        </p>
+        <h1 className="mt-1 text-3xl font-semibold tracking-tight text-slate-900">
+          Clases de Quorum
+        </h1>
       </header>
 
       {canEdit && (
-        <Button className="mt-6 h-12 w-full rounded-2xl bg-green-600 px-4 text-base font-semibold text-white hover:bg-green-700" onClick={() => openForm()}>
+        <Button
+          className="mt-6 h-12 w-full rounded-2xl bg-green-600 px-4 text-base font-semibold text-white hover:bg-green-700"
+          onClick={() => openForm()}
+        >
           <Plus className="size-4" /> Nueva clase
         </Button>
       )}
 
       {error && (
-        <div role="alert" className="mt-6 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-600">
+        <div
+          role="alert"
+          className="mt-6 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-600"
+        >
           <p>{error}</p>
-          <button type="button" onClick={refresh} className="mt-2 font-semibold underline">Volver a intentar</button>
+          <button
+            type="button"
+            onClick={refresh}
+            className="mt-2 font-semibold underline"
+          >
+            Volver a intentar
+          </button>
         </div>
       )}
 
       {loading ? (
-        <div aria-label="Cargando clases" className="mt-6 rounded-2xl border p-5">
+        <div
+          aria-label="Cargando clases"
+          className="mt-6 rounded-2xl border p-5"
+        >
           <div className="h-4 w-40 rounded skeleton-shimmer" />
           <div className="mt-3 h-6 w-3/4 rounded skeleton-shimmer" />
           <div className="mt-3 h-4 w-1/2 rounded skeleton-shimmer" />
@@ -145,7 +190,9 @@ export default function SundaySchoolView({ wardId, canEdit = false }) {
                   })
                   .replace(/^./, (letter) => letter.toUpperCase())}
               </p>
-              <h2 className="mt-2 break-words text-lg font-semibold">{item.topic}</h2>
+              <h2 className="mt-2 break-words text-lg font-semibold">
+                {item.topic}
+              </h2>
               {!item.isAssignedToMe && (
                 <p className="mt-2 break-words text-sm text-muted-foreground">
                   La clase la da {item.teacher_name}
@@ -178,13 +225,17 @@ export default function SundaySchoolView({ wardId, canEdit = false }) {
             </article>
           ))}
         </div>
-      ) : !error && (
-        <div className="mt-6 rounded-2xl border border-dashed p-6 text-center">
-          <BookOpen className="mx-auto size-7 text-green-700" />
-          <p className="mt-3 text-sm text-muted-foreground">
-            {canEdit ? "Todavía no hay clases publicadas. Creá la primera clase de tu barrio." : "Todavía no hay próximas clases publicadas."}
-          </p>
-        </div>
+      ) : (
+        !error && (
+          <div className="mt-6 rounded-2xl border border-dashed p-6 text-center">
+            <BookOpen className="mx-auto size-7 text-green-700" />
+            <p className="mt-3 text-sm text-muted-foreground">
+              {canEdit
+                ? "Todavía no hay clases publicadas. Creá la primera clase de tu barrio."
+                : "Todavía no hay próximas clases publicadas."}
+            </p>
+          </div>
+        )
       )}
 
       {canEdit && (
@@ -198,20 +249,27 @@ export default function SundaySchoolView({ wardId, canEdit = false }) {
             side="bottom"
             className="max-h-[85dvh] overflow-y-auto rounded-t-[28px] p-5 sm:mx-auto sm:max-w-xl"
           >
-            <SheetTitle className="text-2xl font-semibold">Eliminar clase</SheetTitle>
+            <SheetTitle className="text-2xl font-semibold">
+              Eliminar clase
+            </SheetTitle>
             <SheetDescription>
-              Esta acción elimina la clase para todos los jóvenes de tu barrio y no se puede deshacer.
+              Esta acción elimina la clase para todos los jóvenes de tu barrio y
+              no se puede deshacer.
             </SheetDescription>
             {classToDelete && (
               <div className="mt-4 rounded-2xl border p-4">
-                <p className="break-words font-semibold">{classToDelete.topic}</p>
+                <p className="break-words font-semibold">
+                  {classToDelete.topic}
+                </p>
                 <p className="mt-1 text-sm text-muted-foreground">
                   {formatSunday(classToDelete.date)}
                 </p>
               </div>
             )}
             {deleteError && (
-              <p role="alert" className="mt-3 text-sm text-red-600">{deleteError}</p>
+              <p role="alert" className="mt-3 text-sm text-red-600">
+                {deleteError}
+              </p>
             )}
             <div className="mt-5 grid grid-cols-2 gap-3">
               <Button
@@ -236,10 +294,23 @@ export default function SundaySchoolView({ wardId, canEdit = false }) {
       )}
 
       {canEdit && (
-        <Sheet open={formOpen} onOpenChange={(open) => { if (!saving) setFormOpen(open); }}>
-          <SheetContent side="bottom" className="max-h-[85dvh] overflow-y-auto rounded-t-[28px] p-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-auto sm:max-w-xl">
-            <SheetTitle className="text-2xl font-semibold">{values.id ? "Editar clase" : "Nueva clase"}</SheetTitle>
-            <SheetDescription>Publicá la fecha, el tema y el maestro para los jóvenes de tu barrio.</SheetDescription>
+        <Sheet
+          open={formOpen}
+          onOpenChange={(open) => {
+            if (!saving) setFormOpen(open);
+          }}
+        >
+          <SheetContent
+            side="bottom"
+            className="max-h-[85dvh] overflow-y-auto rounded-t-[28px] p-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-auto sm:max-w-xl"
+          >
+            <SheetTitle className="text-2xl font-semibold">
+              {values.id ? "Editar clase" : "Nueva clase"}
+            </SheetTitle>
+            <SheetDescription>
+              Publicá la fecha, el tema y el maestro para los jóvenes de tu
+              barrio.
+            </SheetDescription>
             <form onSubmit={submit} className="mt-5 space-y-4">
               <fieldset disabled={saving} className="space-y-4">
                 <label className="block text-sm font-medium">
@@ -249,7 +320,10 @@ export default function SundaySchoolView({ wardId, canEdit = false }) {
                     disabled={availableSundays.length === 0}
                     value={values.date}
                     onChange={(event) => {
-                      setValues((current) => ({ ...current, date: event.target.value }));
+                      setValues((current) => ({
+                        ...current,
+                        date: event.target.value,
+                      }));
                       setSaveError(null);
                     }}
                     className={inputClassName}
@@ -264,7 +338,15 @@ export default function SundaySchoolView({ wardId, canEdit = false }) {
                 </label>
                 <label className="block text-sm font-medium">
                   Tema
-                  <input required maxLength={200} value={values.topic} onChange={(event) => setValues({ ...values, topic: event.target.value })} className={inputClassName} />
+                  <input
+                    required
+                    maxLength={200}
+                    value={values.topic}
+                    onChange={(event) =>
+                      setValues({ ...values, topic: event.target.value })
+                    }
+                    className={inputClassName}
+                  />
                 </label>
                 <label className="block text-sm font-medium">
                   Maestro
@@ -273,7 +355,10 @@ export default function SundaySchoolView({ wardId, canEdit = false }) {
                     disabled={loading || teachers.length === 0}
                     value={values.teacherYouthId}
                     onChange={(event) => {
-                      setValues((current) => ({ ...current, teacherYouthId: event.target.value }));
+                      setValues((current) => ({
+                        ...current,
+                        teacherYouthId: event.target.value,
+                      }));
                       setSaveError(null);
                     }}
                     className={inputClassName}
@@ -283,7 +368,8 @@ export default function SundaySchoolView({ wardId, canEdit = false }) {
                     </option>
                     {teachers.map((teacher) => (
                       <option key={teacher.id} value={String(teacher.id)}>
-                        {teacher.name}{teacher.active === false ? " (inactivo)" : ""}
+                        {teacher.name}
+                        {teacher.active === false ? " (inactivo)" : ""}
                       </option>
                     ))}
                   </select>
@@ -291,9 +377,12 @@ export default function SundaySchoolView({ wardId, canEdit = false }) {
                 {values.id && (
                   <section className="space-y-4 border-t pt-5">
                     <div>
-                      <h2 className="text-base font-semibold">Ayudas para preparar la clase</h2>
+                      <h2 className="text-base font-semibold">
+                        Ayudas para preparar la clase
+                      </h2>
                       <p className="mt-1 text-sm text-muted-foreground">
-                        Sólo el joven asignado y los asesores de su barrio pueden ver estas ayudas.
+                        Sólo el joven asignado y los asesores de su barrio
+                        pueden ver estas ayudas.
                       </p>
                     </div>
                     <label className="block text-sm font-medium">
@@ -302,10 +391,15 @@ export default function SundaySchoolView({ wardId, canEdit = false }) {
                         rows={4}
                         maxLength={4000}
                         value={values.aids.scriptures}
-                        onChange={(event) => setValues((current) => ({
-                          ...current,
-                          aids: { ...current.aids, scriptures: event.target.value },
-                        }))}
+                        onChange={(event) =>
+                          setValues((current) => ({
+                            ...current,
+                            aids: {
+                              ...current.aids,
+                              scriptures: event.target.value,
+                            },
+                          }))
+                        }
                         className={`${inputClassName} min-h-28 resize-y`}
                       />
                     </label>
@@ -315,10 +409,15 @@ export default function SundaySchoolView({ wardId, canEdit = false }) {
                         rows={5}
                         maxLength={8000}
                         value={values.aids.keyTips}
-                        onChange={(event) => setValues((current) => ({
-                          ...current,
-                          aids: { ...current.aids, keyTips: event.target.value },
-                        }))}
+                        onChange={(event) =>
+                          setValues((current) => ({
+                            ...current,
+                            aids: {
+                              ...current.aids,
+                              keyTips: event.target.value,
+                            },
+                          }))
+                        }
                         className={`${inputClassName} min-h-32 resize-y`}
                       />
                     </label>
@@ -327,11 +426,20 @@ export default function SundaySchoolView({ wardId, canEdit = false }) {
               </fieldset>
               {!loading && !error && teachers.length === 0 && (
                 <p className="text-sm text-muted-foreground">
-                  No hay jóvenes registrados en tu barrio. Agregá un joven para asignarlo como maestro.
+                  No hay jóvenes registrados en tu barrio. Agregá un joven para
+                  asignarlo como maestro.
                 </p>
               )}
-              {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
-              {saveError && <p role="alert" className="text-sm text-red-600">{saveError}</p>}
+              {error && (
+                <p role="alert" className="text-sm text-red-600">
+                  {error}
+                </p>
+              )}
+              {saveError && (
+                <p role="alert" className="text-sm text-red-600">
+                  {saveError}
+                </p>
+              )}
               <div className="grid grid-cols-2 gap-3">
                 <Button
                   type="button"
@@ -344,10 +452,16 @@ export default function SundaySchoolView({ wardId, canEdit = false }) {
                 </Button>
                 <Button
                   type="submit"
-                  disabled={saving || loading || Boolean(error) || teachers.length === 0}
+                  disabled={
+                    saving || loading || Boolean(error) || teachers.length === 0
+                  }
                   className="h-12 w-full rounded-2xl bg-green-600 px-2 text-sm font-semibold text-white hover:bg-green-700"
                 >
-                  {saving ? "Guardando..." : values.id ? "Guardar cambios" : "Publicar clase"}
+                  {saving
+                    ? "Guardando..."
+                    : values.id
+                      ? "Guardar cambios"
+                      : "Publicar clase"}
                 </Button>
               </div>
             </form>

@@ -23,7 +23,7 @@ const navigation = [
   },
   {
     id: "school",
-    label: "Escuela Dominical",
+    label: "Clases de Quorum",
     icon: BookOpen,
     image: "/images/youth/dominical.png",
     description: "Consultá las clases de escuela dominical.",

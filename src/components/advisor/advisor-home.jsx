@@ -323,7 +323,7 @@ export default function AdvisorHome({
             <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/30 to-transparent" />
             <div className="relative flex min-h-[190px] flex-col justify-end p-4 text-white sm:min-h-[220px] sm:p-5 lg:min-h-[290px]">
               <p className="text-lg font-extrabold tracking-tight sm:text-xl lg:text-2xl">
-                Escuela Dominical
+                Clases de Quorum
               </p>
               <p className="mt-1 text-sm text-white/85">
                 Organizar las clases del barrio

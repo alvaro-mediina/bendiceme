@@ -80,7 +80,7 @@ export default function YouthNextSundayCard({
                 <div className="min-w-0 space-y-3 border-t border-white/25 pt-4 sm:border-l sm:border-t-0 sm:pl-4 sm:pt-0">
                   <h3 className="flex items-center gap-2 text-sm font-semibold text-green-100">
                     <BookOpen className="size-4 shrink-0" />
-                    Escuela Dominical
+                    Clases de Quorum
                   </h3>
                   {classes.map((item) => (
                     <div key={item.id}>
